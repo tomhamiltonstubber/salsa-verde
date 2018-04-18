@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="icon" type="image/png" href="/static/img/favicon.png" sizes="16x16">
+  <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="viewport" content="width=device-width">
+  <meta name="description" content="{{ site.description }}">
+  {% if site.meta_author %}<meta name="author" content="{{ site.meta_author }}">{% endif %}
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <body id="page-top" class="index">
+    <div id="page-header"><h1>{{ title }}</h1>{% block nav %}{% endblock %}</div>
+    <div id="content">
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+  <footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </footer>
+</html>

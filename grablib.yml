@@ -1,0 +1,20 @@
+download_root: static/libs
+download:
+  'https://github.com/twbs/bootstrap-sass/archive/v3.3.7.zip':
+    'bootstrap-sass-3.3.7/assets/(fonts/bootstrap/.+)': ''
+    'bootstrap-sass-3.3.7/assets/javascripts/bootstrap/.*': null
+    'bootstrap-sass-3.3.7/assets/images/.*': null
+    'bootstrap-sass-3.3.7/assets/(.+)$': 'bootstrap-sass/'
+
+  'https://github.com/FortAwesome/font-awesome-sass/archive/4.7.0.zip':
+    'font-awesome-sass-4.7.0/assets/(fonts/font-awesome/.+)': ''
+    'font-awesome-sass-4.7.0/assets/(.+)$': 'font-awesome-sass/'
+
+
+build_root: static/
+debug: true
+build:
+  wipe: '^css/.*'
+  sass:
+    css:
+      src: 'static/scss'

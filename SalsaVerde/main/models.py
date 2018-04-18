@@ -68,6 +68,7 @@ class User(AddressMixin, AbstractUser):
                                                   related_name='doc_sip')
     training_record = models.ForeignKey(Document, null=True, blank=True, on_delete=models.SET_NULL,
                                         related_name='doc_tr')
+    last_logged_in = models.DateTimeField('Last Logged in', default=timezone.now)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
