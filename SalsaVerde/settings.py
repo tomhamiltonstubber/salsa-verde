@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'django_extensions',
+    'bootstrapform_jinja',
 
     'SalsaVerde.main',
 ]
@@ -58,8 +60,16 @@ ROOT_URLCONF = 'SalsaVerde.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        "BACKEND": "django_jinja.backend.Jinja2",
+        "APP_DIRS": True,
         'DIRS': ['templates'],
+        "OPTIONS": {
+            "match_extension": ".jinja",
+        }
+    },
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -4,13 +4,13 @@ from django.contrib.auth.views import LoginView
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import TemplateView
 
-from SalsaVerde.main.models import User
+from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
+from SalsaVerde.main.models import User, Document, Ingredient, Supplier
 
 
 class Login(LoginView):
-    template_name = 'login.html'
+    template_name = 'login.jinja'
     title = 'Login'
     form_class = AuthenticationForm
     redirect_authenticated_user = True
@@ -31,35 +31,12 @@ def update_user_history(sender, user, **kwargs):
     user.save()
 
 
-class BasicView(TemplateView):
-    title = None
-
-    def get_context_data(self, **kwargs):
-        nav_links = [reverse(l) for l in ['users']]
-        return super().get_context_data(nav_links=nav_links, title=self.title, **kwargs)
-
-
 class Index(BasicView):
-    template_name = 'auth.html'
+    template_name = 'auth.jinja'
     title = 'Dashboard'
 
 
 dashboard = Index.as_view()
-
-
-class ListView(BasicView):
-    model = None
-    display_items = None
-    template_name = 'list_view.html'
-
-    def get_field_names(self):
-        return [self.model._meta.get_field(f).verbose_name for f in self.display_items]
-
-    def get_items(self):
-        return self.model.objects.values_list(*self.display_items)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(field_names=self.get_field_names(), items=self.get_items(), **kwargs)
 
 
 class UserList(ListView):
@@ -73,3 +50,94 @@ class UserList(ListView):
 
 
 user_list = UserList.as_view()
+
+
+class UserDetails(DetailView):
+    model = User
+    display_items = [
+        'email',
+        'first_name',
+        'last_name',
+        'last_logged_in',
+    ]
+
+    def get_context_data(self, **kwargs):
+        kwargs.update(
+            authored_doc_qs=Document.objects.filter(author=self.object),
+            focussed_doc_qs=Document.objects.filter(focus=self.object),
+        )
+        return super().get_context_data(**kwargs)
+
+
+user_details = UserDetails.as_view()
+
+
+class UserAdd(AddModelView):
+    model = User
+
+
+user_add = UserAdd.as_view()
+
+
+class UserEdit(UpdateModelView):
+    model = User
+
+
+user_edit = UserEdit.as_view()
+
+
+class SupplierList(ListView):
+    model = Supplier
+    display_items = [
+        'name',
+        'street',
+        'town',
+        'main_contact',
+        'postcode',
+        'phone',
+        'email',
+    ]
+
+
+supplier_list = SupplierList.as_view()
+
+
+class SupplierDetails(DetailView):
+    model = Supplier
+    display_items = [
+        'name',
+        'street',
+        'town',
+        'country',
+        'postcode',
+        'phone',
+        'email',
+    ]
+
+
+supplier_details = SupplierDetails.as_view()
+
+
+class SupplierAdd(AddModelView):
+    model = Supplier
+
+
+supplier_add = SupplierAdd.as_view()
+
+
+class SupplierEdit(UpdateModelView):
+    model = Supplier
+
+
+supplier_edit = SupplierEdit.as_view()
+
+
+class IngredientList(ListView):
+    model = Ingredient
+    display_items = [
+        'ingredient_type',
+        'batch_code',
+        'intake_date',
+        'supplier',
+    ]
+

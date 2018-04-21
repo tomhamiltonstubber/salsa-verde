@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'base.jinja' %}
 
-{% block content %}
+{% block body %}
   <div class="row">
     <div id="login-block" class="text-center">
       <div>
@@ -8,9 +8,8 @@
         <form method="post">
           {% csrf_token %}
           <div id="login-form">
-            {{ form.username }}
-            {{ form.password }}
-            <button type="submit">Login</button>
+            {{ form|bootstrap }}
+            <button class="btn btn-primary" type="submit">Login</button>
           </div>
         </form>
       </div>

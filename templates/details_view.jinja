@@ -1,0 +1,11 @@
+{% extends 'auth.jinja' %}
+
+{% block content %}
+  <div class="row">
+    <div id="display-items">
+      {% for field_name, v in display_items %}
+        <p class="text-muted">{{ field_name }}: {{ v }}</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

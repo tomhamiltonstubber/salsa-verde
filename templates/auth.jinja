@@ -1,0 +1,44 @@
+{% extends 'base.jinja' %}
+
+{% block nav %}
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header page-scroll">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <h1 class="navbar-brand">{{ title }}</h1>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav navbar-right">
+        {% for name, link in nav_links %}
+          <li><a href="{{ link }}">{{ name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block body %}
+  <div id="content">
+    <div class="container main">
+      {% if button_menu %}
+        <div class="row">
+          <div id="button-menu">
+            {% for name, link in button_menu %}
+              <a class="btn btn-default" href="{{ link }}">{{ name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+{% endblock %}
