@@ -55,3 +55,12 @@ body {
 #button-menu {
   padding-bottom: 20px;
 }
+
+#ingredients_form {
+  .control-label {
+    display: none;
+  }
+  tbody>tr>td {
+    width: 15%;
+  }
+}

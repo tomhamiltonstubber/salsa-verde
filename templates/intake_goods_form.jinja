@@ -1,0 +1,56 @@
+{% extends 'auth.jinja' %}
+
+{% block content %}
+  <form method="post" action="" id="ingredients_form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ forms.management_form|safe }}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Ingredient Type</th>
+          <th>Supplier</th>
+          <th>Batch Code</th>
+          <th>Quantity</th>
+          <th>Condition</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for form in forms %}
+          <tr class="form-row">
+            <td>{{ form.ingredient_type|bootstrap }}</td>
+            <td>{{ form.supplier|bootstrap }}</td>
+            <td>{{ form.batch_code|bootstrap }}</td>
+            <td>{{ form.quantity|bootstrap }}</td>
+            <td>{{ form.condition|bootstrap }}</td>
+            <td>{{ form.status|bootstrap }}</td>
+            <td></td>
+          </tr>
+        {% endfor %}
+        {% with form = forms.empty_form %}
+          <tr class="form-row" id="id_empty_intake_form" style="display:none;">
+            <td>{{ form.ingredient_type|bootstrap }}</td>
+            <td>{{ form.supplier|bootstrap }}</td>
+            <td>{{ form.batch_code|bootstrap }}</td>
+            <td>{{ form.quantity|bootstrap }}</td>
+            <td>{{ form.condition|bootstrap }}</td>
+            <td>{{ form.status|bootstrap }}</td>
+            <td></td>
+          </tr>
+        {% endwith %}
+      </tbody>
+    </table>
+    <input type="submit" value="{{ _('Submit') }}" class="btn btn-default" />
+  </form>
+  <script src="/static/libs/js/jquery.formset.js"></script>
+  <script>
+    $('#ingredients_form .form-row').formset({
+      formTemplate: '#id_empty_intake_form',
+      addCssClass: 'btn btn-success',
+      deleteCssClass: 'btn btn-danger',
+      addText: 'Add another',
+      deleteText:'Remove',
+    })
+  </script>
+{% endblock %}

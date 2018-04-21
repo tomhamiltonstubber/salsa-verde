@@ -42,10 +42,6 @@ class User(AbstractUser):
     def has_document(self, doc_type):
         return self.focussed_documents.filter(doc_type=doc_type).exists()
 
-    @staticmethod
-    def model_form_fields():
-        return ['email', 'first_name', 'last_name', 'street', 'town', 'country', 'postcode', 'phone']
-
     def get_absolute_url(self):
         return reverse('users-details', kwargs={'pk': self.pk})
 
@@ -96,10 +92,6 @@ class Supplier(NameBase):
     def get_absolute_url(self):
         return reverse(f'suppliers-details', kwargs={'pk': self.pk})
 
-    @staticmethod
-    def model_form_fields():
-        return ['name', 'street', 'town', 'country', 'postcode', 'phone', 'email', 'main_contact']
-
     class Meta:
         verbose_name = 'Supplier'
         verbose_name_plural = 'Suppliers'
@@ -114,6 +106,17 @@ class IngredientType(NameBase):
     )
     unit = models.CharField('Units', max_length=25, choices=UNIT_TYPES)
 
+    @classmethod
+    def prefix(cls):
+        return 'ingredient-types'
+
+    def get_absolute_url(self):
+        return reverse(f'ingredient-types-details', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = 'Ingredient Type'
+        verbose_name_plural = 'Ingredients Types'
+
 
 class Ingredient(BaseModel):
     STATUS_ACCEPT = 'accept'
@@ -126,29 +129,33 @@ class Ingredient(BaseModel):
     )
     ingredient_type = models.ForeignKey(IngredientType, related_name='ingredients', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
-    intake_date = models.DateTimeField('Intake Date')
-    intake_user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    intake_date = models.DateTimeField('Intake Date', default=timezone.now)
     condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(Supplier, related_name='ingredients', null=True, blank=True, on_delete=models.SET_NULL)
-    status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT)
+    status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
+    intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True, on_delete=models.SET_NULL)
 
     def get_absolute_url(self):
-        return reverse('ingredient-details', kwargs={'pk': self.pk})
+        return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def __str__(self):
         return '%s %s' % (self.ingredient_type, self.intake_date)
 
     @classmethod
     def prefix(cls):
-        return 'ingredient'
+        return 'ingredients'
 
     class Meta:
         verbose_name = 'Ingredient'
+        verbose_name_plural = 'Ingredients'
 
 
 class ProductType(NameBase):
     ingredient_types = models.ManyToManyField(IngredientType, related_name='product_types')
+
+    def get_absolute_url(self):
+        return reverse(f'product-types-details', kwargs={'pk': self.pk})
 
 
 class Product(BaseModel):
@@ -160,6 +167,9 @@ class Product(BaseModel):
     product_ingredients = models.ManyToManyField('main.ProductIngredient', related_name='products')
     yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=25)
     yield_containers = models.ManyToManyField('main.YieldContainers', related_name='products')
+
+    def get_absolute_url(self):
+        return reverse(f'products-details', kwargs={'pk': self.pk})
 
 
 class ProductIngredient(models.Model):
@@ -236,6 +246,9 @@ class Document(BaseModel):
     file = models.FileField(upload_to='static/documents/', null=True, max_length=256)
     focus = models.ForeignKey('main.User', null=True, related_name='focussed_documents', on_delete=models.SET_NULL)
     edits = JSONField()
+
+    def __str__(self):
+        return f'{dict(self.FORM_TYPES)[self.type]} - {self.date_created.date()}'
 
 
 class Area(NameBase):

@@ -2,11 +2,13 @@ from django.contrib.auth import user_logged_in
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.dispatch import receiver
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
 
 from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
-from SalsaVerde.main.models import User, Document, Ingredient, Supplier
+from SalsaVerde.main.forms import UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet
+from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType
 
 
 class Login(LoginView):
@@ -73,6 +75,7 @@ user_details = UserDetails.as_view()
 
 
 class UserAdd(AddModelView):
+    form_class = UpdateUserForm
     model = User
 
 
@@ -80,6 +83,7 @@ user_add = UserAdd.as_view()
 
 
 class UserEdit(UpdateModelView):
+    form_class = UpdateUserForm
     model = User
 
 
@@ -120,6 +124,7 @@ supplier_details = SupplierDetails.as_view()
 
 class SupplierAdd(AddModelView):
     model = Supplier
+    form_class = UpdateSupplierForm
 
 
 supplier_add = SupplierAdd.as_view()
@@ -127,9 +132,48 @@ supplier_add = SupplierAdd.as_view()
 
 class SupplierEdit(UpdateModelView):
     model = Supplier
+    form_class = UpdateSupplierForm
 
 
 supplier_edit = SupplierEdit.as_view()
+
+
+class IngredientTypeList(ListView):
+    model = IngredientType
+    display_items = [
+        'name',
+        'unit',
+    ]
+
+
+ingredient_type_list = IngredientTypeList.as_view()
+
+
+class IngredientTypeDetails(DetailView):
+    model = IngredientType
+    display_items = [
+        'name',
+        'unit',
+    ]
+
+
+ingredient_type_details = IngredientTypeDetails.as_view()
+
+
+class IngredientTypeAdd(AddModelView):
+    model = IngredientType
+    form_class = UpdateIngredientTypeForm
+
+
+ingredient_type_add = IngredientTypeAdd.as_view()
+
+
+class IngredientTypeEdit(UpdateModelView):
+    model = IngredientType
+    form_class = UpdateIngredientTypeForm
+
+
+ingredient_type_edit = IngredientTypeEdit.as_view()
 
 
 class IngredientList(ListView):
@@ -141,3 +185,68 @@ class IngredientList(ListView):
         'supplier',
     ]
 
+    def get_button_menu(self):
+        return [
+            ('Intake goods', reverse('intake-goods')),
+            ('Ingredient types', reverse('ingredient-types')),
+        ]
+
+
+ingredient_list = IngredientList.as_view()
+
+
+class IngredientDetails(DetailView):
+    model = Ingredient
+    display_items = [
+        'ingredient_type',
+        'batch_code',
+        'intake_date',
+        'condition',
+        'supplier',
+        'status',
+        'quantity',
+        'intake_document',
+    ]
+
+    def get_button_menu(self):
+        return []
+
+
+ingredient_details = IngredientDetails.as_view()
+
+
+class IntakeGoods(AddModelView):
+    model = Ingredient
+    form_class = IngredientsFormSet
+    template_name = 'intake_goods_form.jinja'
+    title = 'Intake of goods'
+
+    def form_valid(self, form):
+        objects = form.save(commit=False)
+        doc = Document.objects.create(
+            author=self.request.user,
+            type=Document.FORM_SUP01,
+        )
+        for object in objects:
+            object.intake_user = self.request.user
+            object.intake_document = doc
+            object.save()
+        return redirect(reverse('ingredients'))
+
+    def form_invalid(self, form):
+        print(form.errors)
+        return super().form_invalid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.pop('instance')
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['forms'] = ctx.pop('form')
+        print(ctx['forms'])
+        return ctx
+
+
+intake_goods = IntakeGoods.as_view()

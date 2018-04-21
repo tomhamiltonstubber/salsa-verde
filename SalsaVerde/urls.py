@@ -19,4 +19,14 @@ urlpatterns = [
     path('suppliers/add/', views.supplier_add, name='suppliers-add'),
     path('suppliers/<int:pk>/', views.supplier_details, name='suppliers-details'),
     path('suppliers/<int:pk>/edit/', views.supplier_edit, name='suppliers-edit'),
+
+    path('ingredient-types/', views.ingredient_type_list, name='ingredient-types'),
+    path('ingredient-types/add/', views.ingredient_type_add, name='ingredient-types-add'),
+    path('ingredient-types/<int:pk>/', views.ingredient_type_details, name='ingredient-types-details'),
+    path('ingredient-types/<int:pk>/edit/', views.ingredient_type_edit, name='ingredient-types-edit'),
+
+    path('ingredients/', views.ingredient_list, name='ingredients'),
+    path('ingredients/<int:pk>/', views.ingredient_details, name='ingredients-details'),
+
+    path('intake-goods/', views.intake_goods, name='intake-goods'),
 ]

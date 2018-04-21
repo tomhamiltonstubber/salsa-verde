@@ -11,6 +11,7 @@ class BasicView(TemplateView):
         return [
             ('Users', reverse('users')),
             ('Suppliers', reverse('suppliers')),
+            ('Ingredients', reverse('ingredients')),
         ]
 
     def get_button_menu(self):
@@ -63,7 +64,6 @@ class ListView(BasicView):
         kwargs.update(
             field_names=self.get_field_names(),
             field_data=self.get_field_data(),
-            add_url=reverse(f'{self.model.prefix()}-add'),
         )
         return super().get_context_data(**kwargs)
 
@@ -74,29 +74,40 @@ class ObjMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class ModelFormMixin:
-    model = None
+class FormView:
     template_name = 'form_view.jinja'
+    title = None
 
-    def __init__(self):
-        super().__init__()
-        self.fields = self.model.model_form_fields()
+    def get_nav_menu(self):
+        return [
+            ('Users', reverse('users')),
+            ('Suppliers', reverse('suppliers')),
+            ('Ingredients', reverse('ingredients')),
+        ]
 
+    def get_button_menu(self):
+        return []
 
-class AddModelView(ModelFormMixin, CreateView):
-    def get_success_url(self):
-        return reverse(self.model.prefix())
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(title='Create new %s' % self.model._meta.verbose_name, **kwargs)
-
-
-class UpdateModelView(ModelFormMixin, UpdateView, ObjMixin):
-    def get_success_url(self):
-        return reverse(f'{self.model.prefix()}-details', kwargs={'pk': self.object.pk})
+    def get_title(self):
+        return self.title
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(title=f'Edit %s' % self.object, **kwargs)
+        return super().get_context_data(
+            nav_links=self.get_nav_menu(),
+            title=self.get_title(),
+            button_menu=self.get_button_menu(),
+            **kwargs
+        )
+
+
+class AddModelView(FormView, CreateView):
+    def get_title(self):
+        return self.title or 'Create new %s' % self.model._meta.verbose_name
+
+
+class UpdateModelView(FormView, UpdateView, ObjMixin):
+    def get_title(self):
+        return self.title or f'Edit %s' % self.object
 
 
 class DetailView(ObjMixin, BasicView):

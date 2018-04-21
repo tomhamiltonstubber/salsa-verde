@@ -10,6 +10,8 @@ download:
     'font-awesome-sass-4.7.0/assets/(fonts/font-awesome/.+)': ''
     'font-awesome-sass-4.7.0/assets/(.+)$': 'font-awesome-sass/'
 
+  'GITHUB/elo80ka/django-dynamic-formset/f57c8ca432ec5c3c028d1e76f9bf2f94e745ed3f/src/jquery.formset.js': 'js/'
+
 
 build_root: static/
 debug: true
