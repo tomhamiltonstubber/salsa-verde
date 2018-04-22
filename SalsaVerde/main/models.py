@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -9,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
@@ -108,7 +108,7 @@ class IngredientType(NameBase):
         (UNIT_KILO, 'kg'),
         (UNIT_LITRE, 'litre'),
     )
-    unit = models.CharField('Units', max_length=25, choices=UNIT_TYPES)
+    unit = models.CharField('Units', max_length=25, choices=UNIT_TYPES, help_text='Ingredient is measured in?')
 
     @classmethod
     def prefix(cls):
@@ -145,7 +145,9 @@ class Ingredient(BaseModel):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return '%s %s' % (self.ingredient_type, self.intake_date)
+        return mark_safe('<b>%s</b> - Intake date: %s - Batch num: %s' % (
+            self.ingredient_type, display_dt(self.intake_date), self.batch_code
+        ))
 
     @classmethod
     def prefix(cls):
@@ -166,6 +168,10 @@ class ProductType(NameBase):
     def get_absolute_url(self):
         return reverse(f'product-types-details', kwargs={'pk': self.pk})
 
+    class Meta:
+        verbose_name = 'Product Type'
+        verbose_name_plural = 'Product Types'
+
 
 class Product(BaseModel):
     product_type = models.ForeignKey(ProductType, related_name='products', on_delete=models.CASCADE)
@@ -181,7 +187,7 @@ class Product(BaseModel):
         return reverse(f'products-details', kwargs={'pk': self.pk})
 
 
-class ProductIngredient(models.Model):
+class ProductIngredient(BaseModel):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
@@ -196,22 +202,43 @@ class ContainerType(NameBase):
         (TYPE_CAP, 'Cap'),
         (TYPE_OTHER, 'Container'),
     )
-    size = models.DecimalField('Size', max_digits=25, decimal_places=5)
+    size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=5)
     type = models.CharField('Container Type', choices=TYPE_CONTAINERS, max_length=255)
+
+    @classmethod
+    def prefix(cls):
+        return 'container-types'
+
+    def get_absolute_url(self):
+        return reverse(f'container-types-details', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = 'Container Type'
+        verbose_name_plural = 'Container Types'
 
 
 class Container(BaseModel):
     container_type = models.ForeignKey(ContainerType, on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
 
+    @classmethod
+    def prefix(cls):
+        return 'containers'
 
-class YieldContainers(models.Model):
+    def get_absolute_url(self):
+        return reverse(f'containers-details', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = 'Container'
+        verbose_name_plural = 'Container'
+
+
+class YieldContainers(BaseModel):
     container = models.ForeignKey(Container, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
 
-
-# def document_path(instance, filename):
-#     return os.path.join('burren-balsamics', 'docs', instance.type, filename)
+    def __str__(self):
+        return f'{self.quantity} x {self.container}'
 
 
 class Document(BaseModel):
@@ -274,7 +301,9 @@ class Document(BaseModel):
         return dict(self.FORM_TYPES)[self.type]
 
     def display_file(self):
-        return mark_safe(f'<a href="{self.file.url}" target="_blank">{self.file.name}</a>')
+        if self.file:
+            return mark_safe(f'<a href="{self.file.url}" target="_blank">{self.file.name}</a>')
+        return '—'
 
     class Meta:
         verbose_name = 'Document'

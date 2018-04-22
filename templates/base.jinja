@@ -8,14 +8,14 @@
   <meta name="description" content="A system for staying compliant with SALSA">
   <meta name="author" content="Tom Hamilton Stubber">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <link rel="stylesheet" href="{{ static('css/style.css') }}">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"></script>
+  <link rel="stylesheet" href="{{ static('css/libraries.css') }}">
+  <link rel="stylesheet" href="{{ static('css/styles.css') }}">
+  <script src="{{ static('js/libraries.js') }}"></script>
+  <script src="{{ static('js/main.js') }}"></script>
   <body id="page-top" class="index">
     <div id="page-header">{% block nav %}{% endblock %}</div>
     {% block body %}{% endblock %}
   </body>
   <footer>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   </footer>
 </html>

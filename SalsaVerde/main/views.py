@@ -8,8 +8,10 @@ from django.utils import timezone
 
 from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
 from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet,
-                                   UpdateDocumentForm, UpdateProductTypeForm)
-from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType, ProductType
+                                   UpdateDocumentForm, UpdateProductTypeForm, UpdateContainerTypeForm,
+                                   UpdateContainerForm, UpdateProductForm, ProductIngredientForm, UpdateIngredientsForm)
+from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType, ProductType, ContainerType, \
+    Product, Container
 
 
 class Login(LoginView):
@@ -206,14 +208,19 @@ class IngredientDetails(DetailView):
         'supplier',
         'status',
         'quantity',
-        'intake_document',
+        'abs|intake_document',
     ]
-
-    def get_button_menu(self):
-        return []
 
 
 ingredient_details = IngredientDetails.as_view()
+
+
+class IngredientEdit(UpdateModelView):
+    model = Ingredient
+    form_class = UpdateIngredientsForm
+
+
+ingredient_edit = IngredientEdit.as_view()
 
 
 class IntakeGoods(AddModelView):
@@ -293,7 +300,7 @@ class ProductTypeList(ListView):
     model = ProductType
     display_items = [
         'name',
-        'unit',
+        'ingredient_types',
     ]
 
 
@@ -303,9 +310,11 @@ product_type_list = ProductTypeList.as_view()
 class ProductTypeDetails(DetailView):
     model = ProductType
     display_items = [
-        'name',
-        'unit',
+        ('Ingredient Types', 'func|ingredient_types_display'),
     ]
+
+    def ingredient_types_display(self, obj):
+        return ', '.join(obj.ingredient_types.values_list('name', flat=True).order_by('name'))
 
 
 product_type_details = ProductTypeDetails.as_view()
@@ -327,4 +336,149 @@ class ProductTypeEdit(UpdateModelView):
 product_type_edit = ProductTypeEdit.as_view()
 
 
-# class ProductAdd
+class ContainerTypeList(ListView):
+    model = ContainerType
+    display_items = [
+        'name',
+        'size',
+        'type',
+    ]
+
+
+container_type_list = ContainerTypeList.as_view()
+
+
+class ContainerTypeDetails(DetailView):
+    model = ContainerType
+    display_items = [
+        'name',
+        'size',
+        'type',
+    ]
+
+
+container_type_details = ContainerTypeDetails.as_view()
+
+
+class ContainerTypeAdd(AddModelView):
+    model = ContainerType
+    form_class = UpdateContainerTypeForm
+
+
+container_type_add = ContainerTypeAdd.as_view()
+
+
+class ContainerTypeEdit(UpdateModelView):
+    model = ContainerType
+    form_class = UpdateContainerTypeForm
+
+
+container_type_edit = ContainerTypeEdit.as_view()
+
+
+class ContainerList(ListView):
+    model = Container
+    display_items = [
+        'container_type',
+        'batch_code',
+    ]
+
+    def get_button_menu(self):
+        return [
+            ('Record container intake', reverse('containers-add')),
+            ('Container Types', reverse('container-types')),
+        ]
+
+
+containers_list = ContainerList.as_view()
+
+
+class ContainerDetails(DetailView):
+    model = Container
+    display_items = [
+        'container_type',
+        'batch_code',
+    ]
+
+
+containers_details = ContainerDetails.as_view()
+
+
+class ContainerAdd(AddModelView):
+    model = Container
+    form_class = UpdateContainerForm
+
+
+containers_add = ContainerAdd.as_view()
+
+
+class ContainerEdit(UpdateModelView):
+    model = Container
+    form_class = UpdateContainerForm
+
+
+containers_edit = ContainerEdit.as_view()
+
+
+class ProductList(ListView):
+    model = Product
+    display_items = [
+        'product_type',
+        'date_of_infusion',
+        'date_of_bottling',
+        'yield_quantity',
+        'yield_containers',
+    ]
+
+    def get_button_menu(self):
+        return [
+            ('Add Product', reverse('products-add')),
+            ('Containers', reverse('containers')),
+            ('Ingredients', reverse('ingredients')),
+            ('Product Types', reverse('product-types')),
+        ]
+
+
+product_list = ProductList.as_view()
+
+
+class ProductAdd(AddModelView):
+    model = Product
+    form_class = UpdateProductForm
+    template_name = 'add_product_form.jinja'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(product_ingredient_form=self.get_form(ProductIngredientForm), **kwargs)
+
+    def form_valid(self, form):
+        print(form.cleaned_data)
+        assert False
+
+
+product_add = ProductAdd.as_view()
+
+
+class ProductEdit(UpdateModelView):
+    model = Product
+    form_class = UpdateProductForm
+    template_name = 'add_product_form.jinja'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(product_ingredient_form=self.get_form(ProductIngredientForm), **kwargs)
+
+
+product_edit = ProductEdit.as_view()
+
+
+class ProductDetails(DetailView):
+    model = Product
+    display_items = [
+        'product_type',
+        'date_of_infusion',
+        'date_of_bottling',
+        'yield_quantity',
+        'yield_containers',
+    ]
+
+
+product_details = ProductDetails.as_view()

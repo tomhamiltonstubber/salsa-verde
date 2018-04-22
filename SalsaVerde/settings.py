@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'bootstrapform_jinja',
     'storages',
+    'bootstrap3_datetime',
 
     'SalsaVerde.main',
 ]
@@ -140,3 +141,5 @@ STATIC_URL = '/static/'
 
 AWS_PRIVATE_MEDIA_LOCATION = 'media/private'
 PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
+
+DT_FORMAT = '%d/%m/%Y %H:%M'

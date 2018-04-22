@@ -1,0 +1,42 @@
+{% extends 'auth.jinja' %}
+
+{% block content %}
+  <form method="post" action="" id="product_form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6">{{ form.product_type|bootstrap }}</div>
+      <div class="col-md-6">{{ form.yield_quantity|bootstrap }}</div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">{{ form.date_of_infusion|bootstrap }}</div>
+      <div class="col-md-6">{{ form.date_of_bottling|bootstrap }}</div>
+    </div>
+    <div class="row" id="product_ingredient">
+      <div class="col-md-6">{{ product_ingredient_form.ingredient|bootstrap }}</div>
+      <div class="col-md-5">{{ product_ingredient_form.quantity|bootstrap }}</div>
+      <div></div>
+    </div>
+    <input type="submit" value="{{ _('Submit') }}" class="btn btn-success" />
+  </form>
+  <script>
+    $('#product_ingredient').formset({
+      formTemplate: '#product_ingredient',
+      addCssClass: 'btn btn-default',
+      deleteCssClass: 'btn btn-danger',
+      addText: 'Add another Ingredient',
+      deleteText:'Remove',
+      added: () => {
+        hide_extra_buttons()
+      },
+    })
+    function hide_extra_buttons() {
+      $('.dynamic-form').each((i, el) => {
+        const $els = $(el).find('.btn-danger')
+        if ($els.length === 2) {
+          $($els[0]).hide()
+        }
+      })
+    }
+    hide_extra_buttons()
+  </script>
+{% endblock %}
