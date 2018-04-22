@@ -4,15 +4,18 @@ from django.urls import reverse
 from django.views.generic import TemplateView, CreateView, UpdateView
 
 
+def get_nav_menu():
+    return [
+        ('Dashboard', reverse('index')),
+        ('Users', reverse('users')),
+        ('Suppliers', reverse('suppliers')),
+        ('Ingredients', reverse('ingredients')),
+        ('Documents', reverse('documents')),
+    ]
+
+
 class BasicView(TemplateView):
     title = None
-
-    def get_nav_menu(self):
-        return [
-            ('Users', reverse('users')),
-            ('Suppliers', reverse('suppliers')),
-            ('Ingredients', reverse('ingredients')),
-        ]
 
     def get_button_menu(self):
         return []
@@ -22,7 +25,7 @@ class BasicView(TemplateView):
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            nav_links=self.get_nav_menu(),
+            nav_links=get_nav_menu(),
             title=self.get_title(),
             button_menu=self.get_button_menu(),
             **kwargs
@@ -30,7 +33,10 @@ class BasicView(TemplateView):
 
 
 def display_value(obj, field):
-    v = getattr(obj, field)
+    if hasattr(obj, f'display_{field}'):
+        v = getattr(obj, f'display_{field}')()
+    else:
+        v = getattr(obj, field)
     if isinstance(v, datetime.datetime):
         return v.strftime('%d/%m/%Y %H:%M')
     return v
@@ -78,13 +84,6 @@ class FormView:
     template_name = 'form_view.jinja'
     title = None
 
-    def get_nav_menu(self):
-        return [
-            ('Users', reverse('users')),
-            ('Suppliers', reverse('suppliers')),
-            ('Ingredients', reverse('ingredients')),
-        ]
-
     def get_button_menu(self):
         return []
 
@@ -93,11 +92,16 @@ class FormView:
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            nav_links=self.get_nav_menu(),
+            nav_links=get_nav_menu(),
             title=self.get_title(),
             button_menu=self.get_button_menu(),
             **kwargs
         )
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update(request=self.request)
+        return kwargs
 
 
 class AddModelView(FormView, CreateView):

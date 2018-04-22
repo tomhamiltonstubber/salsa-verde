@@ -25,8 +25,18 @@ urlpatterns = [
     path('ingredient-types/<int:pk>/', views.ingredient_type_details, name='ingredient-types-details'),
     path('ingredient-types/<int:pk>/edit/', views.ingredient_type_edit, name='ingredient-types-edit'),
 
+    path('product-types/', views.product_type_list, name='product-types'),
+    path('product-types/add/', views.product_type_add, name='product-types-add'),
+    path('product-types/<int:pk>/', views.product_type_details, name='product-types-details'),
+    path('product-types/<int:pk>/edit/', views.product_type_edit, name='product-types-edit'),
+
     path('ingredients/', views.ingredient_list, name='ingredients'),
     path('ingredients/<int:pk>/', views.ingredient_details, name='ingredients-details'),
+
+    path('documents/', views.document_list, name='documents'),
+    path('documents/add/', views.document_add, name='documents-add'),
+    path('documents/<int:pk>/', views.document_details, name='documents-details'),
+    path('documents/<int:pk>/edit/', views.document_edit, name='documents-edit'),
 
     path('intake-goods/', views.intake_goods, name='intake-goods'),
 ]

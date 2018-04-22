@@ -7,8 +7,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
-from SalsaVerde.main.forms import UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet
-from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType
+from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet,
+                                   UpdateDocumentForm, UpdateProductTypeForm)
+from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType, ProductType
 
 
 class Login(LoginView):
@@ -233,10 +234,6 @@ class IntakeGoods(AddModelView):
             object.save()
         return redirect(reverse('ingredients'))
 
-    def form_invalid(self, form):
-        print(form.errors)
-        return super().form_invalid(form)
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.pop('instance')
@@ -245,8 +242,89 @@ class IntakeGoods(AddModelView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['forms'] = ctx.pop('form')
-        print(ctx['forms'])
         return ctx
 
 
 intake_goods = IntakeGoods.as_view()
+
+
+class DocumentsList(ListView):
+    model = Document
+    display_items = [
+        'type',
+        'date_created',
+        'author',
+    ]
+
+
+document_list = DocumentsList.as_view()
+
+
+class DocumentDetails(DetailView):
+    model = Document
+    display_items = [
+        'type',
+        'date_created',
+        'author',
+        'file',
+    ]
+
+
+document_details = DocumentDetails.as_view()
+
+
+class DocumentAdd(AddModelView):
+    model = Document
+    form_class = UpdateDocumentForm
+
+
+document_add = DocumentAdd.as_view()
+
+
+class DocumentEdit(UpdateModelView):
+    model = Document
+    form_class = UpdateDocumentForm
+
+
+document_edit = DocumentEdit.as_view()
+
+
+class ProductTypeList(ListView):
+    model = ProductType
+    display_items = [
+        'name',
+        'unit',
+    ]
+
+
+product_type_list = ProductTypeList.as_view()
+
+
+class ProductTypeDetails(DetailView):
+    model = ProductType
+    display_items = [
+        'name',
+        'unit',
+    ]
+
+
+product_type_details = ProductTypeDetails.as_view()
+
+
+class ProductTypeAdd(AddModelView):
+    model = ProductType
+    form_class = UpdateProductTypeForm
+
+
+product_type_add = ProductTypeAdd.as_view()
+
+
+class ProductTypeEdit(UpdateModelView):
+    model = ProductType
+    form_class = UpdateProductTypeForm
+
+
+product_type_edit = ProductTypeEdit.as_view()
+
+
+# class ProductAdd

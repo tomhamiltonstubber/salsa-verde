@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="row">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="edit-form">
         {{ form|bootstrap }}

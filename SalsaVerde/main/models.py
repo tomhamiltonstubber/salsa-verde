@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -6,6 +7,9 @@ from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import mark_safe
+
+from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
 class UserManager(BaseUserManager):
@@ -131,10 +135,11 @@ class Ingredient(BaseModel):
     batch_code = models.CharField('Batch Code', max_length=25)
     intake_date = models.DateTimeField('Intake Date', default=timezone.now)
     condition = models.CharField('Condition', max_length=25, default='Good')
-    supplier = models.ForeignKey(Supplier, related_name='ingredients', null=True, blank=True, on_delete=models.SET_NULL)
+    supplier = models.ForeignKey(Supplier, related_name='ingredients', null=True, on_delete=models.SET_NULL)
     status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
-    intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True, on_delete=models.SET_NULL)
+    intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True,
+                                        on_delete=models.SET_NULL)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
@@ -153,6 +158,10 @@ class Ingredient(BaseModel):
 
 class ProductType(NameBase):
     ingredient_types = models.ManyToManyField(IngredientType, related_name='product_types')
+
+    @classmethod
+    def prefix(cls):
+        return 'product-types'
 
     def get_absolute_url(self):
         return reverse(f'product-types-details', kwargs={'pk': self.pk})
@@ -201,6 +210,10 @@ class YieldContainers(models.Model):
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
 
 
+# def document_path(instance, filename):
+#     return os.path.join('burren-balsamics', 'docs', instance.type, filename)
+
+
 class Document(BaseModel):
     FORM_COM1 = 'com1'
     FORM_COM2 = 'com2'
@@ -243,12 +256,29 @@ class Document(BaseModel):
     date_created = models.DateTimeField('Date Created', auto_now_add=True)
     author = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='salsa_sheets')
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
-    file = models.FileField(upload_to='static/documents/', null=True, max_length=256)
-    focus = models.ForeignKey('main.User', null=True, related_name='focussed_documents', on_delete=models.SET_NULL)
+    file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
+    focus = models.ForeignKey('main.User', null=True, related_name='focused_documents', on_delete=models.SET_NULL)
     edits = JSONField()
 
     def __str__(self):
-        return f'{dict(self.FORM_TYPES)[self.type]} - {self.date_created.date()}'
+        return f'{self.display_type()} - {self.date_created.date()}'
+
+    def get_absolute_url(self):
+        return reverse('documents-details', kwargs={'pk': self.pk})
+
+    @classmethod
+    def prefix(cls):
+        return 'documents'
+
+    def display_type(self):
+        return dict(self.FORM_TYPES)[self.type]
+
+    def display_file(self):
+        return mark_safe(f'<a href="{self.file.url}" target="_blank">{self.file.name}</a>')
+
+    class Meta:
+        verbose_name = 'Document'
+        verbose_name_plural = 'Documents'
 
 
 class Area(NameBase):
