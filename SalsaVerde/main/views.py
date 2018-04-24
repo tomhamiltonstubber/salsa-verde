@@ -9,9 +9,10 @@ from django.utils import timezone
 from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
 from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet,
                                    UpdateDocumentForm, UpdateProductTypeForm, UpdateContainerTypeForm,
-                                   UpdateContainerForm, UpdateProductForm, ProductIngredientForm, UpdateIngredientsForm)
-from SalsaVerde.main.models import User, Document, Ingredient, Supplier, IngredientType, ProductType, ContainerType, \
-    Product, Container
+                                   UpdateContainerForm, UpdateProductForm, UpdateIngredientsForm,
+                                   ProductIngredientFormSet)
+from SalsaVerde.main.models import (User, Document, Ingredient, Supplier, IngredientType, ProductType, ContainerType,
+                                    Product, Container)
 
 
 class Login(LoginView):
@@ -426,8 +427,10 @@ class ProductList(ListView):
         'product_type',
         'date_of_infusion',
         'date_of_bottling',
+        'date_of_best_before',
         'yield_quantity',
-        'yield_containers',
+        'container',
+        'container_count',
     ]
 
     def get_button_menu(self):
@@ -448,11 +451,15 @@ class ProductAdd(AddModelView):
     template_name = 'add_product_form.jinja'
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(product_ingredient_form=self.get_form(ProductIngredientForm), **kwargs)
+        return super().get_context_data(product_ingredient_forms=ProductIngredientFormSet(), **kwargs)
 
     def form_valid(self, form):
-        print(form.cleaned_data)
-        assert False
+        product_ingred_formset = ProductIngredientFormSet(self.request.POST)
+        obj = form.save()
+        if product_ingred_formset.is_valid():
+            product_ingred_formset.instance = obj
+            product_ingred_formset.save()
+        return super().form_valid(form)
 
 
 product_add = ProductAdd.as_view()
@@ -464,7 +471,7 @@ class ProductEdit(UpdateModelView):
     template_name = 'add_product_form.jinja'
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(product_ingredient_form=self.get_form(ProductIngredientForm), **kwargs)
+        return super().get_context_data(product_ingredient_forms=ProductIngredientFormSet, **kwargs)
 
 
 product_edit = ProductEdit.as_view()
@@ -476,8 +483,10 @@ class ProductDetails(DetailView):
         'product_type',
         'date_of_infusion',
         'date_of_bottling',
+        'date_of_best_before',
         'yield_quantity',
-        'yield_containers',
+        'container',
+        'container_count',
     ]
 
 

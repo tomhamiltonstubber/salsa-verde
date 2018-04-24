@@ -12,18 +12,20 @@ DT_OUTER_PICKER_HTML = """\
 
 
 class DateTimePicker(widgets.DateTimeInput):
+    format = 'DD/MM/YYYY HH:MM'
+
     def __init__(self, field):
         self._is_datetime = False
         assert isinstance(field, DateTimeField)
         attrs = {
             'data-type': 'datetime',
-            'data-format': settings.DT_FORMAT,
+            'data-format': self.format,
             'data-minDate': '1900-01-01',
             'data-sideBySide': True
         }
         formats = [settings.DT_FORMAT]
         self._is_datetime = True
-        super().__init__(attrs, settings.DT_FORMAT)
+        super().__init__(attrs, self.format)
         field.input_formats = formats
 
     def _data_value(self, value, format):

@@ -1,5 +1,5 @@
-from django.forms import (ModelForm, modelformset_factory, BaseModelFormSet, forms, ModelChoiceField, CharField,
-                          DateTimeInput, HiddenInput, DecimalField)
+from django.forms import (ModelForm, modelformset_factory, BaseModelFormSet, forms, inlineformset_factory,
+                          DateTimeInput)
 
 from SalsaVerde.main.models import (Ingredient, Supplier, IngredientType, User, Document, ProductType, ContainerType,
                                     Container, Product, ProductIngredient)
@@ -10,9 +10,9 @@ class SVModelForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        # for field in self.fields:
-        #     if isinstance(self.fields[field].widget, DateTimeInput):
-        #         self.fields[field].widget = DateTimePicker(self.fields[field])
+        for field in self.fields:
+            if isinstance(self.fields[field].widget, DateTimeInput):
+                self.fields[field].widget = DateTimePicker(self.fields[field])
 
 
 class UpdateUserForm(SVModelForm):
@@ -54,10 +54,6 @@ IngredientsFormSet = modelformset_factory(Ingredient,
 
 
 class UpdateDocumentForm(SVModelForm):
-    focus = ModelChoiceField(User.objects.all(), label='Associated with', required=False,
-                             help_text='This is for associated documents with a user, such as a return to work form')
-    author = ModelChoiceField(User.objects.all(), label='Author', required=True)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
@@ -95,16 +91,10 @@ class UpdateProductTypeForm(SVModelForm):
 class ProductIngredientForm(SVModelForm):
     class Meta:
         model = ProductIngredient
-        exclude = {}
-
-    def clean(self):
-        print('Not caleled?????')
+        exclude = {'product'}
 
 
 class UpdateProductForm(SVModelForm):
-    ingredients = ModelChoiceField(Ingredient.objects.all())
-    quantity = DecimalField(decimal_places=2)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_type'].label = 'Product Type'
@@ -112,3 +102,6 @@ class UpdateProductForm(SVModelForm):
     class Meta:
         model = Product
         exclude = {'date_of_best_before', 'product_ingredients'}
+
+
+ProductIngredientFormSet = inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)

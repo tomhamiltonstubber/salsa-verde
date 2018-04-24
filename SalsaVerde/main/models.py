@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from SalsaVerde import settings
 from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
@@ -44,7 +45,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     def has_document(self, doc_type):
-        return self.focussed_documents.filter(doc_type=doc_type).exists()
+        return self.focused_documents.filter(doc_type=doc_type).exists()
 
     def get_absolute_url(self):
         return reverse('users-details', kwargs={'pk': self.pk})
@@ -131,15 +132,17 @@ class Ingredient(BaseModel):
         (STATUS_HOLD, 'Hold'),
         (STATUS_REJECT, 'Reject'),
     )
-    ingredient_type = models.ForeignKey(IngredientType, related_name='ingredients', on_delete=models.CASCADE)
+    ingredient_type = models.ForeignKey(IngredientType, verbose_name='Ingredient Type',
+                                        related_name='ingredients', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
     intake_date = models.DateTimeField('Intake Date', default=timezone.now)
     condition = models.CharField('Condition', max_length=25, default='Good')
-    supplier = models.ForeignKey(Supplier, related_name='ingredients', null=True, on_delete=models.SET_NULL)
+    supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
+                                 null=True, on_delete=models.SET_NULL)
     status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
+    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True,
-                                        on_delete=models.SET_NULL)
+                                        verbose_name='Document', on_delete=models.SET_NULL)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
@@ -159,7 +162,7 @@ class Ingredient(BaseModel):
 
 
 class ProductType(NameBase):
-    ingredient_types = models.ManyToManyField(IngredientType, related_name='product_types')
+    ingredient_types = models.ManyToManyField(IngredientType, verbose_name='Ingredients', related_name='product_types')
 
     @classmethod
     def prefix(cls):
@@ -174,23 +177,35 @@ class ProductType(NameBase):
 
 
 class Product(BaseModel):
-    product_type = models.ForeignKey(ProductType, related_name='products', on_delete=models.CASCADE)
+    product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
+                                     on_delete=models.CASCADE)
     date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
     date_of_bottling = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now)
 
-    product_ingredients = models.ManyToManyField('main.ProductIngredient', related_name='products')
-    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=25)
-    yield_containers = models.ManyToManyField('main.YieldContainers', related_name='products')
+    product_ingredients = models.ManyToManyField('main.ProductIngredient', verbose_name='Ingredients',
+                                                 related_name='products')
+    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3)
+    containers = models.ForeignKey('main.Container', verbose_name='Containers', related_name='products',
+                                   on_delete=models.CASCADE)
+    container_count = models.PositiveSmallIntegerField('Amount of containers used')
+    batch_code = models.CharField('Batch Code', max_length=25)
+
+    def __str__(self):
+        return f'{self.product_type} - Bottled {self.date_of_bottling.strftime(settings.DT_FORMAT)} - {self.batch_code}'
 
     def get_absolute_url(self):
         return reverse(f'products-details', kwargs={'pk': self.pk})
 
+    @classmethod
+    def prefix(cls):
+        return 'products'
+
 
 class ProductIngredient(BaseModel):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
+    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
 
 class ContainerType(NameBase):
@@ -199,10 +214,10 @@ class ContainerType(NameBase):
     TYPE_OTHER = 'other'
     TYPE_CONTAINERS = (
         (TYPE_BOTTLE, 'Bottle'),
-        (TYPE_CAP, 'Cap'),
+        # (TYPE_CAP, 'Cap'),
         (TYPE_OTHER, 'Container'),
     )
-    size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=5)
+    size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=3)
     type = models.CharField('Container Type', choices=TYPE_CONTAINERS, max_length=255)
 
     @classmethod
@@ -218,7 +233,7 @@ class ContainerType(NameBase):
 
 
 class Container(BaseModel):
-    container_type = models.ForeignKey(ContainerType, on_delete=models.CASCADE)
+    container_type = models.ForeignKey(ContainerType, verbose_name='Container', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
 
     @classmethod
@@ -231,14 +246,6 @@ class Container(BaseModel):
     class Meta:
         verbose_name = 'Container'
         verbose_name_plural = 'Container'
-
-
-class YieldContainers(BaseModel):
-    container = models.ForeignKey(Container, on_delete=models.CASCADE)
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=5)
-
-    def __str__(self):
-        return f'{self.quantity} x {self.container}'
 
 
 class Document(BaseModel):
@@ -281,10 +288,12 @@ class Document(BaseModel):
     )
 
     date_created = models.DateTimeField('Date Created', auto_now_add=True)
-    author = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='salsa_sheets')
+    author = models.ForeignKey(User, verbose_name='Author', null=True, blank=True, on_delete=models.SET_NULL,
+                               related_name='documents')
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
-    focus = models.ForeignKey('main.User', null=True, related_name='focused_documents', on_delete=models.SET_NULL)
+    focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, related_name='focused_documents',
+                              on_delete=models.SET_NULL)
     edits = JSONField()
 
     def __str__(self):

@@ -3,28 +3,43 @@
 {% block content %}
   <form method="post" action="" id="product_form" enctype="multipart/form-data">
     {% csrf_token %}
+    {{ product_ingredient_forms.management_form|safe }}
     <div class="row">
-      <div class="col-md-6">{{ form.product_type|bootstrap }}</div>
-      <div class="col-md-6">{{ form.yield_quantity|bootstrap }}</div>
+      <div class="col-md-3">{{ form.product_type|bootstrap }}</div>
+      <div class="col-md-3">{{ form.batch_code|bootstrap }}</div>
+      <div class="col-md-3">{{ form.date_of_infusion|bootstrap }}</div>
+      <div class="col-md-3">{{ form.date_of_bottling|bootstrap }}</div>
     </div>
     <div class="row">
-      <div class="col-md-6">{{ form.date_of_infusion|bootstrap }}</div>
-      <div class="col-md-6">{{ form.date_of_bottling|bootstrap }}</div>
+      <div class="col-md-4">{{ form.yield_quantity|bootstrap }}</div>
+      <div class="col-md-4">{{ form.containers|bootstrap }}</div>
+      <div class="col-md-4">{{ form.container_count|bootstrap }}</div>
     </div>
-    <div class="row" id="product_ingredient">
-      <div class="col-md-6">{{ product_ingredient_form.ingredient|bootstrap }}</div>
-      <div class="col-md-5">{{ product_ingredient_form.quantity|bootstrap }}</div>
-      <div></div>
-    </div>
+
+    {% for pi_form in product_ingredient_forms %}
+      <div class="row form-row" id="product_ingredient">
+        <div class="col-md-6">{{ pi_form.ingredient|bootstrap }}</div>
+        <div class="col-md-5">{{ pi_form.quantity|bootstrap }}</div>
+        <div></div>
+      </div>
+    {% endfor %}
+    {% with empty_form = product_ingredient_forms.empty_form %}
+      <div class="row" id="empty_product_ingredient" style="display: none">
+        <div class="col-md-6">{{ empty_form.ingredient|bootstrap }}</div>
+        <div class="col-md-5">{{ empty_form.quantity|bootstrap }}</div>
+        <div></div>
+      </div>
+    {% endwith %}
     <input type="submit" value="{{ _('Submit') }}" class="btn btn-success" />
   </form>
   <script>
     $('#product_ingredient').formset({
-      formTemplate: '#product_ingredient',
+      formTemplate: '#empty_product_ingredient',
       addCssClass: 'btn btn-default',
       deleteCssClass: 'btn btn-danger',
       addText: 'Add another Ingredient',
       deleteText:'Remove',
+      prefix: '{{ product_ingredient_forms.prefix }}',
       added: () => {
         hide_extra_buttons()
       },

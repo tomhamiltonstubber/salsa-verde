@@ -16,6 +16,7 @@ $(document).ready(() => {
     close: 'fa fa-remove'
   }
   $('.date-time-picker').each((i, el) => {
-    $(el).datetimepicker({icons: icons})
+    const $el = $(el)
+    $el.datetimepicker({icons: icons, format: $el.find('input').data('format')})
   })
 })
