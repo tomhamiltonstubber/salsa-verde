@@ -183,12 +183,7 @@ class Product(BaseModel):
     date_of_bottling = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now)
 
-    product_ingredients = models.ManyToManyField('main.ProductIngredient', verbose_name='Ingredients',
-                                                 related_name='products')
     yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3)
-    containers = models.ForeignKey('main.Container', verbose_name='Containers', related_name='products',
-                                   on_delete=models.CASCADE)
-    container_count = models.PositiveSmallIntegerField('Amount of containers used')
     batch_code = models.CharField('Batch Code', max_length=25)
 
     def __str__(self):
@@ -203,8 +198,8 @@ class Product(BaseModel):
 
 
 class ProductIngredient(BaseModel):
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
 
@@ -246,6 +241,12 @@ class Container(BaseModel):
     class Meta:
         verbose_name = 'Container'
         verbose_name_plural = 'Container'
+
+
+class YieldContainer(BaseModel):
+    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
 
 class Document(BaseModel):

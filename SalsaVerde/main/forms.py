@@ -1,17 +1,16 @@
-from django.forms import (ModelForm, modelformset_factory, BaseModelFormSet, forms, inlineformset_factory,
-                          DateTimeInput)
+from django import forms
 
 from SalsaVerde.main.models import (Ingredient, Supplier, IngredientType, User, Document, ProductType, ContainerType,
-                                    Container, Product, ProductIngredient)
+                                    Container, Product, ProductIngredient, YieldContainer)
 from SalsaVerde.main.widgets import DateTimePicker
 
 
-class SVModelForm(ModelForm):
+class SVModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         for field in self.fields:
-            if isinstance(self.fields[field].widget, DateTimeInput):
+            if isinstance(self.fields[field].widget, forms.DateTimeInput):
                 self.fields[field].widget = DateTimePicker(self.fields[field])
 
 
@@ -33,7 +32,7 @@ class UpdateIngredientTypeForm(SVModelForm):
         exclude = {}
 
 
-class EmptyQSFormSet(BaseModelFormSet):
+class EmptyQSFormSet(forms.BaseModelFormSet):
     def __init__(self, request, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -47,10 +46,10 @@ class UpdateIngredientsForm(SVModelForm):
         exclude = {'intake_user', 'intake_date', 'intake_document'}
 
 
-IngredientsFormSet = modelformset_factory(Ingredient,
-                                          formset=EmptyQSFormSet,
-                                          form=UpdateIngredientsForm,
-                                          can_delete=False)
+IngredientsFormSet = forms.modelformset_factory(Ingredient,
+                                                formset=EmptyQSFormSet,
+                                                form=UpdateIngredientsForm,
+                                                can_delete=False)
 
 
 class UpdateDocumentForm(SVModelForm):
@@ -94,6 +93,19 @@ class ProductIngredientForm(SVModelForm):
         exclude = {'product'}
 
 
+class YieldContainersForm(SVModelForm):
+    container = forms.ModelChoiceField(Container.objects.exclude(container__type=ContainerType.TYPE_CAP))
+    cap = forms.ModelChoiceField(Container.objects.filter(container__type=ContainerType.TYPE_CAP))
+
+    def save(self, commit=True):
+        super().save(commit)
+        YieldContainer.objects.create(container=self.cleaned_data['cap'], quantity=self.cleaned_data['quantity'])
+
+    class Meta:
+        model = YieldContainer
+        exclude = {'product'}
+
+
 class UpdateProductForm(SVModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -104,4 +116,4 @@ class UpdateProductForm(SVModelForm):
         exclude = {'date_of_best_before', 'product_ingredients'}
 
 
-ProductIngredientFormSet = inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
+ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
