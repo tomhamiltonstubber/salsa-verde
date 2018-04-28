@@ -30,6 +30,22 @@
         <div></div>
       </div>
     {% endwith %}
+
+    {% for yc_form in yield_container_forms %}
+      <div class="row form-row" id="yield_container">
+        <div class="col-md-6">{{ yc_form.container|bootstrap }}</div>
+        <div class="col-md-5">{{ yc_form.quantity|bootstrap }}</div>
+        <div></div>
+      </div>
+    {% endfor %}
+    {% with empty_form = yield_container_forms.empty_form %}
+      <div class="row" id="empty_yield_container" style="display: none">
+        <div class="col-md-6">{{ empty_form.container|bootstrap }}</div>
+        <div class="col-md-5">{{ empty_form.quantity|bootstrap }}</div>
+        <div></div>
+      </div>
+    {% endwith %}
+
     <input type="submit" value="{{ _('Submit') }}" class="btn btn-success" />
   </form>
   <script>
@@ -37,9 +53,20 @@
       formTemplate: '#empty_product_ingredient',
       addCssClass: 'btn btn-default',
       deleteCssClass: 'btn btn-danger',
-      addText: 'Add another Ingredient',
+      addText: 'Add another ingredient',
       deleteText:'Remove',
       prefix: '{{ product_ingredient_forms.prefix }}',
+      added: () => {
+        hide_extra_buttons()
+      },
+    })
+    $('#yield_container').formset({
+      formTemplate: '#empty_yield_container',
+      addCssClass: 'btn btn-default',
+      deleteCssClass: 'btn btn-danger',
+      addText: 'Add another container',
+      deleteText:'Remove',
+      prefix: '{{ yield_container_forms.prefix }}',
       added: () => {
         hide_extra_buttons()
       },

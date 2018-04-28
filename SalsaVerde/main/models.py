@@ -209,7 +209,7 @@ class ContainerType(NameBase):
     TYPE_OTHER = 'other'
     TYPE_CONTAINERS = (
         (TYPE_BOTTLE, 'Bottle'),
-        # (TYPE_CAP, 'Cap'),
+        (TYPE_CAP, 'Cap'),
         (TYPE_OTHER, 'Container'),
     )
     size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=3)
@@ -230,6 +230,14 @@ class ContainerType(NameBase):
 class Container(BaseModel):
     container_type = models.ForeignKey(ContainerType, verbose_name='Container', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
+    # intake_date = models.DateTimeField('Intake Date', default=timezone.now)
+    # condition = models.CharField('Condition', max_length=25, default='Good')
+    # supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
+    #                              null=True, on_delete=models.SET_NULL)
+    # status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
+    # quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+    # intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True,
+    #                                     verbose_name='Document', on_delete=models.SET_NULL)
 
     @classmethod
     def prefix(cls):

@@ -10,7 +10,7 @@ from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView
 from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet,
                                    UpdateDocumentForm, UpdateProductTypeForm, UpdateContainerTypeForm,
                                    UpdateContainerForm, UpdateProductForm, UpdateIngredientsForm,
-                                   ProductIngredientFormSet)
+                                   ProductIngredientFormSet, YieldContainersFormSet)
 from SalsaVerde.main.models import (User, Document, Ingredient, Supplier, IngredientType, ProductType, ContainerType,
                                     Product, Container)
 
@@ -34,7 +34,7 @@ login = Login.as_view()
 @receiver(user_logged_in)
 def update_user_history(sender, user, **kwargs):
     user.last_logged_in = timezone.now()
-    user.save()
+    user.save(update_fields=['last_logged_in'])
 
 
 class Index(BasicView):
@@ -429,8 +429,6 @@ class ProductList(ListView):
         'date_of_bottling',
         'date_of_best_before',
         'yield_quantity',
-        'container',
-        'container_count',
     ]
 
     def get_button_menu(self):
@@ -450,16 +448,24 @@ class ProductAdd(AddModelView):
     form_class = UpdateProductForm
     template_name = 'add_product_form.jinja'
 
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(product_ingredient_forms=ProductIngredientFormSet(), **kwargs)
-
     def form_valid(self, form):
-        product_ingred_formset = ProductIngredientFormSet(self.request.POST)
+        product_ingredient_formset = ProductIngredientFormSet(self.request.POST)
+        yield_container_formset = YieldContainersFormSet(self.request.POST)
         obj = form.save()
-        if product_ingred_formset.is_valid():
-            product_ingred_formset.instance = obj
-            product_ingred_formset.save()
+        if product_ingredient_formset.is_valid():
+            product_ingredient_formset.instance = obj
+            product_ingredient_formset.save()
+        if yield_container_formset.is_valid():
+            yield_container_formset.instance = obj
+            yield_container_formset.save()
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            product_ingredient_forms=ProductIngredientFormSet(),
+            yield_container_forms=YieldContainersFormSet(),
+            **kwargs
+        )
 
 
 product_add = ProductAdd.as_view()
@@ -485,8 +491,6 @@ class ProductDetails(DetailView):
         'date_of_bottling',
         'date_of_best_before',
         'yield_quantity',
-        'container',
-        'container_count',
     ]
 
 

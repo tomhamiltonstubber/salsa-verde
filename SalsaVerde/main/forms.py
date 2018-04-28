@@ -94,8 +94,8 @@ class ProductIngredientForm(SVModelForm):
 
 
 class YieldContainersForm(SVModelForm):
-    container = forms.ModelChoiceField(Container.objects.exclude(container__type=ContainerType.TYPE_CAP))
-    cap = forms.ModelChoiceField(Container.objects.filter(container__type=ContainerType.TYPE_CAP))
+    container = forms.ModelChoiceField(Container.objects.exclude(container_type__type=ContainerType.TYPE_CAP))
+    cap = forms.ModelChoiceField(Container.objects.filter(container_type__type=ContainerType.TYPE_CAP))
 
     def save(self, commit=True):
         super().save(commit)
@@ -104,6 +104,9 @@ class YieldContainersForm(SVModelForm):
     class Meta:
         model = YieldContainer
         exclude = {'product'}
+
+
+YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=0)
 
 
 class UpdateProductForm(SVModelForm):
