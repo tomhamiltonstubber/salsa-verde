@@ -72,7 +72,7 @@ class UpdateContainerTypeForm(SVModelForm):
 
     def clean_type(self):
         if self.cleaned_data['type'] != ContainerType.TYPE_CAP and not self.cleaned_data['size']:
-            raise forms.ValidationError("You must enter size if this isn't a cap")
+            raise forms.ValidationError("You must enter a size if this isn't a cap")
         return self.cleaned_data['type']
 
 

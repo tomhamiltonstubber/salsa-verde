@@ -111,7 +111,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('batch_code', models.CharField(max_length=25, verbose_name='Batch Code')),
-                ('intake_date', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Intake Date')),
                 ('condition', models.CharField(default='Good', max_length=25, verbose_name='Condition')),
                 ('status', models.CharField(choices=[('accept', 'Accept'), ('hold', 'Hold'), ('reject', 'Reject')], default='accept', max_length=25, verbose_name='Status')),
                 ('quantity', models.DecimalField(decimal_places=3, max_digits=25, verbose_name='Quantity')),

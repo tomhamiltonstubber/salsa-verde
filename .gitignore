@@ -4,3 +4,5 @@ env/
 .grablib.lock
 static/css/
 static/libs/
+.coverage
+coverage.xml
