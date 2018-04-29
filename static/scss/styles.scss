@@ -47,9 +47,15 @@ body {
 #content {
   padding: 50px;
   margin: 100px 200px;
+  @media (max-width: 1400px) {
+    margin: 100px 50px;
+  }
   border-radius: 4px;
   border: 1px solid $border-color;
   background-color: white;
+  .container {
+    max-width: 100%;
+  }
 }
 
 #button-menu {
@@ -68,5 +74,12 @@ body {
 .dynamic-form {
   .btn-danger {
     margin-top: 25px;
+  }
+}
+
+#display-items {
+  label {
+    min-width: 15%;
+    padding-left: 40px;
   }
 }

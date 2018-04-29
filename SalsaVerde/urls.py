@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from SalsaVerde.main import views
+from SalsaVerde.main import views, raw_materials_views
 
 urlpatterns = [
     path('', views.dashboard, name='index'),
@@ -20,29 +20,30 @@ urlpatterns = [
     path('suppliers/<int:pk>/', views.supplier_details, name='suppliers-details'),
     path('suppliers/<int:pk>/edit/', views.supplier_edit, name='suppliers-edit'),
 
-    path('ingredient-types/', views.ingredient_type_list, name='ingredient-types'),
-    path('ingredient-types/add/', views.ingredient_type_add, name='ingredient-types-add'),
-    path('ingredient-types/<int:pk>/', views.ingredient_type_details, name='ingredient-types-details'),
-    path('ingredient-types/<int:pk>/edit/', views.ingredient_type_edit, name='ingredient-types-edit'),
+    path('ingredient-types/', raw_materials_views.ingredient_type_list, name='ingredient-types'),
+    path('ingredient-types/add/', raw_materials_views.ingredient_type_add, name='ingredient-types-add'),
+    path('ingredient-types/<int:pk>/', raw_materials_views.ingredient_type_details, name='ingredient-types-details'),
+    path('ingredient-types/<int:pk>/edit/', raw_materials_views.ingredient_type_edit, name='ingredient-types-edit'),
 
     path('product-types/', views.product_type_list, name='product-types'),
     path('product-types/add/', views.product_type_add, name='product-types-add'),
     path('product-types/<int:pk>/', views.product_type_details, name='product-types-details'),
     path('product-types/<int:pk>/edit/', views.product_type_edit, name='product-types-edit'),
 
-    path('container-types/', views.container_type_list, name='container-types'),
-    path('container-types/add/', views.container_type_add, name='container-types-add'),
-    path('container-types/<int:pk>/', views.container_type_details, name='container-types-details'),
-    path('container-types/<int:pk>/edit/', views.container_type_edit, name='container-types-edit'),
+    path('container-types/', raw_materials_views.container_type_list, name='container-types'),
+    path('container-types/add/', raw_materials_views.container_type_add, name='container-types-add'),
+    path('container-types/<int:pk>/', raw_materials_views.container_type_details, name='container-types-details'),
+    path('container-types/<int:pk>/edit/', raw_materials_views.container_type_edit, name='container-types-edit'),
 
-    path('containers/', views.containers_list, name='containers'),
-    path('containers/add/', views.containers_add, name='containers-add'),
-    path('containers/<int:pk>/', views.containers_details, name='containers-details'),
-    path('containers/<int:pk>/edit/', views.containers_edit, name='containers-edit'),
+    path('containers/', raw_materials_views.containers_list, name='containers'),
+    path('intake-goods/containers/', raw_materials_views.intake_containers, name='intake-containers'),
+    path('containers/<int:pk>/', raw_materials_views.containers_details, name='containers-details'),
+    path('containers/<int:pk>/edit/', raw_materials_views.containers_edit, name='containers-edit'),
 
-    path('ingredients/', views.ingredient_list, name='ingredients'),
-    path('ingredients/<int:pk>/', views.ingredient_details, name='ingredients-details'),
-    path('ingredients/<int:pk>/edit', views.ingredient_edit, name='ingredients-edit'),
+    path('ingredients/', raw_materials_views.ingredient_list, name='ingredients'),
+    path('intake-goods/ingredients/', raw_materials_views.intake_ingredients, name='intake-ingredients'),
+    path('ingredients/<int:pk>/', raw_materials_views.ingredient_details, name='ingredients-details'),
+    path('ingredients/<int:pk>/edit', raw_materials_views.ingredient_edit, name='ingredients-edit'),
 
     path('documents/', views.document_list, name='documents'),
     path('documents/add/', views.document_add, name='documents-add'),
@@ -54,6 +55,4 @@ urlpatterns = [
     path('products/add/', views.product_add, name='products-add'),
     path('products/<int:pk>/', views.product_details, name='products-details'),
     path('products/<int:pk>/edit/', views.product_edit, name='products-edit'),
-
-    path('intake-goods/', views.intake_goods, name='intake-goods'),
 ]

@@ -1,55 +1,55 @@
 {% extends 'auth.jinja' %}
 
 {% block content %}
-  <form method="post" action="" id="ingredients_form" enctype="multipart/form-data">
+  <form method="post" action="" id="intake_goods_form" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ forms.management_form|safe }}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Ingredient Type</th>
-          <th>Supplier</th>
-          <th>Batch Code</th>
-          <th>Quantity</th>
-          <th>Condition</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for form in forms %}
+    {{ formsets.management_form|safe }}
+    <div class="row">
+      <div class="col-md-6">{{ form.intake_date|bootstrap }}</div>
+      <div class="col-md-6">{{ form.intake_user|bootstrap }}</div>
+    </div>
+    <div class="row">
+      <table class="table">
+        {% for formset in formsets %}
           <tr class="form-row">
-            <td>{{ form.ingredient_type|bootstrap }}</td>
-            <td>{{ form.supplier|bootstrap }}</td>
-            <td>{{ form.batch_code|bootstrap }}</td>
-            <td>{{ form.quantity|bootstrap }}</td>
-            <td>{{ form.condition|bootstrap }}</td>
-            <td>{{ form.status|bootstrap }}</td>
+            {% for field in formset.visible_fields() %}
+              <td>{{ field|bootstrap }}</td>
+            {% endfor %}
             <td></td>
           </tr>
         {% endfor %}
-        {% with form = forms.empty_form %}
-          <tr class="form-row" id="id_empty_intake_form" style="display:none;">
-            <td>{{ form.ingredient_type|bootstrap }}</td>
-            <td>{{ form.supplier|bootstrap }}</td>
-            <td>{{ form.batch_code|bootstrap }}</td>
-            <td>{{ form.quantity|bootstrap }}</td>
-            <td>{{ form.condition|bootstrap }}</td>
-            <td>{{ form.status|bootstrap }}</td>
+        {% with formset = formsets.empty_form %}
+          <tr class="form-row" id="id_empty_intake_goods_form" style="display:none;">
+            {% for field in formset.visible_fields() %}
+              <td>{{ field|bootstrap }}</td>
+            {% endfor %}
             <td></td>
           </tr>
         {% endwith %}
-      </tbody>
-    </table>
+      </table>
+    </div>
     <input type="submit" value="{{ _('Submit') }}" class="btn btn-default" />
   </form>
   <script>
-    $('#ingredients_form .form-row').formset({
-      formTemplate: '#id_empty_intake_form',
-      addCssClass: 'btn btn-success',
+    $('#intake_goods_form .form-row').formset({
+      formTemplate: '#id_empty_intake_goods_form',
+      addCssClass: 'btn btn-default',
       deleteCssClass: 'btn btn-danger',
       addText: 'Add another',
       deleteText:'Remove',
+      prefix: '{{ formsets.prefix }}',
+      added: () => {
+        hide_extra_buttons()
+      },
     })
+    function hide_extra_buttons() {
+      $('.dynamic-form').each((i, el) => {
+        const $els = $(el).find('.btn-danger')
+        if ($els.length === 2) {
+          $($els[0]).hide()
+        }
+      })
+    }
+    hide_extra_buttons()
   </script>
 {% endblock %}

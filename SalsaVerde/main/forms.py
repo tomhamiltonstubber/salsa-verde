@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.main.models import (Ingredient, Supplier, IngredientType, User, Document, ProductType, ContainerType,
-                                    Container, Product, ProductIngredient, YieldContainer)
+                                    Container, Product, ProductIngredient, YieldContainer, GoodsIntake)
 from SalsaVerde.main.widgets import DateTimePicker
 
 
@@ -43,13 +43,14 @@ class EmptyQSFormSet(forms.BaseModelFormSet):
 class UpdateIngredientsForm(SVModelForm):
     class Meta:
         model = Ingredient
-        exclude = {'intake_user', 'intake_date', 'intake_document'}
+        fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier', 'condition', 'status']
 
 
-IngredientsFormSet = forms.modelformset_factory(Ingredient,
-                                                formset=EmptyQSFormSet,
-                                                form=UpdateIngredientsForm,
-                                                can_delete=False)
+IngredientsFormSet = forms.inlineformset_factory(GoodsIntake,
+                                                 Ingredient,
+                                                 form=UpdateIngredientsForm,
+                                                 extra=1,
+                                                 can_delete=False)
 
 
 class UpdateDocumentForm(SVModelForm):
@@ -78,7 +79,14 @@ class UpdateContainerTypeForm(SVModelForm):
 class UpdateContainerForm(SVModelForm):
     class Meta:
         model = Container
-        exclude = {}
+        fields = ['container_type', 'quantity', 'batch_code', 'supplier', 'condition', 'status']
+
+
+ContainersFormSet = forms.inlineformset_factory(GoodsIntake,
+                                                Container,
+                                                UpdateContainerForm,
+                                                extra=1,
+                                                can_delete=False)
 
 
 class UpdateProductTypeForm(SVModelForm):
@@ -106,7 +114,7 @@ class YieldContainersForm(SVModelForm):
         exclude = {'product'}
 
 
-YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=0)
+YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=1)
 
 
 class UpdateProductForm(SVModelForm):
@@ -120,3 +128,9 @@ class UpdateProductForm(SVModelForm):
 
 
 ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
+
+
+class GoodsIntakeForm(SVModelForm):
+    class Meta:
+        model = GoodsIntake
+        exclude = {'date_created'}

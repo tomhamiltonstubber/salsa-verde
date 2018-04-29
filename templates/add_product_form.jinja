@@ -5,15 +5,13 @@
     {% csrf_token %}
     {{ product_ingredient_forms.management_form|safe }}
     <div class="row">
-      <div class="col-md-3">{{ form.product_type|bootstrap }}</div>
-      <div class="col-md-3">{{ form.batch_code|bootstrap }}</div>
-      <div class="col-md-3">{{ form.date_of_infusion|bootstrap }}</div>
-      <div class="col-md-3">{{ form.date_of_bottling|bootstrap }}</div>
+      <div class="col-md-4">{{ form.product_type|bootstrap }}</div>
+      <div class="col-md-4">{{ form.batch_code|bootstrap }}</div>
+      <div class="col-md-4">{{ form.yield_quantity|bootstrap }}</div>
     </div>
     <div class="row">
-      <div class="col-md-4">{{ form.yield_quantity|bootstrap }}</div>
-      <div class="col-md-4">{{ form.containers|bootstrap }}</div>
-      <div class="col-md-4">{{ form.container_count|bootstrap }}</div>
+      <div class="col-md-6">{{ form.date_of_infusion|bootstrap }}</div>
+      <div class="col-md-6">{{ form.date_of_bottling|bootstrap }}</div>
     </div>
 
     {% for pi_form in product_ingredient_forms %}

@@ -39,13 +39,20 @@ class User(AbstractUser):
     town = models.CharField('Town', max_length=50, null=True, blank=True)
     country = models.CharField('Country', max_length=50, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
-    phone = models.CharField('Telephone Number', max_length=255, null=True, blank=True)
+    phone = models.CharField('Phone', max_length=255, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     def has_document(self, doc_type):
         return self.focused_documents.filter(doc_type=doc_type).exists()
+
+    def display_name(self):
+        return str(self)
+
+    def display_address(self):
+        address = [a for a in [self.street, self.town, self.postcode, self.country] if a]
+        return ', '.join(address) or '–'
 
     def get_absolute_url(self):
         return reverse('users-details', kwargs={'pk': self.pk})
@@ -84,11 +91,25 @@ class NameBase(BaseModel):
 class Supplier(NameBase):
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
-    country = models.CharField('Town', max_length=50, null=True, blank=True)
+    country = models.CharField('Country', max_length=50, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
-    phone = models.CharField('Telephone Number', max_length=255, null=True, blank=True)
+    phone = models.CharField('Phone', max_length=255, null=True, blank=True)
     email = models.EmailField('Email', max_length=50, null=True, blank=True)
     main_contact = models.CharField('Main Contact', max_length=50, null=True, blank=True)
+
+    def display_email(self):
+        if self.email:
+            return mark_safe(f'<a href="mailto:{self.email}">{self.email}</a>')
+        return '–'
+
+    def display_phone(self):
+        if self.phone:
+            return mark_safe(f'<a href="tel:{self.phone}">{self.phone}</a>')
+        return '–'
+
+    def display_address(self):
+        address = [a for a in [self.street, self.town, self.postcode, self.country] if a]
+        return ', '.join(address) or '–'
 
     @staticmethod
     def prefix():
@@ -135,22 +156,25 @@ class Ingredient(BaseModel):
     ingredient_type = models.ForeignKey(IngredientType, verbose_name='Ingredient Type',
                                         related_name='ingredients', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
-    intake_date = models.DateTimeField('Intake Date', default=timezone.now)
     condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
                                  null=True, on_delete=models.SET_NULL)
     status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True,
-                                        verbose_name='Document', on_delete=models.SET_NULL)
+    goods_intake = models.ForeignKey('main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake',
+                                     on_delete=models.CASCADE)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return mark_safe('<b>%s</b> - Intake date: %s - Batch num: %s' % (
-            self.ingredient_type, display_dt(self.intake_date), self.batch_code
+        return mark_safe('%s - Intake date: %s - Batch num: %s' % (
+            self.ingredient_type, display_dt(self.goods_intake.intake_date), self.batch_code
         ))
+
+    @property
+    def intake_document(self):
+        return self.goods_intake.intake_document
 
     @classmethod
     def prefix(cls):
@@ -159,48 +183,6 @@ class Ingredient(BaseModel):
     class Meta:
         verbose_name = 'Ingredient'
         verbose_name_plural = 'Ingredients'
-
-
-class ProductType(NameBase):
-    ingredient_types = models.ManyToManyField(IngredientType, verbose_name='Ingredients', related_name='product_types')
-
-    @classmethod
-    def prefix(cls):
-        return 'product-types'
-
-    def get_absolute_url(self):
-        return reverse(f'product-types-details', kwargs={'pk': self.pk})
-
-    class Meta:
-        verbose_name = 'Product Type'
-        verbose_name_plural = 'Product Types'
-
-
-class Product(BaseModel):
-    product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
-                                     on_delete=models.CASCADE)
-    date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
-    date_of_bottling = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
-    date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now)
-
-    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3)
-    batch_code = models.CharField('Batch Code', max_length=25)
-
-    def __str__(self):
-        return f'{self.product_type} - Bottled {self.date_of_bottling.strftime(settings.DT_FORMAT)} - {self.batch_code}'
-
-    def get_absolute_url(self):
-        return reverse(f'products-details', kwargs={'pk': self.pk})
-
-    @classmethod
-    def prefix(cls):
-        return 'products'
-
-
-class ProductIngredient(BaseModel):
-    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
 
 class ContainerType(NameBase):
@@ -228,16 +210,23 @@ class ContainerType(NameBase):
 
 
 class Container(BaseModel):
+    STATUS_ACCEPT = 'accept'
+    STATUS_HOLD = 'hold'
+    STATUS_REJECT = 'reject'
+    STATUS_CHOICES = (
+        (STATUS_ACCEPT, 'Accept'),
+        (STATUS_HOLD, 'Hold'),
+        (STATUS_REJECT, 'Reject'),
+    )
     container_type = models.ForeignKey(ContainerType, verbose_name='Container', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
-    # intake_date = models.DateTimeField('Intake Date', default=timezone.now)
-    # condition = models.CharField('Condition', max_length=25, default='Good')
-    # supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
-    #                              null=True, on_delete=models.SET_NULL)
-    # status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
-    # quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    # intake_document = models.ForeignKey('main.Document', related_name='ingredients', null=True,
-    #                                     verbose_name='Document', on_delete=models.SET_NULL)
+    condition = models.CharField('Condition', max_length=25, default='Good')
+    supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='containers',
+                                 null=True, on_delete=models.SET_NULL)
+    status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
+    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+    goods_intake = models.ForeignKey('main.GoodsIntake', related_name='containers', verbose_name='Goods Intake',
+                                     on_delete=models.CASCADE)
 
     @classmethod
     def prefix(cls):
@@ -246,14 +235,82 @@ class Container(BaseModel):
     def get_absolute_url(self):
         return reverse(f'containers-details', kwargs={'pk': self.pk})
 
+    def __str__(self):
+        return mark_safe('%s - Intake date: %s - Batch num: %s' % (
+            self.container_type, display_dt(self.goods_intake.intake_date), self.batch_code
+        ))
+
+    @property
+    def intake_document(self):
+        return self.goods_intake.intake_document
+
     class Meta:
         verbose_name = 'Container'
         verbose_name_plural = 'Container'
 
 
 class YieldContainer(BaseModel):
-    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    product = models.ForeignKey('main.Product', verbose_name='Product', on_delete=models.CASCADE)
     container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+
+
+class GoodsIntake(BaseModel):
+    date_created = models.DateTimeField('Date created', default=timezone.now)
+    intake_date = models.DateTimeField('Intake date', default=timezone.now)
+    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE)
+
+    @property
+    def intake_document(self):
+        try:
+            return Document.objects.get(goods_intake=self)
+        except Document.DoesNotExist:
+            return
+
+
+class ProductType(NameBase):
+    ingredient_types = models.ManyToManyField(IngredientType, verbose_name='Ingredients', related_name='product_types')
+
+    @classmethod
+    def prefix(cls):
+        return 'product-types'
+
+    def get_absolute_url(self):
+        return reverse(f'product-types-details', kwargs={'pk': self.pk})
+
+    class Meta:
+        verbose_name = 'Product Type'
+        verbose_name_plural = 'Product Types'
+
+
+class Product(BaseModel):
+    product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
+                                     on_delete=models.CASCADE)
+    date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
+    date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now)
+    date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now)
+
+    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3)
+    batch_code = models.CharField('Batch Code', max_length=25)
+
+    def __str__(self):
+        return f'{self.product_type} - Bottled {self.date_of_bottling.strftime(settings.DT_FORMAT)} - {self.batch_code}'
+
+    def get_absolute_url(self):
+        return reverse(f'products-details', kwargs={'pk': self.pk})
+
+    @classmethod
+    def prefix(cls):
+        return 'products'
+
+    class Meta:
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+
+
+class ProductIngredient(BaseModel):
+    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
 
@@ -303,6 +360,8 @@ class Document(BaseModel):
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
     focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, related_name='focused_documents',
                               on_delete=models.SET_NULL)
+    goods_intake = models.ForeignKey('main.GoodsIntake', verbose_name='Intake of Goods', null=True, blank=True,
+                                     on_delete=models.SET_NULL, related_name='documents')
     edits = JSONField()
 
     def __str__(self):

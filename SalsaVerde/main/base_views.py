@@ -10,11 +10,18 @@ from SalsaVerde import settings
 def get_nav_menu():
     return [
         ('Dashboard', reverse('index')),
-        ('Users', reverse('users')),
         ('Suppliers', reverse('suppliers')),
         ('Products', reverse('products')),
+        ('Containers', reverse('containers')),
+        ('Ingredients', reverse('ingredients')),
         ('Documents', reverse('documents')),
+        ('Users', reverse('users')),
     ]
+
+
+class FieldInfo:
+    field = None
+    verbose_name = None
 
 
 class DisplayHelpers:
@@ -36,27 +43,41 @@ class DisplayHelpers:
     def get_button_menu(self):
         return []
 
+    def _get_attr(self, obj, attr_name):
+        for b in attr_name.split('__'):
+            if obj:
+                obj = getattr(obj, b)
+        return obj
+
     def _get_v(self, obj, field):
-        if field.startswith('abs|'):
+        get_abs = False
+        get_func = False
+        if hasattr(obj, f'display_{field}'):
+            return getattr(obj, f'display_{field}')()
+        elif field.startswith('abs|'):
             field = field.replace('abs|', '')
-            v = mark_safe(f'<a href="{getattr(obj, field).get_absolute_url()}">{getattr(obj, field)}</a>')
+            get_abs = True
         elif field.startswith('func|'):
             field = field.replace('func|', '')
-            v = getattr(self, field)(obj)
-        elif hasattr(obj, f'display_{field}'):
-            v = getattr(obj, f'display_{field}')()
+            return getattr(self, field)(obj)
+        attr = self._get_attr(obj, field)
+        if get_abs:
+            v = mark_safe(f'<a href="{attr.get_absolute_url()}">{attr}</a>')
+        elif get_func:
+            v = attr(obj)
         else:
-            v = getattr(obj, field)
+            v = attr
         if isinstance(v, datetime.datetime):
             return display_dt(v)
-        return v
+        return v or '–'
 
     def _display_label(self, item):
+        display_funcs = {'display_', *self.display_funcs}
         if isinstance(item, tuple):
-            item = item[0]
-        for func in self.display_funcs:
-            item.replace(func, '')
-        return item
+            return item[0]
+        for func in display_funcs:
+            item = item.replace(func, '')
+        return self.model._meta.get_field(item).verbose_name
 
     def display_value(self, obj, item):
         if isinstance(item, tuple):
@@ -89,8 +110,7 @@ class ListView(BasicView):
         return self.model.objects.all()
 
     def get_field_data(self):
-        qs = self.get_queryset()
-        for obj in qs:
+        for obj in self.get_queryset():
             yield obj.get_absolute_url(), [self.display_value(obj, f) for f in self.display_items]
 
     def get_title(self):

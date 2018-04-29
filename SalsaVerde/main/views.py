@@ -2,17 +2,13 @@ from django.contrib.auth import user_logged_in
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.dispatch import receiver
-from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
 
 from SalsaVerde.main.base_views import AddModelView, UpdateModelView, DetailView, ListView, BasicView
-from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateIngredientTypeForm, IngredientsFormSet,
-                                   UpdateDocumentForm, UpdateProductTypeForm, UpdateContainerTypeForm,
-                                   UpdateContainerForm, UpdateProductForm, UpdateIngredientsForm,
-                                   ProductIngredientFormSet, YieldContainersFormSet)
-from SalsaVerde.main.models import (User, Document, Ingredient, Supplier, IngredientType, ProductType, ContainerType,
-                                    Product, Container)
+from SalsaVerde.main.forms import (UpdateSupplierForm, UpdateUserForm, UpdateDocumentForm, UpdateProductTypeForm,
+                                   UpdateProductForm, ProductIngredientFormSet, YieldContainersFormSet)
+from SalsaVerde.main.models import User, Document, Supplier, ProductType, Product
 
 
 class Login(LoginView):
@@ -62,8 +58,8 @@ class UserDetails(DetailView):
     model = User
     display_items = [
         'email',
-        'first_name',
-        'last_name',
+        ('Name', 'name'),
+        ('Address', 'address'),
         'last_logged_in',
     ]
 
@@ -98,10 +94,7 @@ class SupplierList(ListView):
     model = Supplier
     display_items = [
         'name',
-        'street',
-        'town',
         'main_contact',
-        'postcode',
         'phone',
         'email',
     ]
@@ -114,10 +107,7 @@ class SupplierDetails(DetailView):
     model = Supplier
     display_items = [
         'name',
-        'street',
-        'town',
-        'country',
-        'postcode',
+        ('Address', 'address'),
         'phone',
         'email',
     ]
@@ -140,120 +130,6 @@ class SupplierEdit(UpdateModelView):
 
 
 supplier_edit = SupplierEdit.as_view()
-
-
-class IngredientTypeList(ListView):
-    model = IngredientType
-    display_items = [
-        'name',
-        'unit',
-    ]
-
-
-ingredient_type_list = IngredientTypeList.as_view()
-
-
-class IngredientTypeDetails(DetailView):
-    model = IngredientType
-    display_items = [
-        'name',
-        'unit',
-    ]
-
-
-ingredient_type_details = IngredientTypeDetails.as_view()
-
-
-class IngredientTypeAdd(AddModelView):
-    model = IngredientType
-    form_class = UpdateIngredientTypeForm
-
-
-ingredient_type_add = IngredientTypeAdd.as_view()
-
-
-class IngredientTypeEdit(UpdateModelView):
-    model = IngredientType
-    form_class = UpdateIngredientTypeForm
-
-
-ingredient_type_edit = IngredientTypeEdit.as_view()
-
-
-class IngredientList(ListView):
-    model = Ingredient
-    display_items = [
-        'ingredient_type',
-        'batch_code',
-        'intake_date',
-        'supplier',
-    ]
-
-    def get_button_menu(self):
-        return [
-            ('Intake goods', reverse('intake-goods')),
-            ('Ingredient types', reverse('ingredient-types')),
-        ]
-
-
-ingredient_list = IngredientList.as_view()
-
-
-class IngredientDetails(DetailView):
-    model = Ingredient
-    display_items = [
-        'ingredient_type',
-        'batch_code',
-        'intake_date',
-        'condition',
-        'supplier',
-        'status',
-        'quantity',
-        'abs|intake_document',
-    ]
-
-
-ingredient_details = IngredientDetails.as_view()
-
-
-class IngredientEdit(UpdateModelView):
-    model = Ingredient
-    form_class = UpdateIngredientsForm
-
-
-ingredient_edit = IngredientEdit.as_view()
-
-
-class IntakeGoods(AddModelView):
-    model = Ingredient
-    form_class = IngredientsFormSet
-    template_name = 'intake_goods_form.jinja'
-    title = 'Intake of goods'
-
-    def form_valid(self, form):
-        objects = form.save(commit=False)
-        doc = Document.objects.create(
-            author=self.request.user,
-            type=Document.FORM_SUP01,
-        )
-        for object in objects:
-            object.intake_user = self.request.user
-            object.intake_document = doc
-            object.save()
-        return redirect(reverse('ingredients'))
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs.pop('instance')
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['forms'] = ctx.pop('form')
-        return ctx
-
-
-intake_goods = IntakeGoods.as_view()
 
 
 class DocumentsList(ListView):
@@ -337,90 +213,6 @@ class ProductTypeEdit(UpdateModelView):
 product_type_edit = ProductTypeEdit.as_view()
 
 
-class ContainerTypeList(ListView):
-    model = ContainerType
-    display_items = [
-        'name',
-        'size',
-        'type',
-    ]
-
-
-container_type_list = ContainerTypeList.as_view()
-
-
-class ContainerTypeDetails(DetailView):
-    model = ContainerType
-    display_items = [
-        'name',
-        'size',
-        'type',
-    ]
-
-
-container_type_details = ContainerTypeDetails.as_view()
-
-
-class ContainerTypeAdd(AddModelView):
-    model = ContainerType
-    form_class = UpdateContainerTypeForm
-
-
-container_type_add = ContainerTypeAdd.as_view()
-
-
-class ContainerTypeEdit(UpdateModelView):
-    model = ContainerType
-    form_class = UpdateContainerTypeForm
-
-
-container_type_edit = ContainerTypeEdit.as_view()
-
-
-class ContainerList(ListView):
-    model = Container
-    display_items = [
-        'container_type',
-        'batch_code',
-    ]
-
-    def get_button_menu(self):
-        return [
-            ('Record container intake', reverse('containers-add')),
-            ('Container Types', reverse('container-types')),
-        ]
-
-
-containers_list = ContainerList.as_view()
-
-
-class ContainerDetails(DetailView):
-    model = Container
-    display_items = [
-        'container_type',
-        'batch_code',
-    ]
-
-
-containers_details = ContainerDetails.as_view()
-
-
-class ContainerAdd(AddModelView):
-    model = Container
-    form_class = UpdateContainerForm
-
-
-containers_add = ContainerAdd.as_view()
-
-
-class ContainerEdit(UpdateModelView):
-    model = Container
-    form_class = UpdateContainerForm
-
-
-containers_edit = ContainerEdit.as_view()
-
-
 class ProductList(ListView):
     model = Product
     display_items = [
@@ -434,8 +226,6 @@ class ProductList(ListView):
     def get_button_menu(self):
         return [
             ('Add Product', reverse('products-add')),
-            ('Containers', reverse('containers')),
-            ('Ingredients', reverse('ingredients')),
             ('Product Types', reverse('product-types')),
         ]
 
@@ -471,7 +261,7 @@ class ProductAdd(AddModelView):
 product_add = ProductAdd.as_view()
 
 
-class ProductEdit(UpdateModelView):
+class ProductEdit(ProductAdd, UpdateModelView):
     model = Product
     form_class = UpdateProductForm
     template_name = 'add_product_form.jinja'

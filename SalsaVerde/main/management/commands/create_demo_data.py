@@ -4,14 +4,14 @@ from django.core.management import BaseCommand
 from django.utils import timezone
 
 from SalsaVerde.main.models import User, ContainerType, Container, Supplier, IngredientType, Ingredient, ProductType, \
-    Product, ProductIngredient, YieldContainer
+    Product, ProductIngredient, YieldContainer, GoodsIntake
 
 
 class Command(BaseCommand):
     help = 'watch and build scss files'
 
     def handle(self, **kwargs):
-        User.objects.create_user(email='owner@salsaverde.com', first_name='Bruce', last_name='Banner',
+        user = User.objects.create_user(email='owner@salsaverde.com', first_name='Bruce', last_name='Banner',
                                  password='testing')
         supplier_1 = Supplier.objects.create(
             name='Green Food Suppliers', street='1 Fresh Fruit Avenue', town='Armagh', country='Northern Ireland',
@@ -23,17 +23,29 @@ class Command(BaseCommand):
         bottle_type_200 = ContainerType.objects.create(name='200 ml bottle', size=0.2, type=ContainerType.TYPE_BOTTLE)
         bottle_type_100 = ContainerType.objects.create(name='100 ml bottle', size=0.1, type=ContainerType.TYPE_BOTTLE)
         cap_type = ContainerType.objects.create(name='Black Cap', type=ContainerType.TYPE_CAP)
-        bottle_200 = Container.objects.create(container_type=bottle_type_200, batch_code='123bot')
-        bottle_100 = Container.objects.create(container_type=bottle_type_100, batch_code='456bot')
-        cap = Container.objects.create(container_type=cap_type, batch_code='789cap')
+
+        containers_intake = GoodsIntake.objects.create(intake_date=timezone.now(), date_created=timezone.now(),
+                                                       intake_user=user)
+        bottle_200 = Container.objects.create(container_type=bottle_type_200, batch_code='123bot',
+                                              goods_intake=containers_intake, quantity=1500)
+        bottle_100 = Container.objects.create(container_type=bottle_type_100, batch_code='456bot',
+                                              goods_intake=containers_intake, quantity=1200)
+        cap = Container.objects.create(container_type=cap_type, batch_code='789cap', goods_intake=containers_intake,
+                                       quantity=2700)
+
         bb_type = IngredientType.objects.create(name='Blackberries', unit=IngredientType.UNIT_KILO)
         thyme_type = IngredientType.objects.create(name='Thyme', unit=IngredientType.UNIT_KILO)
         vinegar_type = IngredientType.objects.create(name='Black Balsamic', unit=IngredientType.UNIT_LITRE)
-        bb = Ingredient.objects.create(ingredient_type=bb_type, batch_code='bb123', supplier=supplier_1, quantity=20)
+
+        three_days = timezone.now() - timedelta(days=3)
+        ingreds_intake = GoodsIntake.objects.create(intake_date=three_days, date_created=three_days, intake_user=user)
+        bb = Ingredient.objects.create(ingredient_type=bb_type, batch_code='bb123', supplier=supplier_1, quantity=20,
+                                       goods_intake=ingreds_intake)
         thyme = Ingredient.objects.create(ingredient_type=thyme_type, batch_code='thy456', supplier=supplier_1,
-                                          quantity=10)
+                                          quantity=10, goods_intake=ingreds_intake)
         vinegar = Ingredient.objects.create(ingredient_type=vinegar_type, batch_code='v789', supplier=supplier_2,
-                                            quantity=95)
+                                            quantity=95, goods_intake=ingreds_intake)
+
         btt_type = ProductType.objects.create(name='Blackberry and Thyme')
         btt_type.ingredient_types.add(*(bb_type, thyme_type, vinegar_type))
         btt = Product.objects.create(product_type=btt_type,
