@@ -88,17 +88,22 @@ WSGI_APPLICATION = 'SalsaVerde.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
+LIVE = os.getenv('LIVE')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'salsaverde',
-        'USER': 'postgres',
-        'PASSWORD': 'waffle',
-        'HOST': 'localhost',
-        'PORT': '5432',
+if LIVE:
+    import dj_database_url
+    DATABASES = {'default': dj_database_url.config()}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'salsaverde',
+            'USER': 'postgres',
+            'PASSWORD': 'waffle',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
     }
-}
 
 
 # Password validation
@@ -134,10 +139,9 @@ STATIC_ROOT = 'staticfiles'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_URL = '/static/'
 
-USE_S3 = os.getenv('USE_S3')
 AWS_PRIVATE_MEDIA_LOCATION = 'media/private'
 
-if USE_S3:
+if LIVE:
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = 'salsa-verde'

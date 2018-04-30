@@ -10,4 +10,4 @@ class PrivateMediaStorageS3(S3Boto3Storage):
     custom_domain = False
 
 
-PrivateMediaStorage = PrivateMediaStorageS3 if settings.USE_S3 else FileSystemStorage
+PrivateMediaStorage = PrivateMediaStorageS3 if settings.LIVE else FileSystemStorage
