@@ -124,22 +124,32 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+DT_FORMAT = '%d/%m/%Y %H:%M'
 
 AUTH_USER_MODEL = 'main.User'
 
-AWS_ACCESS_KEY_ID = ''
-AWS_SECRET_ACCESS_KEY = ''
-AWS_STORAGE_BUCKET_NAME = 'salsa-verde'
-AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-AWS_STATIC_LOCATION = 'static'
+# Storage
 
+STATIC_ROOT = 'staticfiles'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_URL = '/static/'
 
+USE_S3 = os.getenv('USE_S3')
 AWS_PRIVATE_MEDIA_LOCATION = 'media/private'
-PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
 
-DT_FORMAT = '%d/%m/%Y %H:%M'
+if USE_S3:
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = 'salsa-verde'
+    AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+    AWS_STATIC_LOCATION = 'static'
+else:
+    MEDIA_ROOT = 'mediafiles'
+    MEDIA_URL = '/media/'
+    PUBLIC_URL = '/media/public/'
+
+
+PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
