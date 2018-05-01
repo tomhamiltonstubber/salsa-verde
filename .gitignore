@@ -2,7 +2,6 @@
 env/
 *.pyc
 .grablib.lock
-static/libs/
 .coverage
 coverage.xml
 /mediafiles
