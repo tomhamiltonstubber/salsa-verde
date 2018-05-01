@@ -1,0 +1,9 @@
+{
+	"version": 3,
+	"file": ".src/libraries.css",
+	"sources": [
+		".src/libraries.scss"
+	],
+	"names": [],
+	"mappings": "AAAA,OAAO,CAAC,gCAAI;AACZ,OAAO,CAAC,8BAAI;AACZ,OAAO,CAAC,iCAAI;AACZ,OAAO,CAAC,gCAAI;AACZ,OAAO,CAAC,mCAAI"
+}

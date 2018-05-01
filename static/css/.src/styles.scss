@@ -1,0 +1,85 @@
+$main-colour: #89dfb7;
+$background-colour: #ebf9ef;
+$border-color: #61d39e;
+$button-primary: #0089ff;
+
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+
+body {
+  background-color: $background-colour;
+  font-family: 'Roboto', sans-serif;
+  color: black;
+}
+
+#page-header {
+  background-color: $main-colour;
+  border-bottom: 1px solid $border-color;
+  .navbar-default {
+    background-color: $main-colour;
+    .navbar-brand {
+      padding: 0;
+      height: auto;
+      margin: 15px 0 0 0;
+    }
+  }
+}
+
+#login-block {
+  margin-top: 100px;
+  > div {
+    width: 30%;
+    background-color: $main-colour;
+    margin: 0 auto;
+    padding: 20px 0 40px 0;
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    #login-form {
+      display: inline-grid;
+    }
+  }
+}
+
+.btn-primary {
+  background-color: $button-primary;
+}
+
+#content {
+  padding: 50px;
+  margin: 100px 200px;
+  @media (max-width: 1400px) {
+    margin: 100px 50px;
+  }
+  border-radius: 4px;
+  border: 1px solid $border-color;
+  background-color: white;
+  .container {
+    max-width: 100%;
+  }
+}
+
+#button-menu {
+  padding-bottom: 20px;
+}
+
+#ingredients_form {
+  .control-label {
+    display: none;
+  }
+  tbody>tr>td {
+    width: 15%;
+  }
+}
+
+.dynamic-form {
+  .btn-danger {
+    margin-top: 25px;
+  }
+}
+
+#display-items {
+  label {
+    min-width: 15%;
+    padding-left: 40px;
+  }
+}
