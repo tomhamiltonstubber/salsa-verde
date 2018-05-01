@@ -100,29 +100,37 @@ class AddGoodsIntake(AddModelView):
     form_class = GoodsIntakeForm
     template_name = 'intake_goods_form.jinja'
     title = 'Intake of goods'
-    goods_model_formset = None
-    document_type = None
+    goods_model_formset = NotImplemented
+    document_type = NotImplemented
+    success_url = NotImplemented
 
     def form_valid(self, form):
         obj = form.save()
-        goods_model_formset = self.goods_model_formset(self.request.POST)
-        if goods_model_formset.is_valid():
-            goods_model_formset.instance = obj
-            goods_model_formset.save()
+        self.goods_model_formset = self.goods_model_formset(self.request.POST)
+        if self.goods_model_formset.is_valid():
+            self.goods_model_formset.instance = obj
+            self.goods_model_formset.save()
+        else:
+            return self.form_invalid(form)
         Document.objects.create(
             author=self.request.user,
             type=self.document_type,
             goods_intake=obj
         )
-        return redirect(reverse('ingredients'))
+        return redirect(reverse(self.success_url))
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(formsets=self.goods_model_formset(), **kwargs)
+        if self.request.POST:
+            formset = self.goods_model_formset
+        else:
+            formset = self.goods_model_formset()
+        return super().get_context_data(formsets=formset, **kwargs)
 
 
 class IntakeIngredients(AddGoodsIntake, AddModelView):
     document_type = Document.FORM_SUP01
     goods_model_formset = IngredientsFormSet
+    success_url = 'ingredients'
 
 
 intake_ingredients = IntakeIngredients.as_view()
@@ -190,7 +198,19 @@ class ContainerDetails(DetailView):
     display_items = [
         'container_type',
         'batch_code',
+        ('Intake date', 'goods_intake__intake_date'),
+        'condition',
+        'supplier',
+        'status',
+        'quantity',
+        ('Intake document', 'func|get_intake_document'),
     ]
+
+    def get_intake_document(self, obj):
+        if obj.intake_document:
+            return mark_safe(f'<a href="{obj.intake_document.get_absolute_url()}">{obj.intake_document}</a>')
+        return '–'
+
 
 
 containers_details = ContainerDetails.as_view()
@@ -200,6 +220,7 @@ class IntakeContainers(AddGoodsIntake, AddModelView):
     model = Container
     document_type = Document.FORM_SUP02
     goods_model_formset = ContainersFormSet
+    success_url = 'containers'
 
 
 intake_containers = IntakeContainers.as_view()

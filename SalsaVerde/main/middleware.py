@@ -1,4 +1,11 @@
+import re
+
 from django.shortcuts import redirect
+
+EXEMPT_URLS = [re.compile(url) for url in [
+    r'/login/$',
+    r'/static/*'
+]]
 
 
 class AuthRequiredMiddleware(object):
@@ -7,6 +14,7 @@ class AuthRequiredMiddleware(object):
 
     def __call__(self, request):
         response = self.get_response(request)
-        if not request.user.is_authenticated and request.path != '/login/':
+        exempt_url = any(m.match(request.path) for m in EXEMPT_URLS)
+        if not request.user.is_authenticated and not exempt_url:
             return redirect('login')
         return response

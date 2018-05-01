@@ -167,6 +167,9 @@ class Ingredient(BaseModel):
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
+    def display_quantity(self):
+        return f'{self.quantity} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
+
     def __str__(self):
         return mark_safe('%s - Intake date: %s - Batch num: %s' % (
             self.ingredient_type, display_dt(self.goods_intake.intake_date), self.batch_code

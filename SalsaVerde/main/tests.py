@@ -230,6 +230,12 @@ class IngredientTestCase(TestCase):
         self.intake_url = reverse('intake-ingredients')
         self.ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
         self.supplier = Supplier.objects.create(name='good food')
+        self.intake_management_data = {
+            'ingredients-TOTAL_FORMS': 1,
+            'ingredients-INITIAL_FORMS': 0,
+            'ingredients-MIN_NUM_FORMS': 0,
+            'ingredients-MAX_NUM_FORMS': 1000,
+        }
 
     def test_intake_ingredients(self):
         r = self.client.get(self.intake_url)
@@ -239,16 +245,13 @@ class IngredientTestCase(TestCase):
         data = {
             'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
             'intake_user': self.user.pk,
-            'ingredients-TOTAL_FORMS': 1,
-            'ingredients-INITIAL_FORMS': 0,
-            'ingredients-MIN_NUM_FORMS': 0,
-            'ingredients-MAX_NUM_FORMS': 1000,
             'ingredients-0-ingredient_type': self.ingredient_type.pk,
             'ingredients-0-quantity': 10,
             'ingredients-0-batch_code': '123abc',
             'ingredients-0-supplier': self.supplier.pk,
             'ingredients-0-condition': 'Good',
             'ingredients-0-status': Ingredient.STATUS_ACCEPT,
+            **self.intake_management_data,
         }
         r = self.client.post(self.intake_url, data=data)
         self.assertRedirects(r, reverse('ingredients'))
@@ -258,7 +261,6 @@ class IngredientTestCase(TestCase):
         self.assertEqual(goods_intake.intake_user, self.user)
         doc = Document.objects.get()
         self.assertEqual(doc.type, Document.FORM_SUP01)
-        self.assertEqual(doc.author, self.user)
         self.assertEqual(doc.author, self.user)
         self.assertEqual(doc.goods_intake, goods_intake)
         ingred = Ingredient.objects.get()
@@ -270,3 +272,105 @@ class IngredientTestCase(TestCase):
         self.assertEqual(ingred.quantity, 10)
         self.assertEqual(ingred.supplier, self.supplier)
 
+        r = self.client.get(reverse('ingredients-details', args=[ingred.pk]))
+        self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP01')
+
+    def test_intake_ingreds_unfilled_form(self):
+        data = {
+            'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'intake_user': self.user.pk,
+            'ingredients-0-supplier': self.supplier.pk,
+            'ingredients-0-condition': 'Good',
+            **self.intake_management_data,
+        }
+        r = self.client.post(self.intake_url, data=data)
+        self.assertContains(r, 'This field is required')
+
+    def test_edit_ingredient(self):
+        gi = GoodsIntake.objects.create(intake_user=self.user)
+        ingred = Ingredient.objects.create(ingredient_type=self.ingredient_type, batch_code='foo123',
+                                           quantity=10, supplier=self.supplier, goods_intake=gi)
+        r = self.client.get(reverse('ingredients-edit', args=[ingred.pk]))
+        self.assertContains(r, 'foo123')
+        data = {
+            'ingredient_type': self.ingredient_type.id,
+            'supplier': self.supplier.id,
+            'batch_code': '123abc',
+            'quantity': 5,
+            'condition': 'Good',
+            'status': Ingredient.STATUS_ACCEPT
+        }
+        r = self.client.post(reverse('ingredients-edit', args=[ingred.pk]), data=data)
+        self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))
+        self.assertEqual(refresh(ingred).batch_code, '123abc')
+
+
+class ContainerTestCase(TestCase):
+    def setUp(self):
+        self.client = AuthenticatedClient()
+        self.user = self.client.user
+        self.intake_url = reverse('intake-containers')
+        self.container_type = ContainerType.objects.create(name='bottle', type=ContainerType.TYPE_BOTTLE)
+        self.supplier = Supplier.objects.create(name='good bottle')
+        self.intake_management_data = {
+            'containers-TOTAL_FORMS': 1,
+            'containers-INITIAL_FORMS': 0,
+            'containers-MIN_NUM_FORMS': 0,
+            'containers-MAX_NUM_FORMS': 1000,
+        }
+
+    def test_intake_ingredients(self):
+        r = self.client.get(self.intake_url)
+        self.assertContains(r, 'bottle')
+        self.assertContains(r, 'Intake Recipient')
+        self.assertContains(r, self.supplier)
+        data = {
+            'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'intake_user': self.user.pk,
+            'containers-0-container_type': self.container_type.pk,
+            'containers-0-quantity': 10,
+            'containers-0-batch_code': '123abc',
+            'containers-0-supplier': self.supplier.pk,
+            'containers-0-condition': 'Good',
+            'containers-0-status': Container.STATUS_ACCEPT,
+            **self.intake_management_data,
+        }
+        r = self.client.post(self.intake_url, data=data)
+        self.assertRedirects(r, reverse('containers'))
+        goods_intake = GoodsIntake.objects.get()
+        self.assertEqual(goods_intake.intake_date.date(), datetime(2018, 2, 2).date())
+        self.assertEqual(goods_intake.date_created.date(), timezone.now().date())
+        self.assertEqual(goods_intake.intake_user, self.user)
+        doc = Document.objects.get()
+        self.assertEqual(doc.type, Document.FORM_SUP02)
+        self.assertEqual(doc.author, self.user)
+        self.assertEqual(doc.goods_intake, goods_intake)
+        container = Container.objects.get()
+        self.assertEqual(container.container_type, self.container_type)
+        self.assertEqual(container.batch_code, '123abc')
+        self.assertEqual(container.condition, 'Good')
+        self.assertEqual(container.status, Container.STATUS_ACCEPT)
+        self.assertEqual(container.goods_intake, goods_intake)
+        self.assertEqual(container.quantity, 10)
+        self.assertEqual(container.supplier, self.supplier)
+
+        r = self.client.get(reverse('containers-details', args=[container.pk]))
+        self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP02')
+
+    def test_edit_ingredient(self):
+        gi = GoodsIntake.objects.create(intake_user=self.user)
+        container = Container.objects.create(container_type=self.container_type, batch_code='foo123',
+                                             quantity=10, supplier=self.supplier, goods_intake=gi)
+        r = self.client.get(reverse('containers-edit', args=[container.pk]))
+        self.assertContains(r, 'foo123')
+        data = {
+            'container_type': self.container_type.id,
+            'supplier': self.supplier.id,
+            'batch_code': '123abc',
+            'quantity': 5,
+            'condition': 'Good',
+            'status': Container.STATUS_ACCEPT
+        }
+        r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
+        self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
+        self.assertEqual(refresh(container).batch_code, '123abc')

@@ -9,11 +9,11 @@
       <div class="col-md-6">{{ form.intake_user|bootstrap }}</div>
     </div>
     <div class="row">
-      <table class="table">
+        <table class="table">
         {% for formset in formsets %}
           <tr class="form-row">
             {% for field in formset.visible_fields() %}
-              <td>{{ field|bootstrap }}</td>
+              <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
             {% endfor %}
             <td></td>
           </tr>
@@ -21,7 +21,7 @@
         {% with formset = formsets.empty_form %}
           <tr class="form-row" id="id_empty_intake_goods_form" style="display:none;">
             {% for field in formset.visible_fields() %}
-              <td>{{ field|bootstrap }}</td>
+              <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
             {% endfor %}
             <td></td>
           </tr>
@@ -42,7 +42,7 @@
         hide_extra_buttons()
       },
     })
-    function hide_extra_buttons() {
+    const hide_extra_buttons = () => {
       $('.dynamic-form').each((i, el) => {
         const $els = $(el).find('.btn-danger')
         if ($els.length === 2) {
