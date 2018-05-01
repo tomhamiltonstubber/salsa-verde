@@ -4,6 +4,7 @@
   <form method="post" action="" id="product_form" enctype="multipart/form-data">
     {% csrf_token %}
     {{ product_ingredient_forms.management_form|safe }}
+    {{ yield_container_forms.management_form|safe }}
     <div class="row">
       <div class="col-md-4">{{ form.product_type|bootstrap }}</div>
       <div class="col-md-4">{{ form.batch_code|bootstrap }}</div>
@@ -31,15 +32,17 @@
 
     {% for yc_form in yield_container_forms %}
       <div class="row form-row" id="yield_container">
-        <div class="col-md-6">{{ yc_form.container|bootstrap }}</div>
-        <div class="col-md-5">{{ yc_form.quantity|bootstrap }}</div>
+        <div class="col-md-4">{{ yc_form.container|bootstrap }}</div>
+        <div class="col-md-4">{{ yc_form.cap|bootstrap }}</div>
+        <div class="col-md-3">{{ yc_form.quantity|bootstrap }}</div>
         <div></div>
       </div>
     {% endfor %}
     {% with empty_form = yield_container_forms.empty_form %}
       <div class="row" id="empty_yield_container" style="display: none">
-        <div class="col-md-6">{{ empty_form.container|bootstrap }}</div>
-        <div class="col-md-5">{{ empty_form.quantity|bootstrap }}</div>
+        <div class="col-md-4">{{ empty_form.container|bootstrap }}</div>
+        <div class="col-md-4">{{ empty_form.cap|bootstrap }}</div>
+        <div class="col-md-3">{{ empty_form.quantity|bootstrap }}</div>
         <div></div>
       </div>
     {% endwith %}

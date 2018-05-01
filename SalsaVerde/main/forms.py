@@ -106,8 +106,13 @@ class YieldContainersForm(SVModelForm):
     cap = forms.ModelChoiceField(Container.objects.filter(container_type__type=ContainerType.TYPE_CAP))
 
     def save(self, commit=True):
-        super().save(commit)
-        YieldContainer.objects.create(container=self.cleaned_data['cap'], quantity=self.cleaned_data['quantity'])
+        obj = super().save(commit)
+        YieldContainer.objects.create(
+            container=self.cleaned_data['cap'],
+            quantity=self.cleaned_data['quantity'],
+            product_id=obj.product.id
+        )
+        return obj
 
     class Meta:
         model = YieldContainer
