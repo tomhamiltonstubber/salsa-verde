@@ -3,7 +3,10 @@ Trying to make a system out of SALSA's forms
 
 TODO
 
-* [X] Models
-* [ ] Views
-* [ ] Tests
-* [ ] Error Reporting
+* Finish tests
+* Batch number creator
+* Document creator
+* Label generator
+* Best before date
+* Make views look nice
+* Panels
