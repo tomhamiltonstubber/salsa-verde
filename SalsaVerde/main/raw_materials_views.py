@@ -211,6 +211,21 @@ class ContainerDetails(DetailView):
             return mark_safe(f'<a href="{obj.intake_document.get_absolute_url()}">{obj.intake_document}</a>')
         return '–'
 
+    def extra_display_items(self):
+        return [
+            {
+                'title': 'Products used in',
+                'qs': self.object.yield_containers.select_related('product'),
+                'fields': [
+                    ('Product', 'product__product_type__name'),
+                    ('Batch code', 'product__batch_code'),
+                    ('Date of infusion', 'product__date_of_infusion'),
+                    ('Date of bottling', 'product__date_of_bottling'),
+                    ('Best before', 'product__date_of_best_before'),
+                    ('Quantity', 'product__yield_quantity'),
+                ]
+            },
+        ]
 
 
 containers_details = ContainerDetails.as_view()

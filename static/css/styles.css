@@ -53,8 +53,19 @@ body {
 .dynamic-form .btn-danger {
   margin-top: 25px; }
 
-#display-items label {
-  min-width: 15%;
-  padding-left: 40px; }
+#display-items {
+  padding-bottom: 40px; }
+  #display-items label {
+    min-width: 20%;
+    padding-left: 40px; }
+
+.panel-default .panel-heading {
+  padding: 1px 15px; }
+
+.panel-default .panel-body {
+  padding: 0; }
+
+.panel-default .table {
+  margin-bottom: 0; }
 
 /*# sourceMappingURL=styles.css.map */

@@ -1,5 +1,7 @@
 {% extends 'auth.jinja' %}
 
+{% from 'macros.jinja' import extra_content_table %}
+
 {% block content %}
   <div class="row">
     <div id="display-items">
@@ -10,4 +12,9 @@
       {% endfor %}
     </div>
   </div>
+  {% if extra_content %}
+    {% for obj in extra_content %}
+        {{ extra_content_table(obj) }}
+    {% endfor %}
+  {% endif %}
 {% endblock %}

@@ -10,8 +10,8 @@ from SalsaVerde import settings
 def get_nav_menu():
     return [
         ('Dashboard', reverse('index')),
-        ('Suppliers', reverse('suppliers')),
         ('Products', reverse('products')),
+        ('Suppliers', reverse('suppliers')),
         ('Containers', reverse('containers')),
         ('Ingredients', reverse('ingredients')),
         ('Documents', reverse('documents')),
@@ -71,13 +71,14 @@ class DisplayHelpers:
             return display_dt(v)
         return v or '–'
 
-    def _display_label(self, item):
+    def _display_label(self, item, obj):
         display_funcs = {'display_', *self.display_funcs}
         if isinstance(item, tuple):
             return item[0]
         for func in display_funcs:
             item = item.replace(func, '')
-        return self.model._meta.get_field(item).verbose_name
+        model = obj and type(obj) or self.model
+        return model._meta.get_field(item).verbose_name
 
     def display_value(self, obj, item):
         if isinstance(item, tuple):
@@ -85,8 +86,11 @@ class DisplayHelpers:
         else:
             return self._get_v(obj, item)
 
-    def get_field_labels(self):
-        return [self._display_label(item) for item in self.display_items]
+    def get_display_values(self, obj, display_items):
+        return [self.display_value(obj, f) for f in display_items]
+
+    def get_display_labels(self, display_items, obj=None):
+        return [self._display_label(item, obj) for item in display_items]
 
 
 class BasicView(DisplayHelpers, TemplateView):
@@ -111,14 +115,14 @@ class ListView(BasicView):
 
     def get_field_data(self):
         for obj in self.get_queryset():
-            yield obj.get_absolute_url(), [self.display_value(obj, f) for f in self.display_items]
+            yield obj.get_absolute_url(), self.get_display_values(obj, self.display_items)
 
     def get_title(self):
         return self.model._meta.verbose_name_plural
 
     def get_context_data(self, **kwargs):
         kwargs.update(
-            field_names=self.get_field_labels(),
+            field_names=self.get_display_labels(self.display_items),
             field_data=self.get_field_data(),
         )
         return super().get_context_data(**kwargs)
@@ -163,8 +167,26 @@ class DetailView(ObjMixin, BasicView):
     def get_title(self):
         return str(self.object)
 
-    def get_display_items(self):
-        return zip(self.get_field_labels(), [self.display_value(self.object, f) for f in self.display_items])
+    def extra_display_items(self):
+        return {}
+
+    def get_extra_content(self):
+        for item in self.extra_display_items():
+            if not item['qs'].exists():
+                continue
+            yield {
+                'title': item['title'],
+                'field_names': self.get_display_labels(item['fields'], obj=item['qs'][0]),
+                'field_vals': [
+                    (obj.get_absolute_url(), self.get_display_values(obj, item['fields'])) for obj in item['qs']
+                ]
+            }
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(display_items=self.get_display_items(), **kwargs)
+        display_vals = self.get_display_values(self.object, self.display_items)
+        display_labels = self.get_display_labels(self.display_items)
+        return super().get_context_data(
+            display_items=zip(display_labels, display_vals),
+            extra_content=self.get_extra_content(),
+            **kwargs
+        )

@@ -78,8 +78,25 @@ body {
 }
 
 #display-items {
+  padding-bottom: 40px;
   label {
-    min-width: 15%;
+    min-width: 20%;
     padding-left: 40px;
   }
+}
+
+.panel-default {
+  .panel-heading {
+    padding: 1px 15px;
+  }
+  .panel-body {
+    padding: 0;
+  }
+  .table {
+    margin-bottom: 0;
+  }
+}
+
+#extra-details {
+
 }

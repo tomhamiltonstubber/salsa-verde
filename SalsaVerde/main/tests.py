@@ -142,6 +142,34 @@ class SupplierTestCase(TestCase):
         # TODO
         pass
 
+    def test_display_ingredients(self):
+        date = timezone.now()
+        ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
+        supplier = Supplier.objects.create(name='good food')
+        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
+        ingred = Ingredient.objects.create(ingredient_type=ingredient_type, batch_code='foo123', quantity=10,
+                                           supplier=supplier, goods_intake=gi)
+        r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
+        self.assertContains(r, 'Supplied Ingredients')
+        self.assertContains(r, ingredient_type.name)
+        self.assertContains(r, ingred.batch_code)
+        self.assertContains(r, '10.000 litre')
+        self.assertContains(r, display_dt(date))
+
+    def test_display_containers(self):
+        date = timezone.now()
+        container_type = ContainerType.objects.create(name='200ml bottle', type=ContainerType.TYPE_BOTTLE)
+        supplier = Supplier.objects.create(name='good containers')
+        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
+        container = Container.objects.create(container_type=container_type, batch_code='foo345', quantity=40,
+                                             supplier=supplier, goods_intake=gi)
+        r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
+        self.assertContains(r, 'Supplied Ingredients')
+        self.assertContains(r, container_type.name)
+        self.assertContains(r, container.batch_code)
+        self.assertContains(r, '10.000')
+        self.assertContains(r, display_dt(date))
+
 
 class IngredientTypeTestCase(TestCase):
     def setUp(self):
@@ -374,3 +402,70 @@ class ContainerTestCase(TestCase):
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
         self.assertEqual(refresh(container).batch_code, '123abc')
+
+
+class ProductTestCase(TestCase):
+    def setUp(self):
+        self.client = AuthenticatedClient()
+        date = timezone.now()
+        self.user = self.client.user
+        self.intake_url = reverse('intake-containers')
+        self.container_type = ContainerType.objects.create(name='bottle', type=ContainerType.TYPE_BOTTLE)
+        self.supplier = Supplier.objects.create(name='good bottle')
+        ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
+        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
+        self.ingred = Ingredient.objects.create(ingredient_type=ingredient_type, batch_code='foo123', quantity=10,
+                                                supplier=self.supplier, goods_intake=gi)
+        cap_type = ContainerType.objects.create(name='200ml bottle', type=ContainerType.TYPE_CAP)
+        self.bottle = Container.objects.create(container_type=self.container_type, batch_code='foo345', quantity=40,
+                                               supplier=self.supplier, goods_intake=gi)
+        self.cap = Container.objects.create(container_type=cap_type, batch_code='foo345', quantity=40,
+                                            supplier=self.supplier, goods_intake=gi)
+        self.product_type = ProductType.objects.create(name='bbt')
+        self.product_type.ingredient_types.add(ingredient_type)
+        self.product_ingred_mngmnt = {
+            'productingredient_set-TOTAL_FORMS': 1,
+            'productingredient_set-INITIAL_FORMS': 0,
+            'productingredient_set-MIN_NUM_FORMS': 0,
+            'productingredient_set-MAX_NUM_FORMS': 1000,
+        }
+        self.yield_containers_mngmnt = {
+            'yield_containers-TOTAL_FORMS': 1,
+            'yield_containers-INITIAL_FORMS': 0,
+            'yield_containers-MIN_NUM_FORMS': 0,
+            'yield_containers-MAX_NUM_FORMS': 1000,
+        }
+        self.url = reverse('products-add')
+
+    def test_add_product(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Batch Code')
+        data = {
+            'productingredient_set-0-ingredient': self.ingred.pk,
+            'productingredient_set-0-quantity': 10,
+            'yield_containers-0-container': self.bottle.pk,
+            'yield_containers-0-cap': self.cap.pk,
+            'yield_containers-0-quantity': 15,
+            'product_type': self.product_type.pk,
+            'date_of_bottling': datetime(2018, 3, 3).strftime(settings.DT_FORMAT),
+            'date_of_infusion': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'batch_code': 'foobar',
+            'yield_quantity': 25,
+            **self.product_ingred_mngmnt,
+            **self.yield_containers_mngmnt,
+        }
+        r = self.client.post(self.url, data=data)
+        product = Product.objects.get()
+        self.assertRedirects(r, reverse('products-details', args=[product.pk]))
+        self.assertEqual(YieldContainer.objects.count(), 2)
+        for yc in YieldContainer.objects.all():
+            self.assertEquals(yc.product, product)
+        pi = ProductIngredient.objects.get()
+        self.assertEqual(product.product_type, self.product_type)
+        self.assertEqual(product.batch_code, 'foobar')
+        self.assertEqual(product.date_of_bottling.date(), datetime(2018, 3, 3).date())
+        self.assertEqual(product.date_of_infusion.date(), datetime(2018, 2, 2).date())
+        self.assertEqual(product.yield_quantity, 25)
+        self.assertEqual(pi.product, product)
+        self.assertEqual(pi.ingredient, self.ingred)
+        self.assertEqual(pi.quantity, 10)

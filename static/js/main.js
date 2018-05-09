@@ -17,6 +17,11 @@ $(document).ready(() => {
   }
   $('.date-time-picker').each((i, el) => {
     const $el = $(el)
-    $el.datetimepicker({icons: icons, format: $el.find('input').data('format')})
+    const $input = $el.find('input')
+    const $init = $('#initial-' + $input.attr('id'))
+    $el.datetimepicker({
+      icons: icons,
+      format: $input.data('format')
+    }).date($init.val())
   })
 })

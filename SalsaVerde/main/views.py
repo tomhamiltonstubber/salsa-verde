@@ -112,6 +112,32 @@ class SupplierDetails(DetailView):
         'email',
     ]
 
+    def extra_display_items(self):
+        return [
+            {
+                'title': 'Supplied Ingredients',
+                'qs': self.object.ingredients.all(),
+                'fields': [
+                    ('Ingredient', 'name'),
+                    'batch_code',
+                    'quantity',
+                    ('Intake date', 'goods_intake__intake_date'),
+                    ('Intake document', 'intake_document'),
+                ]
+            },
+            {
+                'title': 'Supplied Containers',
+                'qs': self.object.containers.all(),
+                'fields': [
+                    ('Container', 'name'),
+                    'batch_code',
+                    'quantity',
+                    ('Intake date', 'goods_intake__intake_date'),
+                    ('Intake document', 'intake_document'),
+                ]
+            },
+        ]
+
 
 supplier_details = SupplierDetails.as_view()
 
@@ -239,17 +265,17 @@ class ProductAdd(AddModelView):
     template_name = 'add_product_form.jinja'
 
     def form_valid(self, form):
-        self.product_ingredient_formset = ProductIngredientFormSet(self.request.POST)
-        self.yield_container_formset = YieldContainersFormSet(self.request.POST)
+        product_ingredient_formset = ProductIngredientFormSet(self.request.POST)
+        yield_container_formset = YieldContainersFormSet(self.request.POST)
         obj = form.save()
-        if self.product_ingredient_formset.is_valid():
-            self.product_ingredient_formset.instance = obj
-            self.product_ingredient_formset.save()
+        if product_ingredient_formset.is_valid():
+            product_ingredient_formset.instance = obj
+            product_ingredient_formset.save()
         else:
             return self.form_invalid(form)
-        if self.yield_container_formset.is_valid():
-            self.yield_container_formset.instance = obj
-            self.yield_container_formset.save()
+        if yield_container_formset.is_valid():
+            yield_container_formset.instance = obj
+            yield_container_formset.save()
         else:
             return self.form_invalid(form)
         return super().form_valid(form)
@@ -257,8 +283,8 @@ class ProductAdd(AddModelView):
     def get_context_data(self, **kwargs):
         if self.request.POST:
             kwargs.update(
-                product_ingredient_forms=self.product_ingredient_formset,
-                yield_container_forms=self.yield_container_formset,
+                product_ingredient_forms=ProductIngredientFormSet(self.request.POST),
+                yield_container_forms=YieldContainersFormSet(self.request.POST),
             )
         else:
             kwargs.update(

@@ -82,11 +82,7 @@ class UpdateContainerForm(SVModelForm):
         fields = ['container_type', 'quantity', 'batch_code', 'supplier', 'condition', 'status']
 
 
-ContainersFormSet = forms.inlineformset_factory(GoodsIntake,
-                                                Container,
-                                                UpdateContainerForm,
-                                                extra=1,
-                                                can_delete=False)
+ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateContainerForm, extra=1, can_delete=False)
 
 
 class UpdateProductTypeForm(SVModelForm):
@@ -99,6 +95,9 @@ class ProductIngredientForm(SVModelForm):
     class Meta:
         model = ProductIngredient
         exclude = {'product'}
+
+
+ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
 
 
 class YieldContainersForm(SVModelForm):
@@ -130,9 +129,6 @@ class UpdateProductForm(SVModelForm):
     class Meta:
         model = Product
         exclude = {'date_of_best_before', 'product_ingredients'}
-
-
-ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
 
 
 class GoodsIntakeForm(SVModelForm):

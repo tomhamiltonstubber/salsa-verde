@@ -30,12 +30,10 @@
   <div id="content">
     <div class="container main">
       {% if button_menu %}
-        <div class="row">
-          <div id="button-menu">
-            {% for name, link in button_menu %}
-              <a class="btn btn-default" href="{{ link }}">{{ name }}</a>
-            {% endfor %}
-          </div>
+        <div id="button-menu">
+          {% for name, link in button_menu %}
+            <a class="btn btn-default" href="{{ link }}">{{ name }}</a>
+          {% endfor %}
         </div>
       {% endif %}
       {% block content %}{% endblock %}

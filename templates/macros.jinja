@@ -1,0 +1,31 @@
+{% macro extra_content_table(obj) %}
+  <div class="panel panel-default" id="extra-details">
+    <div class="panel-heading">
+      <h4>{{ obj.title }}</h4>
+    </div>
+    <div class="panel-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            {% for field in obj['field_names'] %}
+              <th>{{ field }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+          {% for link, details in obj.field_vals %}
+            <tr>
+              {%- for field in details -%}
+                {% if loop.index == 1 %}
+                  <td><a href="{{ link }}">{{ field }}</a></td>
+                {% else %}
+                  <td>{{ field }}</td>
+                {%- endif -%}
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endmacro %}

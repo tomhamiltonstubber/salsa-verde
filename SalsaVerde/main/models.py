@@ -171,9 +171,11 @@ class Ingredient(BaseModel):
         return f'{self.quantity} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
 
     def __str__(self):
-        return mark_safe('%s - Intake date: %s - Batch num: %s' % (
-            self.ingredient_type, display_dt(self.goods_intake.intake_date), self.batch_code
-        ))
+        return mark_safe(f'{self.name} - {self.batch_code}')
+
+    @property
+    def name(self):
+        return self.ingredient_type.name
 
     @property
     def intake_document(self):
@@ -239,13 +241,15 @@ class Container(BaseModel):
         return reverse(f'containers-details', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return mark_safe('%s - Intake date: %s - Batch num: %s' % (
-            self.container_type, display_dt(self.goods_intake.intake_date), self.batch_code
-        ))
+        return mark_safe(f'{self.name} - {self.batch_code}')
 
     @property
     def intake_document(self):
         return self.goods_intake.intake_document
+
+    @property
+    def name(self):
+        return self.container_type.name
 
     class Meta:
         verbose_name = 'Container'
@@ -253,15 +257,22 @@ class Container(BaseModel):
 
 
 class YieldContainer(BaseModel):
-    product = models.ForeignKey('main.Product', verbose_name='Product', on_delete=models.CASCADE)
-    container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    product = models.ForeignKey('main.Product', verbose_name='Product', related_name='yield_containers',
+                                on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, related_name='yield_containers', on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+
+    def get_absolute_url(self):
+        return self.product.get_absolute_url()
 
 
 class GoodsIntake(BaseModel):
     date_created = models.DateTimeField('Date created', default=timezone.now)
     intake_date = models.DateTimeField('Intake date', default=timezone.now)
     intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE)
+
+    def display_intake_date(self):
+        return self.intake_date.strftime(settings.DT_FORMAT)
 
     @property
     def intake_document(self):
@@ -297,7 +308,7 @@ class Product(BaseModel):
     batch_code = models.CharField('Batch Code', max_length=25)
 
     def __str__(self):
-        return f'{self.product_type} - Bottled {self.date_of_bottling.strftime(settings.DT_FORMAT)} - {self.batch_code}'
+        return f'{self.product_type} - {self.batch_code}'
 
     def get_absolute_url(self):
         return reverse(f'products-details', kwargs={'pk': self.pk})
