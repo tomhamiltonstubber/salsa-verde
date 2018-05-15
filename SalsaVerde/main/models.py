@@ -13,6 +13,44 @@ from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
+class Company(models.Model):
+    objects = QuerySet.as_manager()
+
+    name = models.CharField('Name', max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class CompanyQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(company=request.user.company)
+
+
+class NoQS(QuerySet):
+    def request_qs(self, request):
+        raise NotImplementedError
+
+
+class BaseModel(models.Model):
+    objects = NoQS.as_manager()
+
+    class Meta:
+        abstract = True
+
+
+class CompanyNameBaseModel(BaseModel):
+    name = models.CharField('Name', max_length=255)
+    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
+    objects = CompanyQuerySet.as_manager()
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        abstract = True
+
+
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, is_superuser=False, **extra_fields):
         """Create and save a User with the given email and password."""
@@ -30,6 +68,10 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    objects = UserManager.from_queryset(CompanyQuerySet)()
+
+    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
+
     username = None
     email = models.EmailField('Email Address', unique=True)
     first_name = models.CharField('First name', max_length=30, blank=True)
@@ -68,33 +110,14 @@ class User(AbstractUser):
         verbose_name = 'User'
         verbose_name_plural = 'Users'
 
-    objects = UserManager()
 
-
-class BaseModel(models.Model):
-    objects = QuerySet.as_manager()
-
-    class Meta:
-        abstract = True
-
-
-class NameBase(BaseModel):
-    name = models.CharField('Name', max_length=255)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        abstract = True
-
-
-class Supplier(NameBase):
+class Supplier(CompanyNameBaseModel):
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
     country = models.CharField('Country', max_length=50, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
-    email = models.EmailField('Email', max_length=50, null=True, blank=True)
+    email = models.EmailField('Email', max_length=65, null=True, blank=True)
     main_contact = models.CharField('Main Contact', max_length=50, null=True, blank=True)
 
     def display_email(self):
@@ -123,7 +146,7 @@ class Supplier(NameBase):
         verbose_name_plural = 'Suppliers'
 
 
-class IngredientType(NameBase):
+class IngredientType(CompanyNameBaseModel):
     UNIT_KILO = 'kilogram'
     UNIT_LITRE = 'litre'
     UNIT_TYPES = (
@@ -142,6 +165,11 @@ class IngredientType(NameBase):
     class Meta:
         verbose_name = 'Ingredient Type'
         verbose_name_plural = 'Ingredients Types'
+
+
+class IngredientQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(ingredient_type__company=request.user.company)
 
 
 class Ingredient(BaseModel):
@@ -163,6 +191,8 @@ class Ingredient(BaseModel):
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey('main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake',
                                      on_delete=models.CASCADE)
+
+    objects = IngredientQuerySet.as_manager()
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
@@ -190,7 +220,7 @@ class Ingredient(BaseModel):
         verbose_name_plural = 'Ingredients'
 
 
-class ContainerType(NameBase):
+class ContainerType(CompanyNameBaseModel):
     TYPE_BOTTLE = 'bottle'
     TYPE_CAP = 'cap'
     TYPE_OTHER = 'other'
@@ -200,7 +230,7 @@ class ContainerType(NameBase):
         (TYPE_OTHER, 'Container'),
     )
     size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=3)
-    type = models.CharField('Container Type', choices=TYPE_CONTAINERS, max_length=255)
+    type = models.CharField('Container Type', choices=TYPE_CONTAINERS, max_length=255, default=TYPE_BOTTLE)
 
     @classmethod
     def prefix(cls):
@@ -214,6 +244,11 @@ class ContainerType(NameBase):
         verbose_name_plural = 'Container Types'
 
 
+class ContainerQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(container_type__company=request.user.company)
+
+
 class Container(BaseModel):
     STATUS_ACCEPT = 'accept'
     STATUS_HOLD = 'hold'
@@ -223,6 +258,8 @@ class Container(BaseModel):
         (STATUS_HOLD, 'Hold'),
         (STATUS_REJECT, 'Reject'),
     )
+    objects = ContainerQuerySet.as_manager()
+
     container_type = models.ForeignKey(ContainerType, verbose_name='Container', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
     condition = models.CharField('Condition', max_length=25, default='Good')
@@ -266,7 +303,14 @@ class YieldContainer(BaseModel):
         return self.product.get_absolute_url()
 
 
+class GoodsIntakeQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(intake_user__company=request.user.company)
+
+
 class GoodsIntake(BaseModel):
+    objects = GoodsIntakeQuerySet.as_manager()
+
     date_created = models.DateTimeField('Date created', default=timezone.now)
     intake_date = models.DateTimeField('Intake date', default=timezone.now)
     intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE)
@@ -282,8 +326,10 @@ class GoodsIntake(BaseModel):
             return
 
 
-class ProductType(NameBase):
+class ProductType(CompanyNameBaseModel):
     ingredient_types = models.ManyToManyField(IngredientType, verbose_name='Ingredients', related_name='product_types')
+    sku_code = models.CharField('SKU Code', max_length=25)
+    code = models.CharField('Code', max_length=3, help_text='2 or 3 letter code for batch code creation')
 
     @classmethod
     def prefix(cls):
@@ -297,7 +343,14 @@ class ProductType(NameBase):
         verbose_name_plural = 'Product Types'
 
 
+class ProductQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(product_type__company=request.user.company)
+
+
 class Product(BaseModel):
+    objects = ProductQuerySet.as_manager()
+
     product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
                                      on_delete=models.CASCADE)
     date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
@@ -326,6 +379,11 @@ class ProductIngredient(BaseModel):
     product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+
+
+class DocumentQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(author__company=request.user.company)
 
 
 class Document(BaseModel):
@@ -367,6 +425,8 @@ class Document(BaseModel):
         (FORM_VIS01, 'VIS01 - Visitor Questionnaire'),
     )
 
+    objects = DocumentQuerySet.as_manager()
+
     date_created = models.DateTimeField('Date Created', auto_now_add=True)
     author = models.ForeignKey(User, verbose_name='Author', null=True, blank=True, on_delete=models.SET_NULL,
                                related_name='documents')
@@ -401,7 +461,7 @@ class Document(BaseModel):
         verbose_name_plural = 'Documents'
 
 
-class Area(NameBase):
+class Area(CompanyNameBaseModel):
     pass
 
 

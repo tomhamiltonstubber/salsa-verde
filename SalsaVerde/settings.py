@@ -99,10 +99,10 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': 'salsaverde',
-            'USER': 'postgres',
-            'PASSWORD': 'waffle',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'USER': os.getenv('PGUSER', 'postgres'),
+            'PASSWORD': os.getenv('PGPASSWORD', 'waffle'),
+            'HOST': os.getenv('PGHOST', 'localhost'),
+            'PORT': os.getenv('PGPORT', '5432'),
         }
     }
 
