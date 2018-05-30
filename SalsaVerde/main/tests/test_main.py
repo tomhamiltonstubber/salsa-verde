@@ -92,6 +92,21 @@ class UserTestCase(TestCase):
         self.assertRedirects(r, reverse('users-details', args=[user.pk]))
 
 
+class QSTestCase(TestCase):
+    def setUp(self):
+        self.client = AuthenticatedClient()
+        self.user = self.client.user
+        self.company = self.user.company
+        self.wrong_company = CompanyFactory()
+
+    def test_supplier_qs(self):
+        supplier = SupplierFactory(company=self.company, name='correct')
+        wrong_supplier = SupplierFactory(company=self.wrong_company, name='wrong')
+        r = self.client.get(reverse('suppliers'))
+        self.assertContains(r, supplier)
+        self.assertNotContains(r, wrong_supplier)
+
+
 class SupplierTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()

@@ -92,7 +92,12 @@ class DisplayHelpers:
         return [self._display_label(item, obj) for item in display_items]
 
 
-class BasicView(DisplayHelpers, TemplateView):
+class QuerySetMixin:
+    def get_queryset(self):
+        return self.model.objects.request_qs(self.request)
+
+
+class BasicView(QuerySetMixin, DisplayHelpers, TemplateView):
     pass
 
 
@@ -108,9 +113,6 @@ class ListView(BasicView):
         return [
             (f'Add new {self.model._meta.verbose_name}', reverse(f'{self.model.prefix()}-add'))
         ]
-
-    def get_queryset(self):
-        return self.model.objects.all()
 
     def get_field_data(self):
         for obj in self.get_queryset():
@@ -147,7 +149,7 @@ class AddModelView(FormView, CreateView):
         return self.title or 'Create new %s' % self.model._meta.verbose_name
 
 
-class UpdateModelView(FormView, UpdateView, ObjMixin):
+class UpdateModelView(QuerySetMixin, FormView, UpdateView, ObjMixin):
     def get_title(self):
         return self.title or f'Edit %s' % self.object
 
