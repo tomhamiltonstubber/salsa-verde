@@ -19,17 +19,32 @@ class UpdateUserForm(SVModelForm):
         model = User
         fields = {'email', 'first_name', 'last_name', 'street', 'town', 'country', 'postcode', 'phone'}
 
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.company = self.request.user.company
+        return super().save(commit)
+
 
 class UpdateSupplierForm(SVModelForm):
     class Meta:
         model = Supplier
-        exclude = {}
+        exclude = {'company'}
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.company = self.request.user.company
+        return super().save(commit)
 
 
 class UpdateIngredientTypeForm(SVModelForm):
     class Meta:
         model = IngredientType
-        exclude = {}
+        exclude = {'company'}
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.company = self.request.user.company
+        return super().save(commit)
 
 
 class EmptyQSFormSet(forms.BaseModelFormSet):
@@ -68,12 +83,17 @@ class UpdateDocumentForm(SVModelForm):
 class UpdateContainerTypeForm(SVModelForm):
     class Meta:
         model = ContainerType
-        exclude = {}
+        exclude = {'company'}
 
     def clean_type(self):
         if self.cleaned_data['type'] != ContainerType.TYPE_CAP and not self.cleaned_data['size']:
             raise forms.ValidationError("You must enter a size if this isn't a cap")
         return self.cleaned_data['type']
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.company = self.request.user.company
+        return super().save(commit)
 
 
 class UpdateContainerForm(SVModelForm):
@@ -88,7 +108,12 @@ ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateCo
 class UpdateProductTypeForm(SVModelForm):
     class Meta:
         model = ProductType
-        exclude = {}
+        exclude = {'company'}
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.company = self.request.user.company
+        return super().save(commit)
 
 
 class ProductIngredientForm(SVModelForm):

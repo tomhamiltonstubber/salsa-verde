@@ -6,3 +6,4 @@ env/
 coverage.xml
 /mediafiles
 /staticfiles
+.pytest_cache/

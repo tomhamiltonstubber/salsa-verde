@@ -2,14 +2,18 @@ from datetime import datetime as dt
 
 from django.test import TestCase, Client
 
+from SalsaVerde.main.base_views import display_dt
+from SalsaVerde.main.factories import CompanyFactory, SupplierFactory, IngredientFactory
+from SalsaVerde.main.factories.raw_materials import ContainerFactory, IngredientTypeFactory, ContainerTypeFactory, \
+    ProductTypeFactory
 from SalsaVerde.main.models import *
 
 """
 TODO:
   * Best before
-  * Batch codes
   * Limit choices on product_ingredient formset
 """
+
 
 def refresh(obj):
     return type(obj).objects.get(id=obj.id)
@@ -23,14 +27,15 @@ class AuthenticatedClient(Client):
     def __init__(self):
         super().__init__()
         self.user = User.objects.create_user(first_name='Tom', last_name='Owner',
-                                             email='owner@salsaverde.com', password='testing')
+                                             email='owner@salsaverde.com', password='testing',
+                                             company=CompanyFactory())
         logged_in = self.login(username=self.user.email, password='testing')
         if not logged_in:  # pragma: no cover
             raise RuntimeError('Not logged in')
         self.user = User.objects.get(pk=self.session['_auth_user_id'])
 
 
-class MainTestCase(TestCase):
+class UserTestCase(TestCase):
     user = None
 
     def setUp(self):
@@ -38,10 +43,11 @@ class MainTestCase(TestCase):
         self.user = self.client.user
 
     def test_login(self):
-        user = User.objects.create(first_name='Brain', last_name='Johnson', email='testing@salsaverde.com')
+        user = User.objects.create(first_name='Brain', last_name='Johnson', email='testing@salsaverde.com',
+                                   company=self.user.company)
         user.set_password('testing1')
         user.save()
-        self.assertEqual(user.last_logged_in, dt(2018, 1, 1))
+        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=timezone.utc)
         client = Client()
         r = client.get(reverse('suppliers'))
         self.assertRedirects(r, reverse('login'))
@@ -49,11 +55,11 @@ class MainTestCase(TestCase):
                         follow=True)
         self.assertRedirects(r, '/')
         self.assertNotContains(r, 'Login')
-        self.assertEqual(refresh(user).last_logged_in.date(), timezone.now().date())
+        assert refresh(user).last_logged_in.date() == timezone.now().date()
 
     def test_get_dashboard(self):
         r = self.client.get('/')
-        self.assertEqual(r.status_code, 200)
+        assert r.status_code == 200
 
     def test_get_user_list(self):
         r = self.client.get(reverse('users'))
@@ -73,14 +79,14 @@ class MainTestCase(TestCase):
         r = self.client.post(edit_url, data={'last_name': 'Foobar', 'email': 'testing@salsaverde.com',
                                              'first_name': 'Tom'})
         self.assertRedirects(r, reverse('users-details', args=[self.user.pk]))
-        self.assertEqual(refresh(self.user).last_name, 'Foobar')
+        assert refresh(self.user).last_name == 'Foobar'
 
     def test_add_user(self):
         add_url = reverse('users-add')
         r = self.client.get(add_url)
         self.assertContains(r, 'Create new User')
         r = self.client.post(add_url, data={'first_name': 'Bruce', 'last_name': 'Banner'})
-        self.assertEqual(r.status_code, 200)
+        assert r.status_code == 200
         r = self.client.post(add_url, data={'first_name': 'Bruce', 'last_name': 'Banner', 'email': 'foo@example.com'})
         user = User.objects.get(email='foo@example.com')
         self.assertRedirects(r, reverse('users-details', args=[user.pk]))
@@ -90,6 +96,7 @@ class SupplierTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
+        self.company = self.user.company
         self.data = dict(
             name='green suppliers',
             street='123 fake st',
@@ -115,7 +122,7 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, '123 fake st, foobar')
 
     def test_edit_supplier(self):
-        sup = Supplier.objects.create(**self.data)
+        sup = SupplierFactory(company=self.company, street='123 fake st')
         r = self.client.get(reverse('suppliers-edit', args=[sup.pk]))
         self.assertContains(r, '123 fake st')
         self.data['name'] = 'red suppliers'
@@ -124,17 +131,17 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, 'red suppliers')
 
     def test_supplier_details(self):
-        sup = Supplier.objects.create(**self.data)
+        sup = SupplierFactory(company=self.company, street='123 fake st')
         r = self.client.get(reverse('suppliers-details', args=[sup.pk]))
         self.assertContains(r, f'<a href="mailto:{sup.email}">{sup.email}</a>')
         self.assertContains(r, f'<a href="tel:{sup.phone}">{sup.phone}</a>')
-        sup = Supplier.objects.create(name='foo')
+        sup = SupplierFactory(company=self.company, street='123 fake st', email=None, phone=None)
         r = self.client.get(reverse('suppliers-details', args=[sup.pk]))
         self.assertNotContains(r, f'<a href="mailto:')
         self.assertNotContains(r, f'<a href="tel:')
 
     def test_supplier_list(self):
-        sup = Supplier.objects.create(**self.data)
+        sup = SupplierFactory(company=self.company, street='123 fake st')
         r = self.client.get(reverse('suppliers'))
         self.assertContains(r, reverse('suppliers-details', args=[sup.pk]))
 
@@ -144,29 +151,25 @@ class SupplierTestCase(TestCase):
 
     def test_display_ingredients(self):
         date = timezone.now()
-        ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
-        supplier = Supplier.objects.create(name='good food')
-        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
-        ingred = Ingredient.objects.create(ingredient_type=ingredient_type, batch_code='foo123', quantity=10,
-                                           supplier=supplier, goods_intake=gi)
+        supplier = SupplierFactory(company=self.company)
+        IngredientFactory(ingredient_type__company=self.company, batch_code='foo123', quantity=10,
+                          ingredient_type__name='blackberries', supplier=supplier,
+                          ingredient_type__unit=IngredientType.UNIT_LITRE, goods_intake__intake_date=date)
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
         self.assertContains(r, 'Supplied Ingredients')
-        self.assertContains(r, ingredient_type.name)
-        self.assertContains(r, ingred.batch_code)
+        self.assertContains(r, 'blackberries')
+        self.assertContains(r, 'foo123')
         self.assertContains(r, '10.000 litre')
         self.assertContains(r, display_dt(date))
 
     def test_display_containers(self):
         date = timezone.now()
-        container_type = ContainerType.objects.create(name='200ml bottle', type=ContainerType.TYPE_BOTTLE)
-        supplier = Supplier.objects.create(name='good containers')
-        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
-        container = Container.objects.create(container_type=container_type, batch_code='foo345', quantity=40,
-                                             supplier=supplier, goods_intake=gi)
+        supplier = SupplierFactory(company=self.company)
+        ContainerFactory(container_type__name='abc', batch_code='foo123', quantity=10, supplier=supplier)
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
-        self.assertContains(r, 'Supplied Ingredients')
-        self.assertContains(r, container_type.name)
-        self.assertContains(r, container.batch_code)
+        self.assertContains(r, 'Supplied Containers')
+        self.assertContains(r, 'abc')
+        self.assertContains(r, 'foo123')
         self.assertContains(r, '10.000')
         self.assertContains(r, display_dt(date))
 
@@ -175,6 +178,7 @@ class IngredientTypeTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
+        self.company = self.user.company
         self.data = dict(name='ingredtype', unit=IngredientType.UNIT_LITRE)
 
     def test_add_ingredient_type(self):
@@ -186,16 +190,16 @@ class IngredientTypeTestCase(TestCase):
         self.assertContains(r, 'ingredtype')
 
     def test_edit_ingredient_type(self):
-        ct = IngredientType.objects.create(**self.data)
-        r = self.client.get(reverse('ingredient-types-edit', args=[ct.pk]))
+        ingred_type = IngredientTypeFactory(company=self.company, name='ingredtype')
+        r = self.client.get(reverse('ingredient-types-edit', args=[ingred_type.pk]))
         self.assertContains(r, 'ingredtype')
         self.data['name'] = 'ingredtype 2'
-        r = self.client.post(reverse('ingredient-types-edit', args=[ct.pk]), data=self.data, follow=True)
-        self.assertRedirects(r, reverse('ingredient-types-details', args=[ct.pk]))
+        r = self.client.post(reverse('ingredient-types-edit', args=[ingred_type.pk]), data=self.data, follow=True)
+        self.assertRedirects(r, reverse('ingredient-types-details', args=[ingred_type.pk]))
         self.assertContains(r, 'ingredtype 2')
 
     def test_ingredient_type_list(self):
-        ingred_type = IngredientType.objects.create(**self.data)
+        ingred_type = IngredientTypeFactory(company=self.company)
         r = self.client.get(reverse('ingredient-types'))
         self.assertContains(r, reverse('ingredient-types-details', args=[ingred_type.pk]))
 
@@ -233,7 +237,7 @@ class ContainerTypeTestCase(TestCase):
 
     def test_edit_container_type(self):
         data = dict(name='bottle 1', type=ContainerType.TYPE_BOTTLE, size=.2)
-        ct = ContainerType.objects.create(**data)
+        ct = ContainerType.objects.create(**data, company=self.user.company)
         r = self.client.get(reverse('container-types-edit', args=[ct.pk]))
         self.assertContains(r, 'bottle 1')
         data['name'] = 'bottle 2'
@@ -246,9 +250,9 @@ class ContainerTypeTestCase(TestCase):
         pass
 
     def test_supplier_list(self):
-        sup = ContainerType.objects.create(name='bottle 1', type=ContainerType.TYPE_BOTTLE, size=.2)
+        ct = ContainerTypeFactory(company=self.user.company)
         r = self.client.get(reverse('container-types'))
-        self.assertContains(r, reverse('container-types-details', args=[sup.pk]))
+        self.assertContains(r, reverse('container-types-details', args=[ct.pk]))
 
 
 class IngredientTestCase(TestCase):
@@ -256,8 +260,8 @@ class IngredientTestCase(TestCase):
         self.client = AuthenticatedClient()
         self.user = self.client.user
         self.intake_url = reverse('intake-ingredients')
-        self.ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
-        self.supplier = Supplier.objects.create(name='good food')
+        self.ingredient_type = IngredientTypeFactory(company=self.user.company, name='blackberries')
+        self.supplier = SupplierFactory(name='good food')
         self.intake_management_data = {
             'ingredients-TOTAL_FORMS': 1,
             'ingredients-INITIAL_FORMS': 0,
@@ -284,21 +288,21 @@ class IngredientTestCase(TestCase):
         r = self.client.post(self.intake_url, data=data)
         self.assertRedirects(r, reverse('ingredients'))
         goods_intake = GoodsIntake.objects.get()
-        self.assertEqual(goods_intake.intake_date.date(), datetime(2018, 2, 2).date())
-        self.assertEqual(goods_intake.date_created.date(), timezone.now().date())
-        self.assertEqual(goods_intake.intake_user, self.user)
+        assert goods_intake.intake_date.date() == datetime(2018, 2, 2).date()
+        assert goods_intake.date_created.date() == timezone.now().date()
+        assert goods_intake.intake_user == self.user
         doc = Document.objects.get()
-        self.assertEqual(doc.type, Document.FORM_SUP01)
-        self.assertEqual(doc.author, self.user)
-        self.assertEqual(doc.goods_intake, goods_intake)
+        assert doc.type == Document.FORM_SUP01
+        assert doc.author == self.user
+        assert doc.goods_intake == goods_intake
         ingred = Ingredient.objects.get()
-        self.assertEqual(ingred.ingredient_type, self.ingredient_type)
-        self.assertEqual(ingred.batch_code, '123abc')
-        self.assertEqual(ingred.condition, 'Good')
-        self.assertEqual(ingred.status, Ingredient.STATUS_ACCEPT)
-        self.assertEqual(ingred.goods_intake, goods_intake)
-        self.assertEqual(ingred.quantity, 10)
-        self.assertEqual(ingred.supplier, self.supplier)
+        assert ingred.ingredient_type == self.ingredient_type
+        assert ingred.batch_code == '123abc'
+        assert ingred.condition == 'Good'
+        assert ingred.status == Ingredient.STATUS_ACCEPT
+        assert ingred.goods_intake == goods_intake
+        assert ingred.quantity == 10
+        assert ingred.supplier == self.supplier
 
         r = self.client.get(reverse('ingredients-details', args=[ingred.pk]))
         self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP01')
@@ -330,16 +334,17 @@ class IngredientTestCase(TestCase):
         }
         r = self.client.post(reverse('ingredients-edit', args=[ingred.pk]), data=data)
         self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))
-        self.assertEqual(refresh(ingred).batch_code, '123abc')
+        assert refresh(ingred).batch_code == '123abc'
 
 
 class ContainerTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
+        self.company = self.user.company
         self.intake_url = reverse('intake-containers')
-        self.container_type = ContainerType.objects.create(name='bottle', type=ContainerType.TYPE_BOTTLE)
-        self.supplier = Supplier.objects.create(name='good bottle')
+        self.container_type = ContainerTypeFactory(company=self.company, name='bottle', type=ContainerType.TYPE_BOTTLE)
+        self.supplier = SupplierFactory(name='good bottle')
         self.intake_management_data = {
             'containers-TOTAL_FORMS': 1,
             'containers-INITIAL_FORMS': 0,
@@ -366,29 +371,27 @@ class ContainerTestCase(TestCase):
         r = self.client.post(self.intake_url, data=data)
         self.assertRedirects(r, reverse('containers'))
         goods_intake = GoodsIntake.objects.get()
-        self.assertEqual(goods_intake.intake_date.date(), datetime(2018, 2, 2).date())
-        self.assertEqual(goods_intake.date_created.date(), timezone.now().date())
-        self.assertEqual(goods_intake.intake_user, self.user)
+        assert goods_intake.intake_date.date() == datetime(2018, 2, 2).date()
+        assert goods_intake.date_created.date() == timezone.now().date()
+        assert goods_intake.intake_user == self.user
         doc = Document.objects.get()
-        self.assertEqual(doc.type, Document.FORM_SUP02)
-        self.assertEqual(doc.author, self.user)
-        self.assertEqual(doc.goods_intake, goods_intake)
+        assert doc.type == Document.FORM_SUP02
+        assert doc.author == self.user
+        assert doc.goods_intake == goods_intake
         container = Container.objects.get()
-        self.assertEqual(container.container_type, self.container_type)
-        self.assertEqual(container.batch_code, '123abc')
-        self.assertEqual(container.condition, 'Good')
-        self.assertEqual(container.status, Container.STATUS_ACCEPT)
-        self.assertEqual(container.goods_intake, goods_intake)
-        self.assertEqual(container.quantity, 10)
-        self.assertEqual(container.supplier, self.supplier)
+        assert container.container_type == self.container_type
+        assert container.batch_code == '123abc'
+        assert container.condition == 'Good'
+        assert container.status == Container.STATUS_ACCEPT
+        assert container.goods_intake == goods_intake
+        assert container.quantity == 10
+        assert container.supplier == self.supplier
 
         r = self.client.get(reverse('containers-details', args=[container.pk]))
         self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP02')
 
     def test_edit_ingredient(self):
-        gi = GoodsIntake.objects.create(intake_user=self.user)
-        container = Container.objects.create(container_type=self.container_type, batch_code='foo123',
-                                             quantity=10, supplier=self.supplier, goods_intake=gi)
+        container = ContainerFactory(container_type=self.container_type, batch_code='foo123')
         r = self.client.get(reverse('containers-edit', args=[container.pk]))
         self.assertContains(r, 'foo123')
         data = {
@@ -401,28 +404,21 @@ class ContainerTestCase(TestCase):
         }
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
-        self.assertEqual(refresh(container).batch_code, '123abc')
+        assert refresh(container).batch_code == '123abc'
 
 
 class ProductTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
-        date = timezone.now()
         self.user = self.client.user
+        self.company = self.user.company
         self.intake_url = reverse('intake-containers')
-        self.container_type = ContainerType.objects.create(name='bottle', type=ContainerType.TYPE_BOTTLE)
-        self.supplier = Supplier.objects.create(name='good bottle')
-        ingredient_type = IngredientType.objects.create(name='blackberries', unit=IngredientType.UNIT_LITRE)
-        gi = GoodsIntake.objects.create(intake_user=self.user, intake_date=date)
-        self.ingred = Ingredient.objects.create(ingredient_type=ingredient_type, batch_code='foo123', quantity=10,
-                                                supplier=self.supplier, goods_intake=gi)
-        cap_type = ContainerType.objects.create(name='200ml bottle', type=ContainerType.TYPE_CAP)
-        self.bottle = Container.objects.create(container_type=self.container_type, batch_code='foo345', quantity=40,
-                                               supplier=self.supplier, goods_intake=gi)
-        self.cap = Container.objects.create(container_type=cap_type, batch_code='foo345', quantity=40,
-                                            supplier=self.supplier, goods_intake=gi)
-        self.product_type = ProductType.objects.create(name='bbt')
-        self.product_type.ingredient_types.add(ingredient_type)
+
+        self.ingred = IngredientFactory(batch_code='foo123', quantity=10, ingredient_type__company=self.company)
+        self.bottle = ContainerFactory(container_type__type=ContainerType.TYPE_BOTTLE,
+                                       container_type__company=self.company)
+        self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
+        self.product_type = ProductTypeFactory(company=self.user.company)
         self.product_ingred_mngmnt = {
             'productingredient_set-TOTAL_FORMS': 1,
             'productingredient_set-INITIAL_FORMS': 0,
@@ -457,15 +453,15 @@ class ProductTestCase(TestCase):
         r = self.client.post(self.url, data=data)
         product = Product.objects.get()
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
-        self.assertEqual(YieldContainer.objects.count(), 2)
+        assert YieldContainer.objects.count() == 2
         for yc in YieldContainer.objects.all():
             self.assertEquals(yc.product, product)
         pi = ProductIngredient.objects.get()
-        self.assertEqual(product.product_type, self.product_type)
-        self.assertEqual(product.batch_code, 'foobar')
-        self.assertEqual(product.date_of_bottling.date(), datetime(2018, 3, 3).date())
-        self.assertEqual(product.date_of_infusion.date(), datetime(2018, 2, 2).date())
-        self.assertEqual(product.yield_quantity, 25)
-        self.assertEqual(pi.product, product)
-        self.assertEqual(pi.ingredient, self.ingred)
-        self.assertEqual(pi.quantity, 10)
+        assert product.product_type == self.product_type
+        assert product.batch_code == 'foobar'
+        assert product.date_of_bottling.date() == datetime(2018, 3, 3).date()
+        assert product.date_of_infusion.date() == datetime(2018, 2, 2).date()
+        assert product.yield_quantity == 25
+        assert pi.product == product
+        assert pi.ingredient == self.ingred
+        assert pi.quantity == 10

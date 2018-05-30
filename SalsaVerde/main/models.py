@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.forms import JSONField
 from django.db import models
@@ -8,14 +9,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from SalsaVerde import settings
-from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
 class Company(models.Model):
-    objects = QuerySet.as_manager()
-
     name = models.CharField('Name', max_length=255)
 
     def __str__(self):
@@ -52,19 +49,19 @@ class CompanyNameBaseModel(BaseModel):
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, email, password, is_superuser=False, **extra_fields):
+    def _create_user(self, email, company, password, is_superuser=False, **extra_fields):
         """Create and save a User with the given email and password."""
         email = self.normalize_email(email)
-        user = self.model(email=email, is_superuser=is_superuser, **extra_fields)
+        user = self.model(email=email, is_superuser=is_superuser, company=company, **extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, **extra_fields)
+    def create_user(self, email, company, password=None, **extra_fields):
+        return self._create_user(email, company, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
-        return self.create_superuser(email, password, is_superuser=True, **extra_fields)
+    def create_superuser(self, email, company, password, **extra_fields):
+        return self.create_superuser(email, company, password, is_superuser=True, **extra_fields)
 
 
 class User(AbstractUser):
@@ -76,7 +73,7 @@ class User(AbstractUser):
     email = models.EmailField('Email Address', unique=True)
     first_name = models.CharField('First name', max_length=30, blank=True)
     last_name = models.CharField('Last name', max_length=150, blank=True)
-    last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1))
+    last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1, tzinfo=timezone.utc))
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
     country = models.CharField('Country', max_length=50, null=True, blank=True)

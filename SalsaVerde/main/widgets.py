@@ -1,6 +1,5 @@
+from django.conf import settings
 from django.forms import widgets, DateTimeField
-
-from SalsaVerde import settings
 
 DT_OUTER_PICKER_HTML = """\
 <div class="input-group date date-time-picker">

@@ -27,13 +27,13 @@ class Command(BaseCommand):
         cap_type = ContainerType.objects.create(name='Black Cap', type=ContainerType.TYPE_CAP, company=company)
 
         containers_intake = GoodsIntake.objects.create(intake_date=timezone.now(), date_created=timezone.now(),
-                                                       intake_user=user, company=company)
+                                                       intake_user=user)
         bottle_200 = Container.objects.create(container_type=bottle_type_200, batch_code='123bot',
-                                              goods_intake=containers_intake, quantity=1500, company=company)
+                                              goods_intake=containers_intake, quantity=1500,)
         bottle_100 = Container.objects.create(container_type=bottle_type_100, batch_code='456bot',
-                                              goods_intake=containers_intake, quantity=1200, company=company)
+                                              goods_intake=containers_intake, quantity=1200)
         cap = Container.objects.create(container_type=cap_type, batch_code='789cap', goods_intake=containers_intake,
-                                       quantity=2700, company=company)
+                                       quantity=2700)
 
         bb_type = IngredientType.objects.create(name='Blackberries', unit=IngredientType.UNIT_KILO, company=company)
         thyme_type = IngredientType.objects.create(name='Thyme', unit=IngredientType.UNIT_KILO, company=company)
@@ -41,14 +41,13 @@ class Command(BaseCommand):
                                                      company=company)
 
         three_days = timezone.now() - timedelta(days=3)
-        ingreds_intake = GoodsIntake.objects.create(intake_date=three_days, date_created=three_days, intake_user=user,
-                                                    company=company)
+        ingreds_intake = GoodsIntake.objects.create(intake_date=three_days, date_created=three_days, intake_user=user)
         bb = Ingredient.objects.create(ingredient_type=bb_type, batch_code='bb123', supplier=supplier_1, quantity=20,
-                                       goods_intake=ingreds_intake, company=company)
+                                       goods_intake=ingreds_intake)
         thyme = Ingredient.objects.create(ingredient_type=thyme_type, batch_code='thy456', supplier=supplier_1,
-                                          quantity=10, goods_intake=ingreds_intake, company=company)
+                                          quantity=10, goods_intake=ingreds_intake)
         vinegar = Ingredient.objects.create(ingredient_type=vinegar_type, batch_code='v789', supplier=supplier_2,
-                                            quantity=95, goods_intake=ingreds_intake, company=company)
+                                            quantity=95, goods_intake=ingreds_intake)
 
         btt_type = ProductType.objects.create(name='Blackberry and Thyme', company=company)
         btt_type.ingredient_types.add(*(bb_type, thyme_type, vinegar_type))
@@ -57,12 +56,11 @@ class Command(BaseCommand):
                                      date_of_bottling=timezone.now(),
                                      date_of_best_before=timezone.now() + timedelta(days=365 * 2),
                                      yield_quantity=55,
-                                     batch_code='BTT123ABC',
-                                     company=company)
-        ProductIngredient.objects.create(product=btt, ingredient=bb, quantity=15, company=company)
-        ProductIngredient.objects.create(product=btt, ingredient=thyme, quantity=0.5, company=company)
-        ProductIngredient.objects.create(product=btt, ingredient=vinegar, quantity=52, company=company)
-        YieldContainer.objects.create(product=btt, container=bottle_200, quantity=175, company=company)
-        YieldContainer.objects.create(product=btt, container=bottle_100, quantity=200, company=company)
-        YieldContainer.objects.create(product=btt, container=cap, quantity=375, company=company)
+                                     batch_code='BTT123ABC')
+        ProductIngredient.objects.create(product=btt, ingredient=bb, quantity=15)
+        ProductIngredient.objects.create(product=btt, ingredient=thyme, quantity=0.5)
+        ProductIngredient.objects.create(product=btt, ingredient=vinegar, quantity=52)
+        YieldContainer.objects.create(product=btt, container=bottle_200, quantity=175)
+        YieldContainer.objects.create(product=btt, container=bottle_100, quantity=200)
+        YieldContainer.objects.create(product=btt, container=cap, quantity=375)
         print('User created with details:\n  owner@salsaverde.com\n  testing')

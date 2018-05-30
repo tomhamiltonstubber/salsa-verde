@@ -1,10 +1,9 @@
 import datetime
 
+from django.conf import settings
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, CreateView, UpdateView
-
-from SalsaVerde import settings
 
 
 def get_nav_menu():
@@ -146,11 +145,6 @@ class FormView(DisplayHelpers):
 class AddModelView(FormView, CreateView):
     def get_title(self):
         return self.title or 'Create new %s' % self.model._meta.verbose_name
-
-    def form_valid(self, form):
-        obj = form.save(commit=False)
-        obj.company = self.request.user.company
-        obj.save()
 
 
 class UpdateModelView(FormView, UpdateView, ObjMixin):
