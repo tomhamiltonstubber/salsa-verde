@@ -15,6 +15,7 @@ def get_nav_menu():
         ('Ingredients', reverse('ingredients')),
         ('Documents', reverse('documents')),
         ('Users', reverse('users')),
+        ('Logout', reverse('logout')),
     ]
 
 

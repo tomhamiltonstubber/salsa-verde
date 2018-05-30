@@ -57,6 +57,12 @@ class UserTestCase(TestCase):
         self.assertNotContains(r, 'Login')
         assert refresh(user).last_logged_in.date() == timezone.now().date()
 
+    def test_logout(self):
+        r = self.client.post(reverse('logout'))
+        self.assertRedirects(r, reverse('login'))
+        r = self.client.get('/')
+        self.assertRedirects(r, reverse('login'))
+
     def test_get_dashboard(self):
         r = self.client.get('/')
         assert r.status_code == 200

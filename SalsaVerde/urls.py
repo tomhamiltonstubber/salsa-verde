@@ -7,7 +7,7 @@ from SalsaVerde.main import views, raw_materials_views
 urlpatterns = [
     path('', views.dashboard, name='index'),
     path('login/', views.login, name='login'),
-    path('logout/', auth_views.logout, name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(template_name='base.jinja'), name='logout'),
     path('admin/', admin.site.urls),
 
     path('users/', views.user_list, name='users'),
