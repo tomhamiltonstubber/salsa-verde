@@ -95,7 +95,9 @@ class DisplayHelpers:
 
 class QuerySetMixin:
     def get_queryset(self):
-        return self.model.objects.request_qs(self.request)
+        if self.request.user.is_authenticated:
+            return self.model.objects.request_qs(self.request)
+        return self.model.objects.none()
 
 
 class BasicView(QuerySetMixin, DisplayHelpers, TemplateView):
