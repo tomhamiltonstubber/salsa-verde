@@ -171,15 +171,17 @@ class DetailView(ObjMixin, BasicView):
 
     def get_extra_content(self):
         for item in self.extra_display_items():
-            if not item['qs'].exists():
-                continue
-            yield {
-                'title': item['title'],
-                'field_names': self.get_display_labels(item['fields'], obj=item['qs'][0]),
-                'field_vals': [
-                    (obj.get_absolute_url(), self.get_display_values(obj, item['fields'])) for obj in item['qs']
-                ]
-            }
+            if item['qs'].exists():
+                yield {
+                    'title': item['title'],
+                    'field_names': self.get_display_labels(item['fields'], obj=item['qs'][0]),
+                    'field_vals': [
+                        (obj.get_absolute_url(), self.get_display_values(obj, item['fields'])) for obj in item['qs']
+                    ],
+                    'add_url': item.get('add_url'),
+                }
+            elif item.get('add_url'):
+                yield {'title': item['title'], 'add_url': item['add_url']}
 
     def get_context_data(self, **kwargs):
         display_vals = self.get_display_values(self.object, self.display_items)

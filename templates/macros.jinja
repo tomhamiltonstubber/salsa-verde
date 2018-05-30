@@ -2,12 +2,15 @@
   <div class="panel panel-default" id="extra-details">
     <div class="panel-heading">
       <h4>{{ obj.title }}</h4>
+      {% if obj.add_url %}
+        <a href="{{ obj.add_url }}"><span class="fa fa-plus"></span></a>
+      {% endif %}
     </div>
     <div class="panel-body">
       <table class="table table-striped">
         <thead>
           <tr>
-            {% for field in obj['field_names'] %}
+            {% for field in obj.field_names %}
               <th>{{ field }}</th>
             {% endfor %}
             </tr>

@@ -116,6 +116,8 @@ class Supplier(CompanyNameBaseModel):
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
     email = models.EmailField('Email', max_length=65, null=True, blank=True)
     main_contact = models.CharField('Main Contact', max_length=50, null=True, blank=True)
+    vat_number = models.CharField('VAT Number', max_length=50, null=True, blank=True)
+    company_number = models.CharField('Company Number', max_length=50, null=True, blank=True)
 
     def display_email(self):
         if self.email:
@@ -429,14 +431,22 @@ class Document(BaseModel):
                                related_name='documents')
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
-    focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, related_name='focused_documents',
-                              on_delete=models.SET_NULL)
+    focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, blank=True,
+                              related_name='focused_documents', on_delete=models.SET_NULL)
     goods_intake = models.ForeignKey('main.GoodsIntake', verbose_name='Intake of Goods', null=True, blank=True,
                                      on_delete=models.SET_NULL, related_name='documents')
+    supplier = models.ForeignKey(Supplier, verbose_name='Linked Supplier', null=True, blank=True,
+                                 on_delete=models.SET_NULL, related_name='documents')
     edits = JSONField()
 
     def __str__(self):
+        if self.file:
+            return self.file.name
         return f'{self.display_type()} - {self.date_created.date()}'
+
+    @property
+    def name(self):
+        return str(self)
 
     def get_absolute_url(self):
         return reverse('documents-details', kwargs={'pk': self.pk})
@@ -446,11 +456,16 @@ class Document(BaseModel):
         return 'documents'
 
     def display_type(self):
-        return dict(self.FORM_TYPES)[self.type]
+        if self.type:
+            return dict(self.FORM_TYPES)[self.type]
+
+    def display_supplier(self):
+        if self.supplier:
+            return link(self.supplier.get_absolute_url(), str(self.supplier))
 
     def display_file(self):
         if self.file:
-            return mark_safe(f'<a href="{self.file.url}" target="_blank">{self.file.name}</a>')
+            return link(self.file.url, self.file.name)
         return '—'
 
     class Meta:
@@ -508,3 +523,7 @@ class PlasterReport(Document):
     plaster_check_time = models.DateTimeField('Plaster Check Time')
     plaster_check_employee = models.ForeignKey(User, null=True, blank=True,
                                                on_delete=models.SET_NULL)
+
+
+def link(link, name):
+    return mark_safe(f'<a href="{link}">{name}</a>')

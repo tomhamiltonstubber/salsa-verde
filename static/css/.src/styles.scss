@@ -88,6 +88,9 @@ body {
 .panel-default {
   .panel-heading {
     padding: 1px 15px;
+    h4 {
+      display: inline-block;
+    }
   }
   .panel-body {
     padding: 0;

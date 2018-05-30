@@ -1,4 +1,5 @@
 from django import forms
+from django.shortcuts import get_object_or_404
 
 from SalsaVerde.main.models import (Ingredient, Supplier, IngredientType, User, Document, ProductType, ContainerType,
                                     Container, Product, ProductIngredient, YieldContainer, GoodsIntake)
@@ -74,6 +75,12 @@ class UpdateDocumentForm(SVModelForm):
         if not self.instance.pk:
             self.fields['author'].initial = self.request.user
             self.fields['file'].required = False
+        if self.request.GET.get('supplier'):
+            sup = get_object_or_404(Supplier.objects.request_qs(self.request), pk=self.request.GET['supplier'])
+            self.fields['supplier'].initial = sup
+        if self.request.GET.get('focus'):
+            user = get_object_or_404(User.objects.request_qs(self.request), pk=self.request.GET['focus'])
+            self.fields['focus'].initial = user
 
     class Meta:
         model = Document

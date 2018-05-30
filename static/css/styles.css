@@ -61,6 +61,8 @@ body {
 
 .panel-default .panel-heading {
   padding: 1px 15px; }
+  .panel-default .panel-heading h4 {
+    display: inline-block; }
 
 .panel-default .panel-body {
   padding: 0; }
