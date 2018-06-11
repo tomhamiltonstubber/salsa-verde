@@ -337,6 +337,9 @@ class ProductType(CompanyNameBaseModel):
     def get_absolute_url(self):
         return reverse(f'product-types-details', kwargs={'pk': self.pk})
 
+    def display_ingredient_types(self):
+        return ', '.join(self.ingredient_types.values_list('name', flat=True).order_by('name'))
+
     class Meta:
         verbose_name = 'Product Type'
         verbose_name_plural = 'Product Types'

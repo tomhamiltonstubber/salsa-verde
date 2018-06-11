@@ -2,8 +2,9 @@ $(document).ready(() => {
   // try {
   //   $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
   // } catch (e) {
-  //   this seems to happen occasionally when something has gone wrong, ignore it
+  //   // this seems to happen occasionally when something has gone wrong, ignore it
   // }
+
   const icons = {
     time: 'fa fa-clock',
     date: 'fa fa-calendar',
@@ -21,7 +22,8 @@ $(document).ready(() => {
     const $init = $('#initial-' + $input.attr('id'))
     $el.datetimepicker({
       icons: icons,
-      format: $input.data('format')
-    }).date($init.val())
+      format: $input.data('format'),
+      date: $init.val(),
+    })
   })
 })

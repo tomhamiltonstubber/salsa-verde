@@ -238,11 +238,8 @@ product_type_list = ProductTypeList.as_view()
 class ProductTypeDetails(DetailView):
     model = ProductType
     display_items = [
-        ('Ingredient Types', 'func|ingredient_types_display'),
+        'ingredient_types',
     ]
-
-    def ingredient_types_display(self, obj):
-        return ', '.join(obj.ingredient_types.values_list('name', flat=True).order_by('name'))
 
 
 product_type_details = ProductTypeDetails.as_view()
@@ -304,6 +301,11 @@ class ProductAdd(AddModelView):
         else:
             return self.form_invalid(form)
         return super().form_valid(form)
+
+    def get_initial(self):
+        initial_data = super().get_initial()
+        print(initial_data)
+        return initial_data
 
     def get_context_data(self, **kwargs):
         if self.request.POST:

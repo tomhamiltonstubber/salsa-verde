@@ -4,15 +4,10 @@ from django.test import TestCase, Client
 
 from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.main.factories import CompanyFactory, SupplierFactory, IngredientFactory, UserFactory
+from SalsaVerde.main.factories.product import ProductFactory
 from SalsaVerde.main.factories.raw_materials import ContainerFactory, IngredientTypeFactory, ContainerTypeFactory, \
     ProductTypeFactory
 from SalsaVerde.main.models import *
-
-"""
-TODO:
-  * Best before
-  * Limit choices on product_ingredient formset
-"""
 
 
 def refresh(obj):
@@ -411,7 +406,7 @@ class ContainerTestCase(TestCase):
             'containers-MAX_NUM_FORMS': 1000,
         }
 
-    def test_intake_ingredients(self):
+    def test_intake_containers(self):
         r = self.client.get(self.intake_url)
         self.assertContains(r, 'bottle')
         self.assertContains(r, 'Intake Recipient')
@@ -449,7 +444,7 @@ class ContainerTestCase(TestCase):
         r = self.client.get(reverse('containers-details', args=[container.pk]))
         self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP02')
 
-    def test_edit_ingredient(self):
+    def test_edit_container(self):
         container = ContainerFactory(container_type=self.container_type, batch_code='foo123')
         r = self.client.get(reverse('containers-edit', args=[container.pk]))
         self.assertContains(r, 'foo123')
@@ -464,6 +459,37 @@ class ContainerTestCase(TestCase):
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
         assert refresh(container).batch_code == '123abc'
+
+
+class ProductTypeTestCase(TestCase):
+    def setUp(self):
+        self.client = AuthenticatedClient()
+        self.user = self.client.user
+        self.company = self.user.company
+        self.ingred_type_1 = IngredientTypeFactory(company=self.company, name='blackberry')
+        self.ingred_type_2 = IngredientTypeFactory(company=self.company, name='thyme')
+        self.ingred_type_3 = IngredientTypeFactory(company=self.company, name='vinegar')
+        self.add_url = reverse('product-types-add')
+
+    def test_add_product_type(self):
+        r = self.client.get(self.add_url)
+        self.assertContains(r, 'blackberry')
+        types = [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk]
+        data = {
+            'name': 'BBT',
+            'ingredient_types': [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk],
+            'sku_code': '123abc',
+            'code': 'BTT',
+        }
+        r = self.client.post(self.add_url, data=data, follow=True)
+        pt = ProductType.objects.get()
+        self.assertRedirects(r, reverse('product-types-details', args=[pt.pk]))
+        assert pt.name == 'BBT'
+        assert pt.code == 'BTT'
+        assert list(pt.ingredient_types.values_list('pk', flat=True)) == types
+        self.assertContains(r, 'blackberry, thyme, vinegar')
+        r = self.client.get(reverse('product-types'))
+        self.assertContains(r, 'blackberry, thyme, vinegar')
 
 
 class ProductTestCase(TestCase):
@@ -524,3 +550,8 @@ class ProductTestCase(TestCase):
         assert pi.product == product
         assert pi.ingredient == self.ingred
         assert pi.quantity == 10
+
+    def test_edit_product(self):
+        product = ProductFactory(product_type__company=self.company)
+        r = self.client.get('product-details', args=[product.pk])
+        self.assertContains()
