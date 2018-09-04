@@ -1,7 +1,7 @@
 import factory
 from django.db import IntegrityError
 
-from SalsaVerde.main.factories import CompanyFactory
+from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.models import User
 
 

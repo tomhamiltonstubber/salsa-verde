@@ -3,8 +3,7 @@ from django.utils import timezone
 
 import factory
 
-from SalsaVerde.main.factories import ProductTypeFactory, IngredientFactory
-from SalsaVerde.main.factories.raw_materials import ContainerFactory
+from SalsaVerde.main.factories.raw_materials import ContainerFactory, ProductTypeFactory, IngredientFactory
 from SalsaVerde.main.models import Product, ProductIngredient, YieldContainer
 
 
@@ -12,7 +11,7 @@ class ProductIngredientFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProductIngredient
 
-    ingredient = IngredientFactory()
+    ingredient = factory.SubFactory(IngredientFactory)
     quantity = 10
 
 
@@ -20,7 +19,7 @@ class YieldContainerFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = YieldContainer
 
-    container = ContainerFactory()
+    container = factory.SubFactory(ContainerFactory)
     quantity = 10
 
 

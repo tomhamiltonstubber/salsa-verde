@@ -3,10 +3,12 @@ from datetime import datetime as dt
 from django.test import TestCase, Client
 
 from SalsaVerde.main.base_views import display_dt
-from SalsaVerde.main.factories import CompanyFactory, SupplierFactory, IngredientFactory, UserFactory
+from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.factories.product import ProductFactory
-from SalsaVerde.main.factories.raw_materials import ContainerFactory, IngredientTypeFactory, ContainerTypeFactory, \
-    ProductTypeFactory
+from SalsaVerde.main.factories.raw_materials import (ContainerFactory, IngredientTypeFactory, ContainerTypeFactory,
+                                                     IngredientFactory, ProductTypeFactory)
+from SalsaVerde.main.factories.supplier import SupplierFactory
+from SalsaVerde.main.factories.users import UserFactory
 from SalsaVerde.main.models import *
 
 
@@ -554,4 +556,4 @@ class ProductTestCase(TestCase):
     def test_edit_product(self):
         product = ProductFactory(product_type__company=self.company)
         r = self.client.get('product-details', args=[product.pk])
-        self.assertContains()
+        self.assertContains(r, 'foobar')

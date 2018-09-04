@@ -3,7 +3,9 @@ import datetime
 import factory
 from django.utils import timezone
 
-from SalsaVerde.main.factories import CompanyFactory, SupplierFactory, UserFactory
+from SalsaVerde.main.factories.company import CompanyFactory
+from SalsaVerde.main.factories.supplier import SupplierFactory
+from SalsaVerde.main.factories.users import UserFactory
 from SalsaVerde.main.models import IngredientType, ContainerType, ProductType, Ingredient, GoodsIntake, Container
 
 
@@ -32,7 +34,6 @@ class ProductTypeFactory(factory.django.DjangoModelFactory):
         model = ProductType
 
     company = factory.SubFactory(CompanyFactory)
-
     sku_code = factory.Sequence(lambda n: 'SKU%d' % n)
 
     @factory.post_generation

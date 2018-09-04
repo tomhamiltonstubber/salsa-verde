@@ -302,11 +302,6 @@ class ProductAdd(AddModelView):
             return self.form_invalid(form)
         return super().form_valid(form)
 
-    def get_initial(self):
-        initial_data = super().get_initial()
-        print(initial_data)
-        return initial_data
-
     def get_context_data(self, **kwargs):
         if self.request.POST:
             kwargs.update(

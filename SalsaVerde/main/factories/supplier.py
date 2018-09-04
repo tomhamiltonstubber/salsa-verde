@@ -1,6 +1,6 @@
 import factory
 
-from SalsaVerde.main.factories import CompanyFactory
+from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.models import Supplier
 
 
