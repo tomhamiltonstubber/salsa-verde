@@ -31,8 +31,10 @@
     <div class="container main">
       {% if button_menu %}
         <div id="button-menu">
-          {% for name, link in button_menu %}
-            <a class="btn btn-default" href="{{ link }}">{{ name }}</a>
+          {% for button in button_menu %}
+            <a class="btn btn-default" href="{{ button.url }}" {% if button.method %}data-method="{{ button.method }}{% endif %}">
+              {{ button.name }}
+            </a>
           {% endfor %}
         </div>
       {% endif %}

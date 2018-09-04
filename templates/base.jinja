@@ -17,5 +17,6 @@
     {% block body %}{% endblock %}
   </body>
   <footer>
+    <form id="post-form" method="POST">{% csrf_token %}</form>
   </footer>
 </html>

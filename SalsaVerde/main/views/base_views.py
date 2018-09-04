@@ -69,6 +69,10 @@ class DisplayHelpers:
             v = attr
         if isinstance(v, datetime.datetime):
             return display_dt(v)
+        elif v is True:
+            return mark_safe(f'<span class="fa fa-check"></span')
+        elif v is False:
+            return mark_safe(f'<span class="fa fa-times"></span')
         return v or '–'
 
     def _display_label(self, item, obj):
@@ -114,7 +118,7 @@ class ListView(BasicView):
 
     def get_button_menu(self):
         return [
-            (f'Add new {self.model._meta.verbose_name}', reverse(f'{self.model.prefix()}-add'))
+            {'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}
         ]
 
     def get_field_data(self):
@@ -164,8 +168,8 @@ class DetailView(ObjMixin, BasicView):
 
     def get_button_menu(self):
         return [
-            ('All %s' % self.model._meta.verbose_name_plural, reverse(self.model.prefix())),
-            ('Edit', reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk})),
+            {'name': 'All %s' % self.model._meta.verbose_name_plural, 'url': reverse(self.model.prefix())},
+            {'name': 'Edit', 'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk})},
         ]
 
     def get_title(self):

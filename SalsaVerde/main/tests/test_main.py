@@ -1,15 +1,18 @@
-from datetime import datetime as dt
+from datetime import datetime as dt, datetime
 
+from django.conf import settings
 from django.test import TestCase, Client
+from django.urls import reverse
+from django.utils import timezone
 
-from SalsaVerde.main.base_views import display_dt
 from SalsaVerde.main.factories.company import CompanyFactory
-from SalsaVerde.main.factories.product import ProductFactory
 from SalsaVerde.main.factories.raw_materials import (ContainerFactory, IngredientTypeFactory, ContainerTypeFactory,
                                                      IngredientFactory, ProductTypeFactory)
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.factories.users import UserFactory
-from SalsaVerde.main.models import *
+from SalsaVerde.main.models import User, Supplier, Document, IngredientType, ContainerType, Ingredient, GoodsIntake, \
+    Container, YieldContainer, ProductIngredient, Product, ProductType
+from SalsaVerde.main.views.base_views import display_dt
 
 
 def refresh(obj):
@@ -317,7 +320,7 @@ class IngredientTestCase(TestCase):
         self.user = self.client.user
         self.intake_url = reverse('intake-ingredients')
         self.ingredient_type = IngredientTypeFactory(company=self.user.company, name='blackberries')
-        self.supplier = SupplierFactory(name='good food')
+        self.supplier = SupplierFactory(name='good food', company=self.user.company)
         self.intake_management_data = {
             'ingredients-TOTAL_FORMS': 1,
             'ingredients-INITIAL_FORMS': 0,
@@ -400,7 +403,7 @@ class ContainerTestCase(TestCase):
         self.company = self.user.company
         self.intake_url = reverse('intake-containers')
         self.container_type = ContainerTypeFactory(company=self.company, name='bottle', type=ContainerType.TYPE_BOTTLE)
-        self.supplier = SupplierFactory(name='good bottle')
+        self.supplier = SupplierFactory(name='good bottle', company=self.company)
         self.intake_management_data = {
             'containers-TOTAL_FORMS': 1,
             'containers-INITIAL_FORMS': 0,
@@ -552,8 +555,3 @@ class ProductTestCase(TestCase):
         assert pi.product == product
         assert pi.ingredient == self.ingred
         assert pi.quantity == 10
-
-    def test_edit_product(self):
-        product = ProductFactory(product_type__company=self.company)
-        r = self.client.get('product-details', args=[product.pk])
-        self.assertContains(r, 'foobar')

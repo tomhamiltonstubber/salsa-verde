@@ -111,11 +111,13 @@ class User(AbstractUser):
 class Supplier(CompanyNameBaseModel):
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
+    county = models.CharField('County', max_length=50, null=True, blank=True)
     country = models.CharField('Country', max_length=50, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
     email = models.EmailField('Email', max_length=65, null=True, blank=True)
     main_contact = models.CharField('Main Contact', max_length=50, null=True, blank=True)
+    contact_phone = models.CharField('Phone', max_length=255, null=True, blank=True)
     vat_number = models.CharField('VAT Number', max_length=50, null=True, blank=True)
     company_number = models.CharField('Company Number', max_length=50, null=True, blank=True)
 
@@ -141,6 +143,7 @@ class Supplier(CompanyNameBaseModel):
         return reverse(f'suppliers-details', kwargs={'pk': self.pk})
 
     class Meta:
+        ordering = 'name',
         verbose_name = 'Supplier'
         verbose_name_plural = 'Suppliers'
 
@@ -162,6 +165,7 @@ class IngredientType(CompanyNameBaseModel):
         return reverse(f'ingredient-types-details', kwargs={'pk': self.pk})
 
     class Meta:
+        ordering = 'name',
         verbose_name = 'Ingredient Type'
         verbose_name_plural = 'Ingredients Types'
 
@@ -190,7 +194,7 @@ class Ingredient(BaseModel):
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey('main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake',
                                      on_delete=models.CASCADE)
-
+    finished = models.BooleanField('Finished', default=False)
     objects = IngredientQuerySet.as_manager()
 
     def get_absolute_url(self):
@@ -215,6 +219,7 @@ class Ingredient(BaseModel):
         return 'ingredients'
 
     class Meta:
+        ordering = 'ingredient_type__name',
         verbose_name = 'Ingredient'
         verbose_name_plural = 'Ingredients'
 
@@ -268,6 +273,7 @@ class Container(BaseModel):
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey('main.GoodsIntake', related_name='containers', verbose_name='Goods Intake',
                                      on_delete=models.CASCADE)
+    finished = models.BooleanField('Finished', default=False)
 
     @classmethod
     def prefix(cls):
@@ -289,7 +295,7 @@ class Container(BaseModel):
 
     class Meta:
         verbose_name = 'Container'
-        verbose_name_plural = 'Container'
+        verbose_name_plural = 'Containers'
 
 
 class YieldContainer(BaseModel):

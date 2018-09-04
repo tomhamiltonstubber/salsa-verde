@@ -13,6 +13,8 @@ class SVModelForm(forms.ModelForm):
         for field in self.fields:
             if isinstance(self.fields[field].widget, forms.DateTimeInput):
                 self.fields[field].widget = DateTimePicker(self.fields[field])
+            if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
+                self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
 
 
 class UpdateUserForm(SVModelForm):
@@ -133,8 +135,12 @@ ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredien
 
 
 class YieldContainersForm(SVModelForm):
-    container = forms.ModelChoiceField(Container.objects.exclude(container_type__type=ContainerType.TYPE_CAP))
-    cap = forms.ModelChoiceField(Container.objects.filter(container_type__type=ContainerType.TYPE_CAP))
+    container = forms.ModelChoiceField(
+        Container.objects
+        .filter(finished=False)
+        .exclude(container_type__type=ContainerType.TYPE_CAP)
+    )
+    cap = forms.ModelChoiceField(Container.objects.filter(container_type__type=ContainerType.TYPE_CAP, finished=False))
 
     def save(self, commit=True):
         obj = super().save(commit)
