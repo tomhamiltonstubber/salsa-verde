@@ -6,7 +6,8 @@ from django.utils import timezone
 from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.factories.users import UserFactory
-from SalsaVerde.main.models import IngredientType, ContainerType, ProductType, Ingredient, GoodsIntake, Container
+from SalsaVerde.main.models import IngredientType, ContainerType, ProductType, Ingredient, GoodsIntake, Container, \
+    ProductTypeSize
 
 
 class IngredientTypeFactory(factory.django.DjangoModelFactory):
@@ -34,7 +35,8 @@ class ProductTypeFactory(factory.django.DjangoModelFactory):
         model = ProductType
 
     company = factory.SubFactory(CompanyFactory)
-    sku_code = factory.Sequence(lambda n: 'SKU%d' % n)
+    name = 'Blackberry and Thyme'
+    code = 'BTT'
 
     @factory.post_generation
     def dft_ingredient_types(self, create, ingredient_types, **kwargs):
@@ -43,6 +45,16 @@ class ProductTypeFactory(factory.django.DjangoModelFactory):
         else:
             self.ingredient_types.add(IngredientTypeFactory(company=self.company, name='ingred_type_1'))
             self.ingredient_types.add(IngredientTypeFactory(company=self.company, name='ingred_type_2'))
+
+
+class ProductTypeSizeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProductTypeSize
+
+    product_type = factory.SubFactory(ProductTypeFactory)
+    sku_code = '987654'
+    bar_code = '123foo456bar'
+    size = .250
 
 
 class GoodsIntakeFactory(factory.django.DjangoModelFactory):

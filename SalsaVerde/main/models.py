@@ -117,7 +117,7 @@ class Supplier(CompanyNameBaseModel):
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
     email = models.EmailField('Email', max_length=65, null=True, blank=True)
     main_contact = models.CharField('Main Contact', max_length=50, null=True, blank=True)
-    contact_phone = models.CharField('Phone', max_length=255, null=True, blank=True)
+    contact_phone = models.CharField('Contact Phone', max_length=255, null=True, blank=True)
     vat_number = models.CharField('VAT Number', max_length=50, null=True, blank=True)
     company_number = models.CharField('Company Number', max_length=50, null=True, blank=True)
 
@@ -333,7 +333,6 @@ class GoodsIntake(BaseModel):
 
 class ProductType(CompanyNameBaseModel):
     ingredient_types = models.ManyToManyField(IngredientType, verbose_name='Ingredients', related_name='product_types')
-    sku_code = models.CharField('SKU Code', max_length=25)
     code = models.CharField('Code', max_length=3, help_text='2 or 3 letter code for batch code creation')
 
     @classmethod
@@ -347,8 +346,16 @@ class ProductType(CompanyNameBaseModel):
         return ', '.join(self.ingredient_types.values_list('name', flat=True).order_by('name'))
 
     class Meta:
+        ordering = 'name',
         verbose_name = 'Product Type'
         verbose_name_plural = 'Product Types'
+
+
+class ProductTypeSize(models.Model):
+    product_type = models.ForeignKey(ProductType, related_name='product_type_sizes', on_delete=models.CASCADE)
+    sku_code = models.CharField('SKU Code', max_length=25, null=True, blank=True)
+    bar_code = models.CharField('Bar Code', max_length=40, null=True, blank=True)
+    size = models.DecimalField('Container Size in litres', decimal_places=3, max_digits=8)
 
 
 class ProductQuerySet(QuerySet):

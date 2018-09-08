@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='supplier',
             name='contact_phone',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Phone'),
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Contact Phone'),
         ),
         migrations.AddField(
             model_name='supplier',

@@ -1,3 +1,4 @@
+import decimal
 from datetime import datetime as dt, datetime
 
 from django.conf import settings
@@ -7,11 +8,11 @@ from django.utils import timezone
 
 from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.factories.raw_materials import (ContainerFactory, IngredientTypeFactory, ContainerTypeFactory,
-                                                     IngredientFactory, ProductTypeFactory)
+                                                     IngredientFactory, ProductTypeFactory, ProductTypeSizeFactory)
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.factories.users import UserFactory
 from SalsaVerde.main.models import User, Supplier, Document, IngredientType, ContainerType, Ingredient, GoodsIntake, \
-    Container, YieldContainer, ProductIngredient, Product, ProductType
+    Container, YieldContainer, ProductIngredient, Product, ProductType, ProductTypeSize
 from SalsaVerde.main.views.base_views import display_dt
 
 
@@ -314,6 +315,15 @@ class ContainerTypeTestCase(TestCase):
         self.assertContains(r, reverse('container-types-details', args=[ct.pk]))
 
 
+def _empty_formset(prefix):
+    return {
+        f'{prefix}-TOTAL_FORMS': 1,
+        f'{prefix}-INITIAL_FORMS': 0,
+        f'{prefix}-MIN_NUM_FORMS': 0,
+        f'{prefix}-MAX_NUM_FORMS': 1000,
+    }
+
+
 class IngredientTestCase(TestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
@@ -321,12 +331,7 @@ class IngredientTestCase(TestCase):
         self.intake_url = reverse('intake-ingredients')
         self.ingredient_type = IngredientTypeFactory(company=self.user.company, name='blackberries')
         self.supplier = SupplierFactory(name='good food', company=self.user.company)
-        self.intake_management_data = {
-            'ingredients-TOTAL_FORMS': 1,
-            'ingredients-INITIAL_FORMS': 0,
-            'ingredients-MIN_NUM_FORMS': 0,
-            'ingredients-MAX_NUM_FORMS': 1000,
-        }
+        self.intake_management_data = _empty_formset('ingredients')
 
     def test_intake_ingredients(self):
         r = self.client.get(self.intake_url)
@@ -404,12 +409,7 @@ class ContainerTestCase(TestCase):
         self.intake_url = reverse('intake-containers')
         self.container_type = ContainerTypeFactory(company=self.company, name='bottle', type=ContainerType.TYPE_BOTTLE)
         self.supplier = SupplierFactory(name='good bottle', company=self.company)
-        self.intake_management_data = {
-            'containers-TOTAL_FORMS': 1,
-            'containers-INITIAL_FORMS': 0,
-            'containers-MIN_NUM_FORMS': 0,
-            'containers-MAX_NUM_FORMS': 1000,
-        }
+        self.intake_management_data = _empty_formset('containers')
 
     def test_intake_containers(self):
         r = self.client.get(self.intake_url)
@@ -475,6 +475,7 @@ class ProductTypeTestCase(TestCase):
         self.ingred_type_2 = IngredientTypeFactory(company=self.company, name='thyme')
         self.ingred_type_3 = IngredientTypeFactory(company=self.company, name='vinegar')
         self.add_url = reverse('product-types-add')
+        self.management_data = _empty_formset('product_type_sizes')
 
     def test_add_product_type(self):
         r = self.client.get(self.add_url)
@@ -483,18 +484,43 @@ class ProductTypeTestCase(TestCase):
         data = {
             'name': 'BBT',
             'ingredient_types': [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk],
-            'sku_code': '123abc',
             'code': 'BTT',
+            'product_type_sizes-0-sku_code': 'foo456',
+            'product_type_sizes-0-bar_code': '9878765564',
+            'product_type_sizes-0-size': '0.15',
+            **self.management_data,
         }
         r = self.client.post(self.add_url, data=data, follow=True)
         pt = ProductType.objects.get()
         self.assertRedirects(r, reverse('product-types-details', args=[pt.pk]))
         assert pt.name == 'BBT'
         assert pt.code == 'BTT'
+        pts = ProductTypeSize.objects.get()
+        assert pts.sku_code == 'foo456'
+        assert pts.size == round(decimal.Decimal(0.15), 2)
+        assert pts.bar_code == '9878765564'
         assert list(pt.ingredient_types.values_list('pk', flat=True)) == types
         self.assertContains(r, 'blackberry, thyme, vinegar')
         r = self.client.get(reverse('product-types'))
         self.assertContains(r, 'blackberry, thyme, vinegar')
+
+    def test_update_product_type(self):
+        product_type = ProductTypeFactory(company=self.company)
+        ProductTypeSizeFactory(product_type=product_type, sku_code='aabbcc')
+        r = self.client.get(reverse('product-types-edit', args=[product_type.id]))
+        self.assertContains(r, 'aabbcc')
+        data = {
+            'name': product_type.name,
+            'ingredient_types': [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk],
+            'code': product_type.code,
+            'product_type_sizes-0-sku-code': 'foo456',
+            'product_type_sizes-0-bar-code': '9878765564',
+            'product_type_sizes-0-size': '0.15',
+            **self.management_data,
+        }
+        r = self.client.post(reverse('product-types-edit', args=[product_type.id]), data=data, follow=True)
+        self.assertRedirects(r, reverse('product-types-details', args=[product_type.id]))
+        self.assertContains(r, 'foo456')
 
 
 class ProductTestCase(TestCase):
@@ -509,18 +535,8 @@ class ProductTestCase(TestCase):
                                        container_type__company=self.company)
         self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
         self.product_type = ProductTypeFactory(company=self.user.company)
-        self.product_ingred_mngmnt = {
-            'productingredient_set-TOTAL_FORMS': 1,
-            'productingredient_set-INITIAL_FORMS': 0,
-            'productingredient_set-MIN_NUM_FORMS': 0,
-            'productingredient_set-MAX_NUM_FORMS': 1000,
-        }
-        self.yield_containers_mngmnt = {
-            'yield_containers-TOTAL_FORMS': 1,
-            'yield_containers-INITIAL_FORMS': 0,
-            'yield_containers-MIN_NUM_FORMS': 0,
-            'yield_containers-MAX_NUM_FORMS': 1000,
-        }
+        self.product_ingred_mngmnt = _empty_formset('productingredient_set')
+        self.yield_containers_mngmnt = _empty_formset('yield_containers')
         self.url = reverse('products-add')
 
     def test_add_product(self):

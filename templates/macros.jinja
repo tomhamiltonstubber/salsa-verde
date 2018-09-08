@@ -20,7 +20,13 @@
             <tr>
               {%- for field in details -%}
                 {% if loop.index == 1 %}
-                  <td><a href="{{ link }}">{{ field }}</a></td>
+                  <td>
+                    {% if link %}
+                      <a href="{{ link }}">{{ field }}</a>
+                    {% else %}
+                      {{ field }}
+                    {% endif %}
+                  </td>
                 {% else %}
                   <td>{{ field }}</td>
                 {%- endif -%}

@@ -178,6 +178,12 @@ class DetailView(ObjMixin, BasicView):
     def extra_display_items(self):
         return {}
 
+    @staticmethod
+    def get_absolute_url(obj):
+        if hasattr(obj, 'get_absolute_url'):
+            return obj.get_absolute_url()
+        return
+
     def get_extra_content(self):
         for item in self.extra_display_items():
             if item['qs'].exists():
@@ -185,7 +191,7 @@ class DetailView(ObjMixin, BasicView):
                     'title': item['title'],
                     'field_names': self.get_display_labels(item['fields'], obj=item['qs'][0]),
                     'field_vals': [
-                        (obj.get_absolute_url(), self.get_display_values(obj, item['fields'])) for obj in item['qs']
+                        (self.get_absolute_url(obj), self.get_display_values(obj, item['fields'])) for obj in item['qs']
                     ],
                     'add_url': item.get('add_url'),
                 }

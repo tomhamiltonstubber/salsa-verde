@@ -1,9 +1,9 @@
 $(document).ready(() => {
-  // try {
-  //   $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
-  // } catch (e) {
-  //   // this seems to happen occasionally when something has gone wrong, ignore it
-  // }
+  try {
+    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
+  } catch (e) {
+    // this seems to happen occasionally when something has gone wrong, ignore it
+  }
 
   const icons = {
     time: 'fa fa-clock',

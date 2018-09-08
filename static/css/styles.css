@@ -70,4 +70,8 @@ body {
 .panel-default .table {
   margin-bottom: 0; }
 
+.unpad {
+  padding-left: 10px;
+  padding-right: 10px; }
+
 /*# sourceMappingURL=styles.css.map */

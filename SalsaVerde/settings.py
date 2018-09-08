@@ -22,6 +22,7 @@ BASE_DIR = os.path.dirname(DJ_DIR)
 SECRET_KEY = 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck('
 
 DEBUG = True
+LIVE = os.getenv('LIVE')
 
 ALLOWED_HOSTS = ['*']
 
@@ -85,16 +86,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SalsaVerde.wsgi.application'
 
-RAVEN_CONFIG = {
-    'dsn': 'https://a3f63edad31d4e089a3c109bc379e29a:34f7049acf904b51b92fab34f679f799@sentry.io/1277096',
-    # If you are using git, you can also automatically configure the
-    # release based on the git info.
-    'release': os.getenv('HEROKU_SLUG_COMMIT', '-'),
-}
+if LIVE:
+    RAVEN_CONFIG = {
+        'dsn': 'https://e9dedecf18764f1392e959d1badcfa38:5a57928068164499befd72e7bfb78492@sentry.io/1277127',
+        'release': os.getenv('HEROKU_SLUG_COMMIT', '-'),
+    }
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-LIVE = os.getenv('LIVE')
 
 if LIVE:
     import dj_database_url

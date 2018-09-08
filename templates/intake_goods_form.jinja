@@ -5,11 +5,14 @@
     {% csrf_token %}
     {{ formsets.management_form|safe }}
     <div class="row">
-      <div class="col-md-6">{{ form.intake_date|bootstrap }}</div>
-      <div class="col-md-6">{{ form.intake_user|bootstrap }}</div>
+      {% set col = (12 / form.visible_fields() | length) | string %}
+      {% for field in form.visible_fields() %}
+        <div class="col-md-{{ col[0] }} unpad">{{ field|bootstrap }}</div>
+      {% endfor %}
     </div>
     <div class="row">
-        <table class="table">
+      <table class="table">
+        <h4 class="table-title">{{ formsets.empty_form.title }}</h4>
         {% for formset in formsets %}
           <tr class="form-row">
             {% for field in formset.visible_fields() %}

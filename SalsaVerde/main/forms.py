@@ -2,11 +2,13 @@ from django import forms
 from django.shortcuts import get_object_or_404
 
 from SalsaVerde.main.models import (Ingredient, Supplier, IngredientType, User, Document, ProductType, ContainerType,
-                                    Container, Product, ProductIngredient, YieldContainer, GoodsIntake)
+                                    Container, Product, ProductIngredient, YieldContainer, GoodsIntake, ProductTypeSize)
 from SalsaVerde.main.widgets import DateTimePicker
 
 
 class SVModelForm(forms.ModelForm):
+    full_width = False
+
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
@@ -20,7 +22,7 @@ class SVModelForm(forms.ModelForm):
 class UpdateUserForm(SVModelForm):
     class Meta:
         model = User
-        fields = {'email', 'first_name', 'last_name', 'street', 'town', 'country', 'postcode', 'phone'}
+        fields = ['email', 'first_name', 'last_name', 'street', 'town', 'country', 'postcode', 'phone']
 
     def save(self, commit=True):
         obj = super().save(commit=False)
@@ -59,9 +61,11 @@ class EmptyQSFormSet(forms.BaseModelFormSet):
 
 
 class UpdateIngredientsForm(SVModelForm):
+    title = 'Ingredients'
+
     class Meta:
         model = Ingredient
-        fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier', 'condition', 'status']
+        fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier']
 
 
 IngredientsFormSet = forms.inlineformset_factory(GoodsIntake,
@@ -106,9 +110,11 @@ class UpdateContainerTypeForm(SVModelForm):
 
 
 class UpdateContainerForm(SVModelForm):
+    title = 'Containers'
+
     class Meta:
         model = Container
-        fields = ['container_type', 'quantity', 'batch_code', 'supplier', 'condition', 'status']
+        fields = ['container_type', 'quantity', 'batch_code', 'supplier']
 
 
 ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateContainerForm, extra=1, can_delete=False)
@@ -123,6 +129,18 @@ class UpdateProductTypeForm(SVModelForm):
         obj = super().save(commit=False)
         obj.company = self.request.user.company
         return super().save(commit)
+
+
+class ProductTypeSizeForm(SVModelForm):
+    title = 'Product Type Sizes'
+
+    class Meta:
+        model = ProductTypeSize
+        fields = ['sku_code', 'bar_code', 'size']
+
+
+ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, ProductTypeSizeForm, extra=1,
+                                                      can_delete=False)
 
 
 class ProductIngredientForm(SVModelForm):
