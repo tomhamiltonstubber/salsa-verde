@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 DJ_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(DJ_DIR)
 
@@ -28,7 +27,6 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +38,7 @@ INSTALLED_APPS = [
     'bootstrapform_jinja',
     'storages',
     'bootstrap3_datetime',
+    'raven.contrib.django.raven_compat',
 
     'SalsaVerde.main',
 ]
@@ -86,6 +85,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SalsaVerde.wsgi.application'
 
+RAVEN_CONFIG = {
+    'dsn': 'https://a3f63edad31d4e089a3c109bc379e29a:34f7049acf904b51b92fab34f679f799@sentry.io/1277096',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': os.getenv('HEROKU_SLUG_COMMIT', '-'),
+}
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
