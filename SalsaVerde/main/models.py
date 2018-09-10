@@ -215,6 +215,10 @@ class Ingredient(BaseModel):
         return self.goods_intake.intake_document
 
     @classmethod
+    def intake_document_type(cls):
+        return Document.FORM_SUP01
+
+    @classmethod
     def prefix(cls):
         return 'ingredients'
 
@@ -288,6 +292,10 @@ class Container(BaseModel):
     @property
     def intake_document(self):
         return self.goods_intake.intake_document
+
+    @classmethod
+    def intake_document_type(cls):
+        return Document.FORM_SUP02
 
     @property
     def name(self):

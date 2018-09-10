@@ -197,3 +197,12 @@ class GoodsIntakeForm(SVModelForm):
     class Meta:
         model = GoodsIntake
         exclude = {'date_created'}
+
+    def __init__(self, document_type, *args, **kwargs):
+        self.document_type = document_type
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        obj = super().save(commit)
+        Document.objects.create(author=self.request.user, type=self.document_type, goods_intake=obj)
+        return obj

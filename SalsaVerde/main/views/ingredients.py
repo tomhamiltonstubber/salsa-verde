@@ -1,13 +1,12 @@
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 
 from django.views.decorators.http import require_POST
 
-from .base_views import DetailView, UpdateModelView, ListView, AddModelView
-from .common import AddGoodsIntake
-from SalsaVerde.main.forms import UpdateIngredientsForm, IngredientsFormSet, UpdateIngredientTypeForm
-from SalsaVerde.main.models import Ingredient, Document, IngredientType
+from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
+from SalsaVerde.main.forms import UpdateIngredientsForm, IngredientsFormSet, UpdateIngredientTypeForm, GoodsIntakeForm
+from SalsaVerde.main.models import Ingredient, IngredientType
 
 
 class IngredientTypeList(ListView):
@@ -116,10 +115,16 @@ class IngredientEdit(UpdateModelView):
 ingredient_edit = IngredientEdit.as_view()
 
 
-class IntakeIngredients(AddGoodsIntake, AddModelView):
-    document_type = Document.FORM_SUP01
-    goods_model_formset = IngredientsFormSet
-    success_url = 'ingredients'
+class IntakeIngredients(SVFormsetForm, AddModelView):
+    success_url = reverse_lazy('ingredients')
+    formset_classes = {'formset': IngredientsFormSet}
+    form_class = GoodsIntakeForm
+    template_name = 'intake_goods_form.jinja'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['document_type'] = self.model.intake_document_type()
+        return kwargs
 
 
 intake_ingredients = IntakeIngredients.as_view()

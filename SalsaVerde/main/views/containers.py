@@ -1,12 +1,11 @@
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
-from .base_views import UpdateModelView, ListView, AddModelView, DetailView
-from .common import AddGoodsIntake
-from SalsaVerde.main.forms import UpdateContainerForm, ContainersFormSet, UpdateContainerTypeForm
-from SalsaVerde.main.models import Container, Document, ContainerType
+from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
+from SalsaVerde.main.forms import UpdateContainerForm, ContainersFormSet, UpdateContainerTypeForm, GoodsIntakeForm
+from SalsaVerde.main.models import Container, ContainerType
 
 
 class ContainerTypeList(ListView):
@@ -123,11 +122,17 @@ class ContainerDetails(DetailView):
 containers_details = ContainerDetails.as_view()
 
 
-class IntakeContainers(AddGoodsIntake, AddModelView):
+class IntakeContainers(SVFormsetForm, AddModelView):
     model = Container
-    document_type = Document.FORM_SUP02
-    goods_model_formset = ContainersFormSet
-    success_url = 'containers'
+    formset_classes = {'formset': ContainersFormSet}
+    form_class = GoodsIntakeForm
+    template_name = 'intake_goods_form.jinja'
+    success_url = reverse_lazy('containers')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['document_type'] = self.model.intake_document_type()
+        return kwargs
 
 
 intake_containers = IntakeContainers.as_view()
