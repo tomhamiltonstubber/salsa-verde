@@ -38,3 +38,56 @@
     </div>
   </div>
 {% endmacro %}
+
+{% macro display_formset(formset) %}
+  {{ formset.management_form|safe }}
+  {% set title = formset.empty_form.title %}
+  {% set el_id = formset.empty_form.title | replace(' ', '-') | lower %}
+  <table class="table">
+    <h4 class="table-title">{{ formset.empty_form.title }}</h4>
+    {% for form in formset %}
+      <tr class="formset-{{ el_id }} form-row">
+        {% for field in form.visible_fields() %}
+          <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
+        {% endfor %}
+        <td></td>
+      </tr>
+    {% endfor %}
+    {% with form = formset.empty_form %}
+      <tr class="formset-{{ el_id }} form-row" id="id_empty_{{ el_id }}" style="display:none;">
+        {% for field in form.visible_fields() %}
+          <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
+        {% endfor %}
+        <td></td>
+      </tr>
+    {% endwith %}
+  </table>
+
+  <script>
+    $('#formsets-form .formset-{{ el_id }}.form-row').formset({
+      formTemplate: '#id_empty_{{ el_id }}',
+      addCssClass: 'btn btn-default',
+      deleteCssClass: 'btn btn-danger',
+      addText: 'Add another',
+      deleteText:'Remove',
+      prefix: '{{ formset.prefix }}',
+      added: () => {
+        hide_extra_buttons()
+      },
+    })
+
+    if (!window.hide_buttons_declared) {
+      const hide_extra_buttons = () => {
+        $('.dynamic-form').each((i, el) => {
+          const $els = $(el).find('.btn-danger')
+          if ($els.length === 2) {
+            $($els[0]).hide()
+          }
+        })
+      }
+      window.hide_buttons_declared = true
+
+    hide_extra_buttons()
+    }
+  </script>
+{% endmacro %}

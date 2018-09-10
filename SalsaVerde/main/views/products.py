@@ -2,7 +2,7 @@ from devtools import debug
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from .base_views import DetailView, UpdateModelView, ListView, AddModelView
+from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms import (ProductIngredientFormSet, UpdateProductForm, YieldContainersFormSet,
                                    UpdateProductTypeForm, ProductTypeSizesFormSet)
 from SalsaVerde.main.models import Product, ProductType
@@ -43,38 +43,28 @@ class ProductTypeDetails(DetailView):
 product_type_details = ProductTypeDetails.as_view()
 
 
-class ProductTypeAdd(AddModelView):
+class ProductTypeAdd(SVFormsetForm, AddModelView):
     model = ProductType
     form_class = UpdateProductTypeForm
     template_name = 'intake_goods_form.jinja'
     title = 'Add Product Type'
-    formset_class = ProductTypeSizesFormSet
-
-    def form_valid(self, form):
-        obj = form.save()
-        formset = self.formset_class(self.request.POST)
-        if formset.is_valid():
-            formset.instance = obj
-            formset.save()
-        else:
-            print(formset.errors)
-            return self.form_invalid(form)
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        if self.request.POST:
-            formset = self.formset_class(self.request.POST, instance=self.object)
-        else:
-            formset = self.formset_class(instance=self.object)
-        return super().get_context_data(formsets=formset, **kwargs)
+    formset_classes = {'formset': ProductTypeSizesFormSet}
 
 
 product_type_add = ProductTypeAdd.as_view()
 
 
-class ProductTypeEdit(ProductTypeAdd, UpdateModelView):
+class ProductTypeEdit(SVFormsetForm, UpdateModelView):
     model = ProductType
     form_class = UpdateProductTypeForm
+    template_name = 'intake_goods_form.jinja'
+    formset_classes = {'formset': ProductTypeSizesFormSet}
+
+    def get_original_items(self):
+        return self.object.product_type_sizes.all()
+
+    def get_title(self):
+        return f'Edit {self.object}'
 
 
 product_type_edit = ProductTypeEdit.as_view()
@@ -100,40 +90,14 @@ class ProductList(ListView):
 product_list = ProductList.as_view()
 
 
-class ProductAdd(AddModelView):
+class ProductAdd(SVFormsetForm, AddModelView):
     model = Product
     form_class = UpdateProductForm
     template_name = 'add_product_form.jinja'
-
-    def form_valid(self, form):
-        product_ingredient_formset = ProductIngredientFormSet(self.request.POST)
-        yield_container_formset = YieldContainersFormSet(self.request.POST)
-        obj = form.save()
-        if product_ingredient_formset.is_valid():
-            product_ingredient_formset.instance = obj
-            product_ingredient_formset.save()
-        else:
-            return self.form_invalid(form)
-        if yield_container_formset.is_valid():
-            yield_container_formset.instance = obj
-            yield_container_formset.save()
-        else:
-            return self.form_invalid(form)
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        if self.request.POST:
-            product_ingredient_forms = ProductIngredientFormSet(self.request.POST)
-            yield_container_forms = YieldContainersFormSet(self.request.POST)
-        else:
-            product_ingredient_forms = ProductIngredientFormSet(instance=self.object)
-            yield_container_forms = YieldContainersFormSet(instance=self.object)
-            if self.object:
-                product_ingredient_forms.extra = 0
-                yield_container_forms.extra = 0
-        return super().get_context_data(product_ingredient_forms=product_ingredient_forms,
-                                        yield_container_forms=yield_container_forms,
-                                        **kwargs)
+    formset_classes = {
+        'product_ingredient_formset': ProductIngredientFormSet,
+        'yield_container_formset': YieldContainersFormSet
+    }
 
 
 product_add = ProductAdd.as_view()

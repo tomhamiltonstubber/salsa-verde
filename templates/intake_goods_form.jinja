@@ -1,9 +1,10 @@
 {% extends 'auth.jinja' %}
 
+{% from 'macros.jinja' import display_formset %}
+
 {% block content %}
-  <form method="post" action="" id="intake_goods_form" enctype="multipart/form-data">
+  <form method="post" action="" id="formsets-form" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ formsets.management_form|safe }}
     <div class="row">
       {% set col = (12 / form.visible_fields() | length) | string %}
       {% for field in form.visible_fields() %}
@@ -11,48 +12,8 @@
       {% endfor %}
     </div>
     <div class="row">
-      <table class="table">
-        <h4 class="table-title">{{ formsets.empty_form.title }}</h4>
-        {% for formset in formsets %}
-          <tr class="form-row">
-            {% for field in formset.visible_fields() %}
-              <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
-            {% endfor %}
-            <td></td>
-          </tr>
-        {% endfor %}
-        {% with formset = formsets.empty_form %}
-          <tr class="form-row" id="id_empty_intake_goods_form" style="display:none;">
-            {% for field in formset.visible_fields() %}
-              <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
-            {% endfor %}
-            <td></td>
-          </tr>
-        {% endwith %}
-      </table>
+      {{ display_formset(formset) }}
     </div>
     <input type="submit" value="{{ _('Submit') }}" class="btn btn-default" />
   </form>
-  <script>
-    $('#intake_goods_form .form-row').formset({
-      formTemplate: '#id_empty_intake_goods_form',
-      addCssClass: 'btn btn-default',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another',
-      deleteText:'Remove',
-      prefix: '{{ formsets.prefix }}',
-      added: () => {
-        hide_extra_buttons()
-      },
-    })
-    const hide_extra_buttons = () => {
-      $('.dynamic-form').each((i, el) => {
-        const $els = $(el).find('.btn-danger')
-        if ($els.length === 2) {
-          $($els[0]).hide()
-        }
-      })
-    }
-    hide_extra_buttons()
-  </script>
 {% endblock %}

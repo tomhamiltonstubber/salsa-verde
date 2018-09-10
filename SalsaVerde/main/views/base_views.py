@@ -206,3 +206,41 @@ class DetailView(ObjMixin, BasicView):
             extra_content=self.get_extra_content(),
             **kwargs
         )
+
+
+class SVFormsetForm:
+    formset_classes = {'formset': NotImplemented}
+    request = None
+
+    def get_original_items(self):
+        raise NotImplementedError
+
+    def form_valid(self, form):
+        obj = form.save()
+        for formset_class in self.formset_classes.values():
+            formset = formset_class(self.request.POST)
+            if formset.is_valid():
+                if self.object:
+                    new_items = [f.cleaned_data['id'] for f in formset.forms]
+                    items_to_del = [o_i for o_i in self.get_original_items() if o_i not in new_items]
+                    for i in items_to_del:
+                        i.delete()
+                formset.instance = obj
+                formset.save()
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        instance = self.object
+        for name, formset_class in self.formset_classes.items():
+            if self.request.POST:
+                formset = formset_class(self.request.POST, instance=self.object)
+            else:
+                formset = formset_class(instance=self.object)
+                if instance:
+                    formset.extra = 0
+            ctx[name] = formset
+        return ctx

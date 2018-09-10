@@ -1,10 +1,11 @@
 {% extends 'auth.jinja' %}
 
+{% from 'macros.jinja' import display_formset %}
+
 {% block content %}
-  <form method="post" action="" id="product_form" enctype="multipart/form-data">
+  <form method="post" action="" id="formsets-form" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ product_ingredient_forms.management_form|safe }}
-    {{ yield_container_forms.management_form|safe }}
+
     <div class="row">
       <div class="col-md-4">{{ form.product_type|bootstrap }}</div>
       <div class="col-md-4">{{ form.batch_code|bootstrap }}</div>
@@ -14,72 +15,12 @@
       <div class="col-md-6">{{ form.date_of_infusion|bootstrap }}</div>
       <div class="col-md-6">{{ form.date_of_bottling|bootstrap }}</div>
     </div>
-
-    {% for pi_form in product_ingredient_forms %}
-      <div class="row form-row" id="product_ingredient">
-        <div class="col-md-6">{{ pi_form.ingredient|bootstrap }}</div>
-        <div class="col-md-5">{{ pi_form.quantity|bootstrap }}</div>
-        <div></div>
-      </div>
-    {% endfor %}
-    {% with empty_form = product_ingredient_forms.empty_form %}
-      <div class="row" id="empty_product_ingredient" style="display: none">
-        <div class="col-md-6">{{ empty_form.ingredient|bootstrap }}</div>
-        <div class="col-md-5">{{ empty_form.quantity|bootstrap }}</div>
-        <div></div>
-      </div>
-    {% endwith %}
-
-    {% for yc_form in yield_container_forms %}
-      <div class="row form-row" id="yield_container">
-        <div class="col-md-4">{{ yc_form.container|bootstrap }}</div>
-        <div class="col-md-4">{{ yc_form.cap|bootstrap }}</div>
-        <div class="col-md-3">{{ yc_form.quantity|bootstrap }}</div>
-        <div></div>
-      </div>
-    {% endfor %}
-    {% with empty_form = yield_container_forms.empty_form %}
-      <div class="row" id="empty_yield_container" style="display: none">
-        <div class="col-md-4">{{ empty_form.container|bootstrap }}</div>
-        <div class="col-md-4">{{ empty_form.cap|bootstrap }}</div>
-        <div class="col-md-3">{{ empty_form.quantity|bootstrap }}</div>
-        <div></div>
-      </div>
-    {% endwith %}
-
+    <div class="row">
+      {{ display_formset(product_ingredient_formset) }}
+    </div>
+    <div class="row">
+      {{ display_formset(yield_container_formset) }}
+    </div>
     <input type="submit" value="{{ _('Submit') }}" class="btn btn-success" />
   </form>
-  <script>
-    $('#product_ingredient').formset({
-      formTemplate: '#empty_product_ingredient',
-      addCssClass: 'btn btn-default',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another ingredient',
-      deleteText:'Remove',
-      prefix: '{{ product_ingredient_forms.prefix }}',
-      added: () => {
-        hide_extra_buttons()
-      },
-    })
-    $('#yield_container').formset({
-      formTemplate: '#empty_yield_container',
-      addCssClass: 'btn btn-default',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another container',
-      deleteText:'Remove',
-      prefix: '{{ yield_container_forms.prefix }}',
-      added: () => {
-        hide_extra_buttons()
-      },
-    })
-    function hide_extra_buttons() {
-      $('.dynamic-form').each((i, el) => {
-        const $els = $(el).find('.btn-danger')
-        if ($els.length === 2) {
-          $($els[0]).hide()
-        }
-      })
-    }
-    hide_extra_buttons()
-  </script>
 {% endblock %}

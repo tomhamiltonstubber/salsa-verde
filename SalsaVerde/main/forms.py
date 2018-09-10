@@ -136,7 +136,7 @@ class ProductTypeSizeForm(SVModelForm):
 
     class Meta:
         model = ProductTypeSize
-        fields = ['sku_code', 'bar_code', 'size']
+        fields = ['size', 'sku_code', 'bar_code']
 
 
 ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, ProductTypeSizeForm, extra=1,
@@ -144,15 +144,20 @@ ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSi
 
 
 class ProductIngredientForm(SVModelForm):
+    title = 'Ingredients'
+
     class Meta:
         model = ProductIngredient
         exclude = {'product'}
 
 
-ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1)
+ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1,
+                                                       can_delete=False)
 
 
 class YieldContainersForm(SVModelForm):
+    title = 'Containers'
+
     container = forms.ModelChoiceField(
         Container.objects
         .filter(finished=False)
@@ -174,7 +179,8 @@ class YieldContainersForm(SVModelForm):
         exclude = {'product'}
 
 
-YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=1)
+YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=1,
+                                                     can_delete=False)
 
 
 class UpdateProductForm(SVModelForm):
