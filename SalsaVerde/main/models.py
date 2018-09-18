@@ -364,6 +364,7 @@ class ProductTypeSize(models.Model):
     sku_code = models.CharField('SKU Code', max_length=25, null=True, blank=True)
     bar_code = models.CharField('Bar Code', max_length=40, null=True, blank=True)
     size = models.DecimalField('Container Size in litres', decimal_places=3, max_digits=8)
+    name = models.CharField('Name', max_length=40, null=True, blank=True)
 
 
 class ProductQuerySet(QuerySet):

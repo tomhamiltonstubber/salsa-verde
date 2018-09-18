@@ -136,7 +136,7 @@ class ProductTypeSizeForm(SVModelForm):
 
     class Meta:
         model = ProductTypeSize
-        fields = ['size', 'sku_code', 'bar_code']
+        fields = ['name', 'size', 'sku_code', 'bar_code']
 
 
 ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, ProductTypeSizeForm, extra=1,
