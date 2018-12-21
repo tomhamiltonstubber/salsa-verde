@@ -49,6 +49,7 @@ class ProductTypeSizeEdit(UpdateModelView):
     title = 'Edit Product Size Type'
 
     def form_valid(self, form):
+        super().form_valid(form)
         return redirect(reverse('product-types-details', kwargs={'pk': self.object.product_type.pk}))
 
 
