@@ -359,12 +359,22 @@ class ProductType(CompanyNameBaseModel):
         verbose_name_plural = 'Product Types'
 
 
+class ProductTypeSizeQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(product_type__company=request.user.company)
+
+
 class ProductTypeSize(models.Model):
+    objects = ProductTypeSizeQuerySet.as_manager()
+
     product_type = models.ForeignKey(ProductType, related_name='product_type_sizes', on_delete=models.CASCADE)
     sku_code = models.CharField('SKU Code', max_length=25, null=True, blank=True)
     bar_code = models.CharField('Bar Code', max_length=40, null=True, blank=True)
     size = models.DecimalField('Container Size in litres', decimal_places=3, max_digits=8)
     name = models.CharField('Name', max_length=40, null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse(f'product-type-size-edit', kwargs={'pk': self.pk})
 
 
 class ProductQuerySet(QuerySet):

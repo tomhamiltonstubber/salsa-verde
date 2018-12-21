@@ -206,3 +206,9 @@ class GoodsIntakeForm(SVModelForm):
         obj = super().save(commit)
         Document.objects.create(author=self.request.user, type=self.document_type, goods_intake=obj)
         return obj
+
+
+class ProductTypeSizeForm(SVModelForm):
+    class Meta:
+        model = ProductTypeSize
+        exclude = '',

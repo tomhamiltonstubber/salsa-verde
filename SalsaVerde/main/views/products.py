@@ -4,8 +4,8 @@ from django.urls import reverse
 
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms import (ProductIngredientFormSet, UpdateProductForm, YieldContainersFormSet,
-                                   UpdateProductTypeForm, ProductTypeSizesFormSet)
-from SalsaVerde.main.models import Product, ProductType
+                                   UpdateProductTypeForm, ProductTypeSizesFormSet, ProductTypeSizeForm)
+from SalsaVerde.main.models import Product, ProductType, ProductTypeSize
 
 
 class ProductTypeList(ListView):
@@ -35,12 +35,24 @@ class ProductTypeDetails(DetailView):
                     'size',
                     'sku_code',
                     'bar_code',
-                ]
+                ],
             }
         ]
 
 
 product_type_details = ProductTypeDetails.as_view()
+
+
+class ProductTypeSizeEdit(UpdateModelView):
+    model = ProductTypeSize
+    form_class = ProductTypeSizeForm
+    title = 'Edit Product Size Type'
+
+    def form_valid(self, form):
+        return redirect(reverse('product-types-details', kwargs={'pk': self.object.product_type.pk}))
+
+
+product_size_type_edit = ProductTypeSizeEdit.as_view()
 
 
 class ProductTypeAdd(SVFormsetForm, AddModelView):
