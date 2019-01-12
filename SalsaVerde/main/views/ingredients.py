@@ -5,7 +5,8 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
-from SalsaVerde.main.forms import UpdateIngredientsForm, IngredientsFormSet, UpdateIngredientTypeForm, GoodsIntakeForm
+from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
+from SalsaVerde.main.forms.ingredients import UpdateIngredientTypeForm, UpdateIngredientsForm, IngredientsFormSet
 from SalsaVerde.main.models import Ingredient, IngredientType
 
 
@@ -60,7 +61,6 @@ class IngredientList(ListView):
     def get_button_menu(self):
         return [
             {'name': 'Record ingredients intake', 'url': reverse('intake-ingredients')},
-            {'name': 'Ingredient types', 'url': reverse('ingredient-types')},
         ]
 
 

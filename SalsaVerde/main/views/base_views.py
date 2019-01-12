@@ -16,6 +16,7 @@ def get_nav_menu():
         ('Ingredients', reverse('ingredients')),
         ('Documents', reverse('documents')),
         ('Users', reverse('users')),
+        ('Setup', reverse('setup')),
         ('Logout', reverse('logout')),
     ]
 
@@ -162,19 +163,8 @@ class UpdateModelView(QuerySetMixin, FormView, UpdateView, ObjMixin):
         return self.title or f'Edit %s' % self.object
 
 
-class DetailView(ObjMixin, BasicView):
+class ExtraContentView(BasicView):
     template_name = 'details_view.jinja'
-    model = None
-    display_items = None
-
-    def get_button_menu(self):
-        return [
-            {'name': 'All %s' % self.model._meta.verbose_name_plural, 'url': reverse(self.model.prefix())},
-            {'name': 'Edit', 'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk})},
-        ]
-
-    def get_title(self):
-        return str(self.object)
 
     def extra_display_items(self):
         return {}
@@ -200,13 +190,26 @@ class DetailView(ObjMixin, BasicView):
                 yield {'title': item['title'], 'add_url': item['add_url']}
 
     def get_context_data(self, **kwargs):
+        return super().get_context_data(extra_content=self.get_extra_content(), **kwargs)
+
+
+class DetailView(ObjMixin, ExtraContentView):
+    model = None
+    display_items = None
+
+    def get_title(self):
+        return str(self.object)
+
+    def get_button_menu(self):
+        return [
+            {'name': 'All %s' % self.model._meta.verbose_name_plural, 'url': reverse(self.model.prefix())},
+            {'name': 'Edit', 'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk})},
+        ]
+
+    def get_context_data(self, **kwargs):
         display_vals = self.get_display_values(self.object, self.display_items)
         display_labels = self.get_display_labels(self.display_items)
-        return super().get_context_data(
-            display_items=zip(display_labels, display_vals),
-            extra_content=self.get_extra_content(),
-            **kwargs
-        )
+        return super().get_context_data(display_items=zip(display_labels, display_vals))
 
 
 class SVFormsetForm:

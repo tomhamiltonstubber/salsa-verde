@@ -1,9 +1,10 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from SalsaVerde.main.forms.containers import YieldContainersFormSet
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
-from SalsaVerde.main.forms import (ProductIngredientFormSet, UpdateProductForm, YieldContainersFormSet,
-                                   UpdateProductTypeForm, ProductTypeSizesFormSet, ProductTypeSizeForm)
+from SalsaVerde.main.forms.products import (ProductIngredientFormSet, UpdateProductForm, UpdateProductTypeForm,
+                                            ProductTypeSizesFormSet, ProductTypeSizeForm)
 from SalsaVerde.main.models import Product, ProductType, ProductTypeSize
 
 
@@ -92,8 +93,7 @@ class ProductList(ListView):
 
     def get_button_menu(self):
         return [
-            {'name': 'Add Product', 'url': reverse('products-add')},
-            {'name': 'Product Types', 'url': reverse('product-types')},
+            {'name': 'Record product creation', 'url': reverse('products-add')},
         ]
 
 

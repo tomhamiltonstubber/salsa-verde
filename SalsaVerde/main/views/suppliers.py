@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 from .base_views import UpdateModelView, AddModelView, DetailView, ListView
-from SalsaVerde.main.forms import UpdateSupplierForm
+from SalsaVerde.main.forms.suppliers import UpdateSupplierForm
 from SalsaVerde.main.models import Supplier
 
 
