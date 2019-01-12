@@ -29,7 +29,7 @@ class FieldInfo:
 class DisplayHelpers:
     title = None
     display_items = None
-    display_funcs = {'func|', 'abs|'}
+    display_funcs = {'func|'}
 
     def get_title(self):
         return mark_safe(self.title)
@@ -52,23 +52,14 @@ class DisplayHelpers:
         return obj
 
     def _get_v(self, obj, field):
-        get_abs = False
         get_func = False
         if hasattr(obj, f'display_{field}'):
             return getattr(obj, f'display_{field}')()
-        elif field.startswith('abs|'):
-            field = field.replace('abs|', '')
-            get_abs = True
         elif field.startswith('func|'):
             field = field.replace('func|', '')
             return getattr(self, field)(obj)
         attr = self._get_attr(obj, field)
-        if get_abs:
-            v = mark_safe(f'<a href="{attr.get_absolute_url()}">{attr}</a>')
-        elif get_func:
-            v = attr(obj)
-        else:
-            v = attr
+        v = attr(obj) if get_func else attr
         if isinstance(v, datetime.datetime):
             return display_dt(v)
         elif v is True:
@@ -84,7 +75,11 @@ class DisplayHelpers:
         for func in display_funcs:
             item = item.replace(func, '')
         model = obj and type(obj) or self.model
-        return model._meta.get_field(item).verbose_name
+        for i in item.split('__'):
+            field = model._meta.get_field(i)
+            if field.remote_field:
+                model = field.remote_field.model
+        return field.verbose_name
 
     def display_value(self, obj, item):
         if isinstance(item, tuple):
@@ -175,7 +170,7 @@ class ExtraContentView(BasicView):
             return obj.get_absolute_url()
         return
 
-    def get_extra_content(self):
+    def _get_extra_content(self):
         for item in self.extra_display_items():
             if item['qs'].exists():
                 yield {
@@ -190,7 +185,7 @@ class ExtraContentView(BasicView):
                 yield {'title': item['title'], 'add_url': item['add_url']}
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(extra_content=self.get_extra_content(), **kwargs)
+        return super().get_context_data(extra_content=self._get_extra_content(), **kwargs)
 
 
 class DetailView(ObjMixin, ExtraContentView):
@@ -209,7 +204,7 @@ class DetailView(ObjMixin, ExtraContentView):
     def get_context_data(self, **kwargs):
         display_vals = self.get_display_values(self.object, self.display_items)
         display_labels = self.get_display_labels(self.display_items)
-        return super().get_context_data(display_items=zip(display_labels, display_vals))
+        return super().get_context_data(display_items=zip(display_labels, display_vals), **kwargs)
 
 
 class SVFormsetForm:
