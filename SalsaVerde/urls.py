@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
@@ -80,7 +79,6 @@ urlpatterns = [
     path('', dashboard, name='index'),
     path('login/', login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='base.jinja'), name='logout'),
-    path('admin/', admin.site.urls),
 
     path('ingredients/', include(ingredient_patterns)),
     path('products/', include(product_patterns)),
