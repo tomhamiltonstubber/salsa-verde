@@ -8,11 +8,11 @@ from django.utils import timezone
 
 from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.factories.raw_materials import (ContainerFactory, IngredientTypeFactory, ContainerTypeFactory,
-                                                     IngredientFactory, ProductTypeFactory, ProductTypeSizeFactory)
+                                                     IngredientFactory, ProductTypeFactory)
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.factories.users import UserFactory
-from SalsaVerde.main.models import User, Supplier, Document, IngredientType, ContainerType, Ingredient, GoodsIntake, \
-    Container, YieldContainer, ProductIngredient, Product, ProductType, ProductTypeSize
+from SalsaVerde.main.models import (User, Supplier, Document, IngredientType, ContainerType, Ingredient, GoodsIntake,
+                                    Container, YieldContainer, ProductIngredient, Product, ProductType, ProductTypeSize)
 from SalsaVerde.main.views.base_views import display_dt
 
 

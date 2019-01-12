@@ -1,4 +1,3 @@
-from devtools import debug
 from django.shortcuts import redirect
 from django.urls import reverse
 

@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms import UpdateIngredientsForm, IngredientsFormSet, UpdateIngredientTypeForm, GoodsIntakeForm
-from SalsaVerde.main.models import Ingredient, IngredientType, GoodsIntake
+from SalsaVerde.main.models import Ingredient, IngredientType
 
 
 class IngredientTypeList(ListView):
