@@ -9,7 +9,7 @@ django-storages==1.7.1
 ipython==7.2.0
 psycopg2-binary==2.7.6.1
 pyinotify==0.9.6
-gunicorn==19.7.1
+gunicorn==19.9.0
 whitenoise==3.3.1
 raven==6.9.0
 
