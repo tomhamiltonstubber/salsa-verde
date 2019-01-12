@@ -355,6 +355,7 @@ class IngredientTestCase(TestCase):
         assert goods_intake.intake_date.date() == datetime(2018, 2, 2).date()
         assert goods_intake.date_created.date() == timezone.now().date()
         assert goods_intake.intake_user == self.user
+
         doc = Document.objects.get()
         assert doc.type == Document.FORM_SUP01
         assert doc.author == self.user
@@ -506,21 +507,16 @@ class ProductTypeTestCase(TestCase):
 
     def test_update_product_type(self):
         product_type = ProductTypeFactory(company=self.company)
-        ProductTypeSizeFactory(product_type=product_type, sku_code='aabbcc')
         r = self.client.get(reverse('product-types-edit', args=[product_type.id]))
-        self.assertContains(r, 'aabbcc')
         data = {
             'name': product_type.name,
             'ingredient_types': [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk],
             'code': product_type.code,
-            'product_type_sizes-0-sku-code': 'foo456',
-            'product_type_sizes-0-bar-code': '9878765564',
-            'product_type_sizes-0-size': '0.15',
-            **self.management_data,
         }
+        self.assertNotContains(r, 'product_type_sizes')
         r = self.client.post(reverse('product-types-edit', args=[product_type.id]), data=data, follow=True)
         self.assertRedirects(r, reverse('product-types-details', args=[product_type.id]))
-        self.assertContains(r, 'foo456')
+        self.assertContains(r, 'blackberry')
 
 
 class ProductTestCase(TestCase):
@@ -561,7 +557,7 @@ class ProductTestCase(TestCase):
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
         assert YieldContainer.objects.count() == 2
         for yc in YieldContainer.objects.all():
-            self.assertEquals(yc.product, product)
+            assert yc.product == product
         pi = ProductIngredient.objects.get()
         assert product.product_type == self.product_type
         assert product.batch_code == 'foobar'

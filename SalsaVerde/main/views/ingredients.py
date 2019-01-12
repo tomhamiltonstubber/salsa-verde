@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms import UpdateIngredientsForm, IngredientsFormSet, UpdateIngredientTypeForm, GoodsIntakeForm
-from SalsaVerde.main.models import Ingredient, IngredientType
+from SalsaVerde.main.models import Ingredient, IngredientType, GoodsIntake
 
 
 class IngredientTypeList(ListView):
@@ -120,6 +120,8 @@ class IntakeIngredients(SVFormsetForm, AddModelView):
     formset_classes = {'formset': IngredientsFormSet}
     form_class = GoodsIntakeForm
     template_name = 'intake_goods_form.jinja'
+    model = Ingredient
+    title = 'Intake Ingredients'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

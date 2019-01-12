@@ -1,6 +1,7 @@
 import datetime
 
 from django.conf import settings
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView, CreateView, UpdateView
@@ -211,36 +212,31 @@ class DetailView(ObjMixin, BasicView):
 class SVFormsetForm:
     formset_classes = {'formset': NotImplemented}
     request = None
+    success_url = NotImplemented
 
-    def get_original_items(self):
-        raise NotImplementedError
+    def get_success_url(self):
+        return self.success_url
 
     def form_valid(self, form):
-        obj = form.save()
+        self.object = None
         for formset_class in self.formset_classes.values():
             formset = formset_class(self.request.POST)
+            formset.full_clean()
             if formset.is_valid():
-                if self.object:
-                    new_items = [f.cleaned_data['id'] for f in formset.forms]
-                    items_to_del = [o_i for o_i in self.get_original_items() if o_i not in new_items]
-                    for i in items_to_del:
-                        i.delete()
-                formset.instance = obj
+                self.object = self.object or form.save()
+                formset.instance = self.object
                 formset.save()
-            return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
-        return super().form_valid(form)
+            else:
+                return self.form_invalid(form)
+        return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        instance = self.object
+        assert not self.object, 'This form is for adding objects only because formsets are shite.'
         for name, formset_class in self.formset_classes.items():
             if self.request.POST:
-                formset = formset_class(self.request.POST, instance=self.object)
+                formset = formset_class(self.request.POST)
             else:
-                formset = formset_class(instance=self.object)
-                if instance:
-                    formset.extra = 0
+                formset = formset_class()
             ctx[name] = formset
         return ctx
