@@ -120,6 +120,8 @@ class IntakeIngredients(SVFormsetForm, AddModelView):
     formset_classes = {'formset': IngredientsFormSet}
     form_class = GoodsIntakeForm
     template_name = 'intake_goods_form.jinja'
+    model = Ingredient
+    title = 'Intake Ingredients'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

@@ -204,7 +204,8 @@ class GoodsIntakeForm(SVModelForm):
 
     def save(self, commit=True):
         obj = super().save(commit)
-        Document.objects.create(author=self.request.user, type=self.document_type, goods_intake=obj)
+        if not obj.documents.exists():
+            Document.objects.create(author=self.request.user, type=self.document_type, goods_intake=obj)
         return obj
 
 

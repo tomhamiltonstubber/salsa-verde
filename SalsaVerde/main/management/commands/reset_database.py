@@ -1,6 +1,3 @@
-import shutil
-
-from django.conf import settings
 from django.core.management import BaseCommand, call_command
 from django.db import connection
 
@@ -13,9 +10,6 @@ class Command(BaseCommand):
                             dest='create_demo_data', default=False, help='')
 
     def handle(self, *args, **options):
-        # if input('Are you sure you want to DESTROY ALL DATA irreversibly? [yes/NO] ') != 'yes':
-        #     print('Cancelled')
-        #     return
 
         cur = connection.cursor()
         cur.execute('DROP SCHEMA public CASCADE;')

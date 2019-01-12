@@ -1,4 +1,3 @@
-from devtools import debug
 from django.shortcuts import redirect
 from django.urls import reverse
 
@@ -63,18 +62,16 @@ class ProductTypeAdd(SVFormsetForm, AddModelView):
     title = 'Add Product Type'
     formset_classes = {'formset': ProductTypeSizesFormSet}
 
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
 
 product_type_add = ProductTypeAdd.as_view()
 
 
-class ProductTypeEdit(SVFormsetForm, UpdateModelView):
+class ProductTypeEdit(UpdateModelView):
     model = ProductType
     form_class = UpdateProductTypeForm
-    template_name = 'intake_goods_form.jinja'
-    formset_classes = {'formset': ProductTypeSizesFormSet}
-
-    def get_original_items(self):
-        return self.object.product_type_sizes.all()
 
     def get_title(self):
         return f'Edit {self.object}'
@@ -111,6 +108,9 @@ class ProductAdd(SVFormsetForm, AddModelView):
         'product_ingredient_formset': ProductIngredientFormSet,
         'yield_container_formset': YieldContainersFormSet
     }
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
 
 product_add = ProductAdd.as_view()

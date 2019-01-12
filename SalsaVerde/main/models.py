@@ -468,7 +468,7 @@ class Document(BaseModel):
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
     focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, blank=True,
                               related_name='focused_documents', on_delete=models.SET_NULL)
-    goods_intake = models.ForeignKey('main.GoodsIntake', verbose_name='Intake of Goods', null=True, blank=True,
+    goods_intake = models.ForeignKey(GoodsIntake, verbose_name='Intake of Goods', null=True, blank=True,
                                      on_delete=models.SET_NULL, related_name='documents')
     supplier = models.ForeignKey(Supplier, verbose_name='Linked Supplier', null=True, blank=True,
                                  on_delete=models.SET_NULL, related_name='documents')
