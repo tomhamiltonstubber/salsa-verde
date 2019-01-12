@@ -11,7 +11,7 @@ psycopg2-binary==2.7.6.1
 pyinotify==0.9.6
 gunicorn==19.9.0
 whitenoise==4.1.2
-raven==6.9.0
+raven==6.10.0
 
 coverage==4.5.1
 codecov==2.0.15
