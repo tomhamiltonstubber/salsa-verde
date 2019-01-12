@@ -118,12 +118,8 @@ class ProductTestCase(TestCase):
         self.assertContains(r, self.bottle.name)
         self.assertContains(r, self.ingred.name)
 
-    def test_edit_product(self):
-        p = ProductFactory(product_type__company=self.company)
-        r = self.client.get(reverse('products-edit', args=[p.pk]))
-        self.assertContains(r, p.product_type.name)
+        r = self.client.get(reverse('products-edit', args=[product.pk]))
+        self.assertContains(r, pi.product.product_type.name)
 
-    def test_product_list(self):
-        p = ProductFactory(product_type__company=self.company)
-        r = self.client.get(reverse('products-list'))
-        self.assertContains(r, p.product_type.name)
+        r = self.client.get(reverse('products'))
+        self.assertContains(r, pi.product.product_type.name)
