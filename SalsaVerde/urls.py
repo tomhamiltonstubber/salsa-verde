@@ -12,7 +12,8 @@ from SalsaVerde.main.views.products import (product_list, product_add, product_d
                                             product_type_add, product_type_details, product_type_edit,
                                             product_size_type_edit)
 from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
-from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit, dashboard, login
+from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
+from SalsaVerde.main.views.common import login, dashboard, setup
 
 user_patterns = [
     path('', user_list, name='users'),
@@ -79,6 +80,7 @@ urlpatterns = [
     path('', dashboard, name='index'),
     path('login/', login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='base.jinja'), name='logout'),
+    path('setup/', setup, name='setup'),
 
     path('ingredients/', include(ingredient_patterns)),
     path('products/', include(product_patterns)),
@@ -86,4 +88,5 @@ urlpatterns = [
     path('suppliers/', include(supplier_patterns)),
     path('documents/', include(document_patterns)),
     path('users/', include(user_patterns)),
+
 ]

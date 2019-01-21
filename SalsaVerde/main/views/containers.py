@@ -3,8 +3,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
+from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
+from SalsaVerde.main.forms.containers import UpdateContainerTypeForm, UpdateContainerForm, ContainersFormSet
 from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
-from SalsaVerde.main.forms import UpdateContainerForm, ContainersFormSet, UpdateContainerTypeForm, GoodsIntakeForm
 from SalsaVerde.main.models import Container, ContainerType
 
 
@@ -59,7 +60,6 @@ class ContainerList(ListView):
     def get_button_menu(self):
         return [
             {'name': 'Record containers intake', 'url': reverse('intake-containers')},
-            {'name': 'Container Types', 'url': reverse('container-types')},
         ]
 
 

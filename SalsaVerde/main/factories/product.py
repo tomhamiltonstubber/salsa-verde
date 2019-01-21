@@ -35,7 +35,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     batch_code = 'abc123123'
 
     product_ingredient_1 = factory.RelatedFactory(ProductIngredientFactory, 'product',
-                                                  ingredient__ingredient_type__company='....product_type.company')
+                                                  ingredient__ingredient_type__company='product_type.company')
     product_ingredient_2 = factory.RelatedFactory(ProductIngredientFactory, 'product',
                                                   ingredient__ingredient_type__company='....product_type.company')
 

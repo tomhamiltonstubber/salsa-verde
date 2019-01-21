@@ -201,7 +201,7 @@ class Ingredient(BaseModel):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def display_quantity(self):
-        return f'{self.quantity} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
+        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
 
     def __str__(self):
         return mark_safe(f'{self.name} - {self.batch_code}')
@@ -306,7 +306,14 @@ class Container(BaseModel):
         verbose_name_plural = 'Containers'
 
 
+class YieldContainerQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(product__product_type__company=request.user.company)
+
+
 class YieldContainer(BaseModel):
+    objects = YieldContainerQuerySet.as_manager()
+
     product = models.ForeignKey('main.Product', verbose_name='Product', related_name='yield_containers',
                                 on_delete=models.CASCADE)
     container = models.ForeignKey(Container, related_name='yield_containers', on_delete=models.CASCADE)
@@ -314,6 +321,11 @@ class YieldContainer(BaseModel):
 
     def get_absolute_url(self):
         return self.product.get_absolute_url()
+
+    @property
+    def total_volume(self):
+        if self.container.container_type.size:
+            return self.quantity * self.container.container_type.size
 
 
 class GoodsIntakeQuerySet(QuerySet):
@@ -409,10 +421,21 @@ class Product(BaseModel):
         verbose_name_plural = 'Products'
 
 
+class ProductIngredientQuerySet(QuerySet):
+    def request_qs(self, request):
+        return self.filter(product__product_type__company=request.user.company)
+
+
 class ProductIngredient(BaseModel):
-    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE)
+    objects = ProductIngredientQuerySet.as_manager()
+
+    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE,
+                                related_name='product_ingredients')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+
+    def display_quantity(self):
+        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
 
 
 class DocumentQuerySet(QuerySet):

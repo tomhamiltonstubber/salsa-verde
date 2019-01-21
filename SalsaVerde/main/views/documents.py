@@ -1,5 +1,5 @@
+from SalsaVerde.main.forms.documents import UpdateDocumentForm
 from .base_views import ListView, DetailView, AddModelView, UpdateModelView
-from SalsaVerde.main.forms import UpdateDocumentForm
 from SalsaVerde.main.models import Document
 
 

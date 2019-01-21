@@ -1,9 +1,10 @@
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from SalsaVerde.main.forms.containers import YieldContainersFormSet
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
-from SalsaVerde.main.forms import (ProductIngredientFormSet, UpdateProductForm, YieldContainersFormSet,
-                                   UpdateProductTypeForm, ProductTypeSizesFormSet, ProductTypeSizeForm)
+from SalsaVerde.main.forms.products import (ProductIngredientFormSet, UpdateProductForm, UpdateProductTypeForm,
+                                            ProductTypeSizesFormSet, ProductTypeSizeForm)
 from SalsaVerde.main.models import Product, ProductType, ProductTypeSize
 
 
@@ -92,8 +93,7 @@ class ProductList(ListView):
 
     def get_button_menu(self):
         return [
-            {'name': 'Add Product', 'url': reverse('products-add')},
-            {'name': 'Product Types', 'url': reverse('product-types')},
+            {'name': 'Record product creation', 'url': reverse('products-add')},
         ]
 
 
@@ -116,10 +116,9 @@ class ProductAdd(SVFormsetForm, AddModelView):
 product_add = ProductAdd.as_view()
 
 
-class ProductEdit(ProductAdd, UpdateModelView):
+class ProductEdit(UpdateModelView):
     model = Product
     form_class = UpdateProductForm
-    template_name = 'add_product_form.jinja'
 
 
 product_edit = ProductEdit.as_view()
@@ -134,6 +133,29 @@ class ProductDetails(DetailView):
         'date_of_best_before',
         'yield_quantity',
     ]
+
+    def extra_display_items(self):
+        return [
+            {
+                'title': 'Ingredients',
+                'qs': self.object.product_ingredients.all(),
+                'fields': [
+                    ('Name', 'ingredient__ingredient_type'),
+                    'ingredient__batch_code',
+                    'quantity',
+                ],
+            },
+            {
+                'title': 'Yield',
+                'qs': self.object.yield_containers.all(),
+                'fields': [
+                    ('Name', 'container__container_type'),
+                    'container__batch_code',
+                    ('Quantity (units)', 'quantity'),
+                    ('Total Volume (litres)', 'total_volume'),
+                ],
+            },
+        ]
 
 
 product_details = ProductDetails.as_view()
