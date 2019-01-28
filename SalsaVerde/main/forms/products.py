@@ -15,7 +15,20 @@ class UpdateProductTypeForm(SVModelForm):
         return super().save(commit)
 
 
-class ProductTypeSizeForm(SVModelForm):
+class AddProductTypeSizeForm(SVModelForm):
+    title = 'Product Type Sizes'
+
+    def __init__(self, product_type, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product_type'].initial = product_type
+        self.fields['product_type'].widget = forms.HiddenInput()
+
+    class Meta:
+        model = ProductTypeSize
+        fields = ['product_type', 'name', 'size', 'sku_code', 'bar_code']
+
+
+class UpdateProductTypeSizeForm(SVModelForm):
     title = 'Product Type Sizes'
 
     class Meta:
@@ -23,7 +36,7 @@ class ProductTypeSizeForm(SVModelForm):
         fields = ['name', 'size', 'sku_code', 'bar_code']
 
 
-ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, ProductTypeSizeForm, extra=1,
+ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, UpdateProductTypeSizeForm, extra=1,
                                                       can_delete=False)
 
 

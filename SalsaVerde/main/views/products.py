@@ -1,10 +1,10 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 
 from SalsaVerde.main.forms.containers import YieldContainersFormSet
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms.products import (ProductIngredientFormSet, UpdateProductForm, UpdateProductTypeForm,
-                                            ProductTypeSizesFormSet, ProductTypeSizeForm)
+                                            ProductTypeSizesFormSet, UpdateProductTypeSizeForm, AddProductTypeSizeForm)
 from SalsaVerde.main.models import Product, ProductType, ProductTypeSize
 
 
@@ -36,6 +36,7 @@ class ProductTypeDetails(DetailView):
                     'sku_code',
                     'bar_code',
                 ],
+                'add_url': reverse('product-type-size-add', kwargs={'product_type': self.object.pk}),
             }
         ]
 
@@ -45,7 +46,7 @@ product_type_details = ProductTypeDetails.as_view()
 
 class ProductTypeSizeEdit(UpdateModelView):
     model = ProductTypeSize
-    form_class = ProductTypeSizeForm
+    form_class = UpdateProductTypeSizeForm
     title = 'Edit Product Size Type'
 
     def form_valid(self, form):
@@ -54,6 +55,28 @@ class ProductTypeSizeEdit(UpdateModelView):
 
 
 product_size_type_edit = ProductTypeSizeEdit.as_view()
+
+
+class ProductTypeSizeAdd(AddModelView):
+    model = ProductTypeSize
+    form_class = AddProductTypeSizeForm
+    title = 'Add Product Size Type'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.product_type = get_object_or_404(ProductType, pk=kwargs['product_type'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kws = super().get_form_kwargs()
+        kws['product_type'] = self.product_type
+        return kws
+
+    def form_valid(self, form):
+        super().form_valid(form)
+        return redirect(reverse('product-types-details', kwargs={'pk': self.object.product_type.pk}))
+
+
+product_size_type_add = ProductTypeSizeAdd.as_view()
 
 
 class ProductTypeAdd(SVFormsetForm, AddModelView):

@@ -162,7 +162,7 @@ class IngredientType(CompanyNameBaseModel):
         return 'ingredient-types'
 
     def get_absolute_url(self):
-        return reverse(f'ingredient-types-details', kwargs={'pk': self.pk})
+        return reverse('ingredient-types-details', kwargs={'pk': self.pk})
 
     class Meta:
         ordering = 'name',
