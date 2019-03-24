@@ -6,10 +6,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from SalsaVerde.main.factories.product import ProductFactory
-from SalsaVerde.main.factories.raw_materials import IngredientTypeFactory, ProductTypeFactory, IngredientFactory, \
-    ContainerFactory
-from SalsaVerde.main.models import ProductType, ProductTypeSize, ContainerType, Product, YieldContainer, \
-    ProductIngredient
+from SalsaVerde.main.factories.raw_materials import (IngredientTypeFactory, ProductTypeFactory, IngredientFactory,
+                                                     ContainerFactory)
+from SalsaVerde.main.models import (ProductType, ProductTypeSize, ContainerType, Product, YieldContainer,
+                                    ProductIngredient)
 from SalsaVerde.main.tests.test_common import _empty_formset, AuthenticatedClient
 
 
@@ -63,6 +63,12 @@ class ProductTypeTestCase(TestCase):
         r = self.client.post(reverse('product-types-edit', args=[product_type.id]), data=data, follow=True)
         self.assertRedirects(r, reverse('product-types-details', args=[product_type.id]))
         self.assertContains(r, 'blackberry')
+
+    def test_delete_ingredient_type(self):
+        product_type = ProductTypeFactory(company=self.company)
+        r = self.client.post(reverse('product-types-delete', args=[product_type.pk]))
+        self.assertRedirects(r, reverse('product-types'))
+        assert not ProductType.objects.exists()
 
 
 class ProductTestCase(TestCase):
@@ -123,3 +129,9 @@ class ProductTestCase(TestCase):
 
         r = self.client.get(reverse('products'))
         self.assertContains(r, pi.product.product_type.name)
+
+    def test_delete_product(self):
+        product_type = ProductFactory(product_type=self.product_type)
+        r = self.client.post(reverse('products-delete', args=[product_type.pk]))
+        self.assertRedirects(r, reverse('products'))
+        assert not Product.objects.exists()

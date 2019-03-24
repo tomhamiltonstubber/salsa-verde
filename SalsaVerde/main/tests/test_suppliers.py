@@ -63,8 +63,10 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, reverse('suppliers-details', args=[sup.pk]))
 
     def test_delete_supplier(self):
-        # TODO
-        pass
+        supplier = SupplierFactory(company=self.company)
+        r = self.client.post(reverse('suppliers-delete', args=[supplier.pk]))
+        self.assertRedirects(r, reverse('suppliers'))
+        assert not Supplier.objects.exists()
 
     def test_display_ingredients(self):
         date = timezone.now()
@@ -80,12 +82,11 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, display_dt(date))
 
     def test_display_containers(self):
-        date = timezone.now()
         supplier = SupplierFactory(company=self.company)
-        ContainerFactory(container_type__name='abc', batch_code='foo123', quantity=10, supplier=supplier)
+        container = ContainerFactory(container_type__name='abc', batch_code='foo123', quantity=10, supplier=supplier)
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
         self.assertContains(r, 'Supplied Containers')
         self.assertContains(r, 'abc')
         self.assertContains(r, 'foo123')
         self.assertContains(r, '10.000')
-        self.assertContains(r, display_dt(date))
+        self.assertContains(r, display_dt(container.goods_intake.date_created))

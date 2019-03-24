@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.main.forms.containers import UpdateContainerTypeForm, UpdateContainerForm, ContainersFormSet
-from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
+from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm, DeleteObjectView
 from SalsaVerde.main.models import Container, ContainerType
 
 
@@ -80,11 +80,16 @@ class ContainerDetails(DetailView):
         'container_type',
         'batch_code',
         ('Intake date', 'goods_intake__intake_date'),
-        'supplier',
+        ('Supplier', 'func|get_supplier_link'),
         'quantity',
         ('Intake document', 'func|get_intake_document'),
         'finished',
     ]
+
+    def get_supplier_link(self, obj):
+        if obj.supplier:
+            return mark_safe(f'<a href="{obj.supplier.get_absolute_url()}">{obj.supplier}</a>')
+        return '–'
 
     def get_intake_document(self, obj):
         if obj.intake_document:

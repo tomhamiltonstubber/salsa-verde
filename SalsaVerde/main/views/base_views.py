@@ -1,9 +1,10 @@
 import datetime
 
 from django.conf import settings
-from django.shortcuts import redirect
-from django.urls import reverse
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
+from django.views import View
 from django.views.generic import TemplateView, CreateView, UpdateView
 
 
@@ -38,12 +39,32 @@ class DisplayHelpers:
         return super().get_context_data(
             nav_links=get_nav_menu(),
             title=self.get_title(),
-            button_menu=self.get_button_menu(),
+            button_menu=self.process_button_menu(),
             **kwargs
         )
 
+    def _object_url(self, rurl):
+        try:
+            return reverse(rurl)
+        except NoReverseMatch as e:
+            if getattr(self, 'object', False):
+                return reverse(rurl, kwargs={'pk': self.object.pk})
+            raise e
+
     def get_button_menu(self):
         return []
+
+    def process_button_menu(self):
+        for button in self.get_button_menu():
+            data = button.get('data', {})
+            if 'rurl' in button:
+                button['url'] = self._object_url(button.pop('rurl'))
+            for f in ('confirm', 'method'):
+                if f in button:
+                    data[f] = button.pop(f)
+                if data:
+                    button['data'] = data
+            yield button
 
     def _get_attr(self, obj, attr_name):
         for b in attr_name.split('__'):
@@ -199,6 +220,12 @@ class DetailView(ObjMixin, ExtraContentView):
         return [
             {'name': 'All %s' % self.model._meta.verbose_name_plural, 'url': reverse(self.model.prefix())},
             {'name': 'Edit', 'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk})},
+            {
+                'name': 'Delete',
+                'confirm': 'Are you sure you want to delete this %s?' % self.model._meta.verbose_name,
+                'rurl': f'{self.model.prefix()}-delete',
+                'method': 'POST',
+            },
         ]
 
     def get_context_data(self, **kwargs):
@@ -238,3 +265,13 @@ class SVFormsetForm:
                 formset = formset_class()
             ctx[name] = formset
         return ctx
+
+
+class DeleteObjectView(View):
+    model = NotImplemented
+    http_method_names = ['post']
+
+    def post(self, request, *args, **kwargs):
+        obj = get_object_or_404(self.model.objects.request_qs(request), pk=kwargs['pk'])
+        obj.delete()
+        return redirect(self.model.prefix())

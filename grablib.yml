@@ -23,6 +23,7 @@ download:
   'GITHUB/Eonasdan/bootstrap-datetimepicker/4.17.47/build/css/bootstrap-datetimepicker.css': 'css/dt-picker.css'
 
   'GITHUB/moment/moment/2.13.0/min/moment.min.js': 'js/moment.js'
+  'CDNJS/bootbox.js/4.4.0/bootbox.js': 'js/bootbox.js'
 
 build_root: static/
 debug: true
@@ -36,6 +37,7 @@ build:
       - 'DL/js/select2.js'
       - 'DL/js/bootstrap.js'
       - 'DL/js/dt-picker.js'
+      - 'DL/js/bootbox.js'
   sass:
     css:
       src: 'static/scss'

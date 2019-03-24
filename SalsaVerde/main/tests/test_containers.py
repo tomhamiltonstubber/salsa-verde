@@ -53,8 +53,10 @@ class ContainerTypeTestCase(TestCase):
         self.assertContains(r, 'bottle 2')
 
     def test_delete_container_type(self):
-        # TODO
-        pass
+        con_type = ContainerTypeFactory(company=self.user.company)
+        r = self.client.post(reverse('container-types-delete', args=[con_type.pk]))
+        self.assertRedirects(r, reverse('container-types'))
+        assert not ContainerType.objects.exists()
 
     def test_supplier_list(self):
         ct = ContainerTypeFactory(company=self.user.company)
@@ -125,3 +127,9 @@ class ContainerTestCase(TestCase):
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
         assert refresh(container).batch_code == '123abc'
+
+    def test_delete_container(self):
+        con = ContainerFactory(container_type=self.container_type)
+        r = self.client.post(reverse('containers-delete', args=[con.pk]))
+        self.assertRedirects(r, reverse('containers'))
+        assert not Container.objects.exists()

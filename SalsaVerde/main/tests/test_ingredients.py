@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.main.factories.raw_materials import IngredientTypeFactory
+from SalsaVerde.main.factories.raw_materials import IngredientTypeFactory, IngredientFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.models import IngredientType, Ingredient, GoodsIntake, Document
 from SalsaVerde.main.tests.test_common import _empty_formset, AuthenticatedClient, refresh
@@ -39,6 +39,12 @@ class IngredientTypeTestCase(TestCase):
         ingred_type = IngredientTypeFactory(company=self.company)
         r = self.client.get(reverse('ingredient-types'))
         self.assertContains(r, reverse('ingredient-types-details', args=[ingred_type.pk]))
+
+    def test_delete_ingredient_type(self):
+        ingred_type = IngredientTypeFactory(company=self.company)
+        r = self.client.post(reverse('ingredient-types-delete', args=[ingred_type.pk]))
+        self.assertRedirects(r, reverse('ingredient-types'))
+        assert not IngredientType.objects.exists()
 
 
 class IngredientTestCase(TestCase):
@@ -117,3 +123,9 @@ class IngredientTestCase(TestCase):
         r = self.client.post(reverse('ingredients-edit', args=[ingred.pk]), data=data)
         self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))
         assert refresh(ingred).batch_code == '123abc'
+
+    def test_delete_ingredient(self):
+        ing = IngredientFactory(ingredient_type=self.ingredient_type, supplier=self.supplier)
+        r = self.client.post(reverse('ingredients-delete', args=[ing.pk]))
+        self.assertRedirects(r, reverse('ingredients'))
+        assert not Ingredient.objects.exists()

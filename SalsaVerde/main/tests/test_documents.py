@@ -43,3 +43,9 @@ class DocumentTestCase(TestCase):
         self.assertContains(r, url)
         r = self.client.get(url)
         self.assertContains(r, f'selected>{str(sup)}</option>')
+
+    def test_delete_document(self):
+        doc = Document.objects.create(author=self.user)
+        r = self.client.post(reverse('documents-delete', args=[doc.pk]))
+        self.assertRedirects(r, reverse('documents'))
+        assert not Document.objects.exists()

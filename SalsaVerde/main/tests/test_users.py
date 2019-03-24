@@ -4,6 +4,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 
+from SalsaVerde.main.factories.users import UserFactory
 from SalsaVerde.main.models import User
 from SalsaVerde.main.tests.test_common import AuthenticatedClient, refresh
 
@@ -69,3 +70,10 @@ class UserTestCase(TestCase):
         r = self.client.post(add_url, data={'first_name': 'Bruce', 'last_name': 'Banner', 'email': 'foo@example.com'})
         user = User.objects.get(email='foo@example.com')
         self.assertRedirects(r, reverse('users-details', args=[user.pk]))
+
+    def test_delete_user(self):
+        user = UserFactory(company=self.user.company)
+        assert User.objects.count() == 2
+        r = self.client.post(reverse('users-delete', args=[user.pk]))
+        self.assertRedirects(r, reverse('users'))
+        assert User.objects.count() == 1

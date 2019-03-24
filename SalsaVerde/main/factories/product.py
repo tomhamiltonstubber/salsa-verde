@@ -34,12 +34,24 @@ class ProductFactory(factory.django.DjangoModelFactory):
     yield_quantity = 40
     batch_code = 'abc123123'
 
-    product_ingredient_1 = factory.RelatedFactory(ProductIngredientFactory, 'product',
-                                                  ingredient__ingredient_type__company='product_type.company')
-    product_ingredient_2 = factory.RelatedFactory(ProductIngredientFactory, 'product',
-                                                  ingredient__ingredient_type__company='....product_type.company')
+    product_ingredient_1 = factory.RelatedFactory(
+        ProductIngredientFactory,
+        'product',
+        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company')
+    )
+    product_ingredient_2 = factory.RelatedFactory(
+        ProductIngredientFactory,
+        'product',
+        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company')
+    )
 
-    yield_container_1 = factory.RelatedFactory(ProductIngredientFactory, 'product',
-                                               container__container_type__company='....product_type.company')
-    yield_container_2 = factory.RelatedFactory(ProductIngredientFactory, 'product',
-                                               container__container_type__company='....product_type.company')
+    yield_container_1 = factory.RelatedFactory(
+        YieldContainerFactory,
+        'product',
+        container__container_type__company=factory.SelfAttribute('....product_type.company')
+    )
+    yield_container_2 = factory.RelatedFactory(
+        YieldContainerFactory,
+        'product',
+        container__container_type__company=factory.SelfAttribute('....product_type.company')
+    )
