@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.main.forms.containers import UpdateContainerTypeForm, UpdateContainerForm, ContainersFormSet
-from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm, DeleteObjectView
+from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
 from SalsaVerde.main.models import Container, ContainerType
 
 
