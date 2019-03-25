@@ -133,3 +133,11 @@ class ContainerTestCase(TestCase):
         r = self.client.post(reverse('containers-delete', args=[con.pk]))
         self.assertRedirects(r, reverse('containers'))
         assert not Container.objects.exists()
+
+    def test_container_status(self):
+        con = ContainerFactory(container_type=self.container_type, supplier=None)
+        assert not con.finished
+        r = self.client.post(reverse('container-status', args=[con.pk]), follow=True)
+        self.assertRedirects(r, con.get_absolute_url())
+        assert Container.objects.get().finished
+        self.assertContains(r, 'Mark as In stock')

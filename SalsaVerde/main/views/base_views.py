@@ -1,3 +1,4 @@
+
 import datetime
 from functools import partial
 
@@ -51,7 +52,7 @@ class DisplayHelpers:
         try:
             return reverse(rurl)
         except NoReverseMatch as e:
-            if getattr(self, 'object', False):
+            if getattr(self, 'object', False):  # pragma: no cover
                 return reverse(rurl, kwargs={'pk': self.object.pk})
             raise e
 
@@ -77,7 +78,6 @@ class DisplayHelpers:
         return obj
 
     def _get_v(self, obj, field):
-        get_func = False
         if hasattr(obj, f'display_{field}'):
             return getattr(obj, f'display_{field}')()
         elif field.startswith('func|'):
@@ -86,8 +86,6 @@ class DisplayHelpers:
         attr = self._get_attr(obj, field)
         if isinstance(attr, partial):
             v = attr()
-        elif get_func:
-            v = attr(obj)
         else:
             v = attr
         if isinstance(v, datetime.datetime):

@@ -129,3 +129,11 @@ class IngredientTestCase(TestCase):
         r = self.client.post(reverse('ingredients-delete', args=[ing.pk]))
         self.assertRedirects(r, reverse('ingredients'))
         assert not Ingredient.objects.exists()
+
+    def test_ingredient_status(self):
+        ing = IngredientFactory(ingredient_type=self.ingredient_type, supplier=None)
+        assert not ing.finished
+        r = self.client.post(reverse('ingredient-status', args=[ing.pk]), follow=True)
+        self.assertRedirects(r, ing.get_absolute_url())
+        assert Ingredient.objects.get().finished
+        self.assertContains(r, 'Mark as In stock')
