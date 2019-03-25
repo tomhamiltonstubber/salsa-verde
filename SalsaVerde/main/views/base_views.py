@@ -270,8 +270,12 @@ class SVFormsetForm:
 class DeleteObjectView(View):
     model = NotImplemented
     http_method_names = ['post']
+    redirect_view = None
+
+    def get_redirect_view(self):
+        return self.model.prefix()
 
     def post(self, request, *args, **kwargs):
         obj = get_object_or_404(self.model.objects.request_qs(request), pk=kwargs['pk'])
         obj.delete()
-        return redirect(self.model.prefix())
+        return redirect(self.get_redirect_view())

@@ -135,3 +135,45 @@ class ProductTestCase(TestCase):
         r = self.client.post(reverse('products-delete', args=[product_type.pk]))
         self.assertRedirects(r, reverse('products'))
         assert not Product.objects.exists()
+
+
+class ProductTypeSizeTestCase(TestCase):
+    def setUp(self):
+        self.client = AuthenticatedClient()
+        self.product_type = ProductTypeFactory(company=self.client.user.company)
+
+    def test_pst_form(self):
+        r = self.client.post(reverse('product-type-sizes-add', args=[self.product_type.pk]), data={
+            'name': 'PTS1',
+            'size': '100',
+            'sku_code': '123'
+        }, follow=True)
+        self.assertRedirects(r, self.product_type.get_absolute_url())
+        pts = ProductTypeSize.objects.get()
+        assert pts.size == 100
+        assert pts.name == 'PTS1'
+        self.assertContains(r, '123')
+        assert list(ProductType.objects.get().product_type_sizes.all()) == [pts]
+
+        r = self.client.get(reverse('product-type-sizes-edit', args=[pts.pk]))
+        self.assertContains(r, 'PTS1')
+        r = self.client.post(reverse('product-type-sizes-edit', args=[pts.pk]), data={
+            'name': 'PTS2',
+            'size': '100',
+            'sku_code': '456'
+        }, follow=True)
+        self.assertRedirects(r, self.product_type.get_absolute_url())
+        pts = ProductTypeSize.objects.get()
+        assert pts.size == 100
+        assert pts.name == 'PTS2'
+        self.assertContains(r, '456')
+
+    def test_delete_pst(self):
+        pts = ProductTypeSize.objects.create(product_type=self.product_type, sku_code=123, name='pts1', size=100)
+        r = self.client.get(reverse('product-type-sizes-edit', args=[pts.pk]))
+        del_url = reverse('product-type-sizes-delete', args=[pts.pk])
+        self.assertContains(r, del_url)
+        r = self.client.get(del_url)
+        assert r.status_code == 405
+        r = self.client.post(del_url)
+        self.assertRedirects(r, self.product_type.get_absolute_url())

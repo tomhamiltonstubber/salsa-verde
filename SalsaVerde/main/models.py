@@ -386,7 +386,11 @@ class ProductTypeSize(models.Model):
     name = models.CharField('Name', max_length=40, null=True, blank=True)
 
     def get_absolute_url(self):
-        return reverse(f'product-type-size-edit', kwargs={'pk': self.pk})
+        return reverse(f'product-type-sizes-edit', kwargs={'pk': self.pk})
+
+    @classmethod
+    def prefix(cls):
+        return 'product-type-sizes'
 
 
 class ProductQuerySet(QuerySet):

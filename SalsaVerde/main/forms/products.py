@@ -18,14 +18,9 @@ class UpdateProductTypeForm(SVModelForm):
 class AddProductTypeSizeForm(SVModelForm):
     title = 'Product Type Sizes'
 
-    def __init__(self, product_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['product_type'].initial = product_type
-        self.fields['product_type'].widget = forms.HiddenInput()
-
     class Meta:
         model = ProductTypeSize
-        fields = ['product_type', 'name', 'size', 'sku_code', 'bar_code']
+        fields = ['name', 'size', 'sku_code', 'bar_code']
 
 
 class UpdateProductTypeSizeForm(SVModelForm):

@@ -6,7 +6,9 @@
       {% csrf_token %}
       <div class="edit-form">
         {{ form|bootstrap }}
-        <button class="btn btn-primary" type="submit">Save</button>
+        {% block submit_buttons %}
+          <button class="btn btn-primary" type="submit">Save</button>
+        {% endblock %}
       </div>
     </form>
   </div>

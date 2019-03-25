@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
 from SalsaVerde.main.models import (Container, ContainerType, Ingredient, IngredientType, Supplier, Product,
-                                    ProductType, User, Document)
+                                    ProductType, User, Document, ProductTypeSize)
 from SalsaVerde.main.views.base_views import DeleteObjectView
 from SalsaVerde.main.views.containers import (containers_list, intake_containers, containers_details, containers_edit,
                                               container_type_list, container_type_add, container_type_details,
@@ -13,7 +13,7 @@ from SalsaVerde.main.views.ingredients import (ingredient_list, ingredient_detai
                                                ingredient_type_details, ingredient_type_edit, intake_ingredients)
 from SalsaVerde.main.views.products import (product_list, product_add, product_details, product_edit, product_type_list,
                                             product_type_add, product_type_details, product_type_edit,
-                                            product_size_type_edit, product_size_type_add)
+                                            product_size_type_edit, product_size_type_add, product_size_type_delete)
 from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
 from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
 from SalsaVerde.main.views.common import login, dashboard, setup
@@ -85,8 +85,9 @@ product_patterns = [
     path('types/<int:pk>/edit/', product_type_edit, name='product-types-edit'),
     path('types/<int:pk>/delete/', DeleteObjectView.as_view(model=ProductType), name='product-types-delete'),
 
-    path('types/size/<int:pk>/edit/', product_size_type_edit, name='product-type-size-edit'),
-    path('types/<int:product_type>/size/add/', product_size_type_add, name='product-type-size-add'),
+    path('types/size/<int:pk>/edit/', product_size_type_edit, name='product-type-sizes-edit'),
+    path('types/size/<int:pk>/delete/', product_size_type_delete, name='product-type-sizes-delete'),
+    path('types/<int:product_type>/size/add/', product_size_type_add, name='product-type-sizes-add'),
 ]
 
 urlpatterns = [

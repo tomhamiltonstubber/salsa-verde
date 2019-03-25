@@ -1,0 +1,9 @@
+{% extends 'form_view.jinja' %}
+
+{% block submit_buttons %}
+  {{ super() }}
+  <button class="btn btn-danger pull-right" data-confirm="Are you sure you want to delete this item?" data-method="POST"
+          href="{{ url('product-type-sizes-delete', pk=view.object.pk) }}">
+    Delete
+  </button>
+{% endblock %}
