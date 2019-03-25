@@ -129,9 +129,9 @@ containers_details = ContainerDetails.as_view()
 
 class IntakeContainers(SVFormsetForm, AddModelView):
     model = Container
-    formset_classes = {'formset': ContainersFormSet}
+    formset_class = ContainersFormSet
     form_class = GoodsIntakeForm
-    template_name = 'intake_goods_form.jinja'
+    template_name = 'formset_form.jinja'
     success_url = reverse_lazy('containers')
 
     def get_form_kwargs(self):

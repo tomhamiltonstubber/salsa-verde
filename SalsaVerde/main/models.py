@@ -399,16 +399,26 @@ class ProductQuerySet(QuerySet):
 
 
 class Product(BaseModel):
+    STATUS_INFUSED = 'infused'
+    STATUS_BOTTLED = 'bottled'
+    STATUSES = (
+        (STATUS_INFUSED, 'Infused'),
+        (STATUS_BOTTLED, 'Bottled'),
+    )
+
     objects = ProductQuerySet.as_manager()
 
     product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
                                      on_delete=models.CASCADE)
     date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
-    date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now)
-    date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now)
+    date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now, null=True, blank=True)
+    date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now, null=True, blank=True)
 
-    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3)
-    batch_code = models.CharField('Batch Code', max_length=25)
+    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3, null=True,
+                                         blank=True)
+    batch_code = models.CharField('Batch Code', max_length=25, null=True, blank=True)
+
+    status = models.CharField('Stage', choices=STATUSES, max_length=25)
 
     def __str__(self):
         return f'{self.product_type} - {self.batch_code}'

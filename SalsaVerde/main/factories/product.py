@@ -33,6 +33,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     date_of_best_before = factory.sequence(lambda n: timezone.now() + datetime.timedelta(days=(n * 365 * 2)))
     yield_quantity = 40
     batch_code = 'abc123123'
+    status = Product.STATUS_BOTTLED
 
     product_ingredient_1 = factory.RelatedFactory(
         ProductIngredientFactory,

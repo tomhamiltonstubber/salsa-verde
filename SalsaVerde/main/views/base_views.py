@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 
 from django.conf import settings
 from django.shortcuts import redirect, get_object_or_404
@@ -34,6 +35,9 @@ class DisplayHelpers:
 
     def get_title(self):
         return mark_safe(self.title)
+
+    def get_display_items(self):
+        return self.display_items
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
@@ -80,7 +84,12 @@ class DisplayHelpers:
             field = field.replace('func|', '')
             return getattr(self, field)(obj)
         attr = self._get_attr(obj, field)
-        v = attr(obj) if get_func else attr
+        if isinstance(attr, partial):
+            v = attr()
+        elif get_func:
+            v = attr(obj)
+        else:
+            v = attr
         if isinstance(v, datetime.datetime):
             return display_dt(v)
         elif v is True:
@@ -141,14 +150,14 @@ class ListView(BasicView):
 
     def get_field_data(self):
         for obj in self.get_queryset():
-            yield obj.get_absolute_url(), self.get_display_values(obj, self.display_items)
+            yield obj.get_absolute_url(), self.get_display_values(obj, self.get_display_items())
 
     def get_title(self):
         return self.model._meta.verbose_name_plural
 
     def get_context_data(self, **kwargs):
         kwargs.update(
-            field_names=self.get_display_labels(self.display_items),
+            field_names=self.get_display_labels(self.get_display_items()),
             field_data=self.get_field_data(),
         )
         return super().get_context_data(**kwargs)
@@ -211,7 +220,6 @@ class ExtraContentView(BasicView):
 
 class DetailView(ObjMixin, ExtraContentView):
     model = None
-    display_items = None
 
     def get_title(self):
         return str(self.object)
@@ -229,13 +237,13 @@ class DetailView(ObjMixin, ExtraContentView):
         ]
 
     def get_context_data(self, **kwargs):
-        display_vals = self.get_display_values(self.object, self.display_items)
-        display_labels = self.get_display_labels(self.display_items)
+        display_vals = self.get_display_values(self.object, self.get_display_items())
+        display_labels = self.get_display_labels(self.get_display_items())
         return super().get_context_data(display_items=zip(display_labels, display_vals), **kwargs)
 
 
 class SVFormsetForm:
-    formset_classes = {'formset': NotImplemented}
+    formset_class = NotImplemented
     request = None
     success_url = NotImplemented
 
@@ -243,27 +251,23 @@ class SVFormsetForm:
         return self.success_url
 
     def form_valid(self, form):
-        self.object = None
-        for formset_class in self.formset_classes.values():
-            formset = formset_class(self.request.POST)
-            formset.full_clean()
-            if formset.is_valid():
-                self.object = self.object or form.save()
-                formset.instance = self.object
-                formset.save()
-            else:
-                return self.form_invalid(form)
+        formset = self.formset_class(self.request.POST)
+        formset.full_clean()
+        if formset.is_valid():
+            self.object = form.save()
+            formset.instance = self.object
+            formset.save()
+        else:
+            return self.form_invalid(form)
         return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        assert not self.object, 'This form is for adding objects only because formsets are shite.'
-        for name, formset_class in self.formset_classes.items():
-            if self.request.POST:
-                formset = formset_class(self.request.POST)
-            else:
-                formset = formset_class()
-            ctx[name] = formset
+        if self.request.POST:
+            formset = self.formset_class(self.request.POST)
+        else:
+            formset = self.formset_class()
+        ctx['formset'] = formset
         return ctx
 
 

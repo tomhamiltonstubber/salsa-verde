@@ -47,11 +47,23 @@ ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredien
                                                        can_delete=False)
 
 
-class UpdateProductForm(SVModelForm):
+class AddProductForm(SVModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_type'].label = 'Product Type'
 
     class Meta:
         model = Product
-        exclude = {'date_of_best_before', 'product_ingredients'}
+        fields = ['product_type', 'batch_code', 'date_of_infusion']
+
+
+class BottleProductForm(SVModelForm):
+    class Meta:
+        model = Product
+        fields = ['date_of_bottling', 'date_of_best_before', 'yield_quantity']
+
+
+class UpdateProductForm(SVModelForm):
+    class Meta:
+        model = Product
+        fields = ['date_of_bottling', 'date_of_best_before', 'yield_quantity', 'batch_code']

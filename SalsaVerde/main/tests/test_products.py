@@ -78,7 +78,6 @@ class ProductTestCase(TestCase):
         self.company = self.user.company
         self.intake_url = reverse('intake-containers')
 
-        self.ingred = IngredientFactory(batch_code='foo123', quantity=10, ingredient_type__company=self.company)
         self.bottle = ContainerFactory(container_type__type=ContainerType.TYPE_BOTTLE,
                                        container_type__company=self.company)
         self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
@@ -89,50 +88,80 @@ class ProductTestCase(TestCase):
 
     def test_add_product(self):
         r = self.client.get(self.url)
+        ingred = IngredientFactory(batch_code='foo123', quantity=10, ingredient_type__company=self.company)
         self.assertContains(r, 'Batch Code')
         data = {
-            'product_ingredients-0-ingredient': self.ingred.pk,
-            'product_ingredients-0-quantity': 10,
-            'yield_containers-0-container': self.bottle.pk,
-            'yield_containers-0-cap': self.cap.pk,
-            'yield_containers-0-quantity': 15,
-            'product_type': self.product_type.pk,
-            'date_of_bottling': datetime(2018, 3, 3).strftime(settings.DT_FORMAT),
-            'date_of_infusion': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'product_type': self.product_type.id,
             'batch_code': 'foobar',
-            'yield_quantity': 25,
-            **self.product_ingred_mngmnt,
-            **self.yield_containers_mngmnt,
+            'date_of_infusion': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'product_ingredients-0-ingredient': ingred.pk,
+            'product_ingredients-0-quantity': 8,
+            **_empty_formset('product_ingredients'),
         }
         r = self.client.post(self.url, data=data, follow=True)
         product = Product.objects.get()
-        assert YieldContainer.objects.count() == 2
-        for yc in YieldContainer.objects.all():
-            assert yc.product == product
         pi = ProductIngredient.objects.get()
         assert product.product_type == self.product_type
         assert product.batch_code == 'foobar'
-        assert product.date_of_bottling.date() == datetime(2018, 3, 3).date()
         assert product.date_of_infusion.date() == datetime(2018, 2, 2).date()
-        assert product.yield_quantity == 25
+        assert product.status == Product.STATUS_INFUSED
         assert pi.product == product
-        assert pi.ingredient == self.ingred
-        assert pi.quantity == 10
+        assert pi.ingredient == ingred
+        assert pi.quantity == 8
 
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
-        self.assertContains(r, self.cap.name)
-        self.assertContains(r, self.bottle.name)
-        self.assertContains(r, self.ingred.name)
-
+        self.assertContains(r, 'Record bottling')
         r = self.client.get(reverse('products-edit', args=[product.pk]))
         self.assertContains(r, pi.product.product_type.name)
 
         r = self.client.get(reverse('products'))
         self.assertContains(r, pi.product.product_type.name)
+        return product
+
+    def test_bottle_product(self):
+        product = self.test_add_product()
+        r = self.client.get(reverse('products-bottle', args=[product.pk]))
+        self.assertContains(r, 'Yield Quantity')
+        self.assertNotContains(r, 'Batch code')
+
+        data = {
+            'yield_containers-0-container': self.bottle.pk,
+            'yield_containers-0-cap': self.cap.pk,
+            'yield_containers-0-quantity': 15,
+            'date_of_bottling': datetime(2018, 3, 3).strftime(settings.DT_FORMAT),
+            'yield_quantity': 25,
+            **_empty_formset('yield_containers'),
+        }
+        r = self.client.post(reverse('products-bottle', args=[product.pk]), data=data, follow=True)
+        product = Product.objects.get()
+        assert YieldContainer.objects.count() == 2
+        for yc in YieldContainer.objects.all():
+            assert yc.product == product
+        assert product.product_type == self.product_type
+        assert product.batch_code == 'foobar'
+        assert product.date_of_bottling.date() == datetime(2018, 3, 3).date()
+        assert product.date_of_infusion.date() == datetime(2018, 2, 2).date()
+        assert product.yield_quantity == 25
+        assert product.status == Product.STATUS_BOTTLED
+
+        # Check that these are still right
+        pi = ProductIngredient.objects.get()
+        assert pi.product == product
+        assert pi.quantity == 8
+
+        self.assertRedirects(r, reverse('products-details', args=[product.pk]))
+        self.assertContains(r, self.cap.name)
+        self.assertContains(r, self.bottle.name)
+        assert Product.objects.count() == 1
+
+    def test_bottle_bottled_product(self):
+        product = ProductFactory(product_type=self.product_type, status=Product.STATUS_BOTTLED)
+        r = self.client.get(reverse('products-bottle', args=[product.pk]))
+        assert r.status_code == 403
 
     def test_delete_product(self):
-        product_type = ProductFactory(product_type=self.product_type)
-        r = self.client.post(reverse('products-delete', args=[product_type.pk]))
+        product = ProductFactory(product_type=self.product_type)
+        r = self.client.post(reverse('products-delete', args=[product.pk]))
         self.assertRedirects(r, reverse('products'))
         assert not Product.objects.exists()
 

@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
 from SalsaVerde.main.models import (Container, ContainerType, Ingredient, IngredientType, Supplier, Product,
-                                    ProductType, User, Document, ProductTypeSize)
+                                    ProductType, User, Document)
 from SalsaVerde.main.views.base_views import DeleteObjectView
 from SalsaVerde.main.views.containers import (containers_list, intake_containers, containers_details, containers_edit,
                                               container_type_list, container_type_add, container_type_details,
@@ -13,7 +13,8 @@ from SalsaVerde.main.views.ingredients import (ingredient_list, ingredient_detai
                                                ingredient_type_details, ingredient_type_edit, intake_ingredients)
 from SalsaVerde.main.views.products import (product_list, product_add, product_details, product_edit, product_type_list,
                                             product_type_add, product_type_details, product_type_edit,
-                                            product_size_type_edit, product_size_type_add, product_size_type_delete)
+                                            product_size_type_edit, product_size_type_add, product_size_type_delete,
+                                            product_bottle)
 from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
 from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
 from SalsaVerde.main.views.common import login, dashboard, setup
@@ -75,6 +76,7 @@ document_patterns = [
 product_patterns = [
     path('', product_list, name='products'),
     path('add/', product_add, name='products-add'),
+    path('<int:pk>/bottle/', product_bottle, name='products-bottle'),
     path('<int:pk>/', product_details, name='products-details'),
     path('<int:pk>/edit/', product_edit, name='products-edit'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Product), name='products-delete'),
