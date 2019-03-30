@@ -16,6 +16,7 @@ class ProductTypeList(ListView):
         'name',
         'ingredient_types',
     ]
+    order_by = 'name'
 
 
 product_type_list = ProductTypeList.as_view()
@@ -126,6 +127,7 @@ class ProductList(ListView):
         'date_of_best_before',
         'yield_quantity',
     ]
+    order_by = 'product_type__name'
 
     def get_button_menu(self):
         return [

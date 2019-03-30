@@ -40,7 +40,7 @@ def update_user_history(sender, user, **kwargs):
 
 
 class Setup(ExtraContentView):
-    title = 'Set up'
+    title = 'Setup'
     model = Company
 
     def extra_display_items(self):

@@ -1,6 +1,5 @@
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
-from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
@@ -16,6 +15,7 @@ class ContainerTypeList(ListView):
         'size',
         'type',
     ]
+    order_by = 'name'
 
 
 container_type_list = ContainerTypeList.as_view()
@@ -54,13 +54,24 @@ class ContainerList(ListView):
     display_items = [
         'container_type',
         'batch_code',
-        'finished',
+        ('Intake date', 'goods_intake__intake_date'),
+        'supplier',
     ]
+    order_by = 'container_type__name'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.view_finished = bool(self.request.GET.get('finished'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(finished=self.view_finished)
 
     def get_button_menu(self):
-        return [
-            {'name': 'Record containers intake', 'url': reverse('intake-containers')},
-        ]
+        yield {'name': 'Record containers intake', 'url': reverse('intake-containers')}
+        if self.view_finished:
+            yield {'name': 'View Current Containers', 'url': reverse('containers')}
+        else:
+            yield {'name': 'View Finished Containers', 'url': reverse('containers') + '?finished=true'}
 
 
 containers_list = ContainerList.as_view()
@@ -80,21 +91,11 @@ class ContainerDetails(DetailView):
         'container_type',
         'batch_code',
         ('Intake date', 'goods_intake__intake_date'),
-        ('Supplier', 'func|get_supplier_link'),
+        'obj_url|supplier',
         'quantity',
-        ('Intake document', 'func|get_intake_document'),
+        ('Intake Document', 'obj_url|intake_document'),
         'finished',
     ]
-
-    def get_supplier_link(self, obj):
-        if obj.supplier:
-            return mark_safe(f'<a href="{obj.supplier.get_absolute_url()}">{obj.supplier}</a>')
-        return '–'
-
-    def get_intake_document(self, obj):
-        if obj.intake_document:
-            return mark_safe(f'<a href="{obj.intake_document.get_absolute_url()}">{obj.intake_document}</a>')
-        return '–'
 
     def get_button_menu(self):
         btns = super().get_button_menu()

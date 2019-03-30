@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from django.utils.safestring import mark_safe
 
 from django.views.decorators.http import require_POST
 
@@ -16,6 +15,7 @@ class IngredientTypeList(ListView):
         'name',
         'unit',
     ]
+    order_by = 'name'
 
 
 ingredient_type_list = IngredientTypeList.as_view()
@@ -55,13 +55,22 @@ class IngredientList(ListView):
         'batch_code',
         ('Intake date', 'goods_intake__intake_date'),
         'supplier',
-        'finished',
     ]
+    order_by = 'ingredient_type__name'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.view_finished = bool(self.request.GET.get('finished'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(finished=self.view_finished)
 
     def get_button_menu(self):
-        return [
-            {'name': 'Record ingredients intake', 'url': reverse('intake-ingredients')},
-        ]
+        yield {'name': 'Record ingredients intake', 'url': reverse('intake-ingredients')}
+        if self.view_finished:
+            yield {'name': 'View Current Ingredients', 'url': reverse('ingredients')}
+        else:
+            yield {'name': 'View Finished Ingredients', 'url': reverse('ingredients') + '?finished=true'}
 
 
 ingredient_list = IngredientList.as_view()
@@ -78,12 +87,12 @@ def change_ingredient_status(request, pk):
 class IngredientDetails(DetailView):
     model = Ingredient
     display_items = [
-        'ingredient_type',
+        'obj_url|ingredient_type',
         'batch_code',
         ('Intake date', 'goods_intake__intake_date'),
-        'supplier',
+        'obj_url|supplier',
         'quantity',
-        ('Intake document', 'func|get_intake_document'),
+        ('Intake Document', 'obj_url|intake_document'),
         'finished',
     ]
 
@@ -97,11 +106,6 @@ class IngredientDetails(DetailView):
             {'name': label, 'url': reverse('ingredient-status', kwargs={'pk': self.object.pk}), 'method': 'POST'}
         )
         return btns
-
-    def get_intake_document(self, obj):
-        if obj.intake_document:
-            return mark_safe(f'<a href="{obj.intake_document.get_absolute_url()}">{obj.intake_document}</a>')
-        return '–'
 
 
 ingredient_details = IngredientDetails.as_view()

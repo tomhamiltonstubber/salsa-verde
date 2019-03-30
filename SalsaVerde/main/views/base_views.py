@@ -29,10 +29,14 @@ class FieldInfo:
     verbose_name = None
 
 
+VIEW_FUNC = 'func|'
+OBJ_URL = 'obj_url|'
+
+
 class DisplayHelpers:
     title = None
     display_items = None
-    display_funcs = {'func|'}
+    display_funcs = {VIEW_FUNC, OBJ_URL}
 
     def get_title(self):
         return mark_safe(self.title)
@@ -80,9 +84,15 @@ class DisplayHelpers:
     def _get_v(self, obj, field):
         if hasattr(obj, f'display_{field}'):
             return getattr(obj, f'display_{field}')()
-        elif field.startswith('func|'):
-            field = field.replace('func|', '')
+        elif field.startswith(VIEW_FUNC):
+            field = field.replace(VIEW_FUNC, '')
             return getattr(self, field)(obj)
+        elif field.startswith(OBJ_URL):
+            field = field.replace(OBJ_URL, '')
+            related_obj = self._get_attr(obj, field)
+            if related_obj:
+                return mark_safe(f'<a href="{related_obj.get_absolute_url()}">{related_obj}</a>')
+            return '–'
         attr = self._get_attr(obj, field)
         if isinstance(attr, partial):
             v = attr()
@@ -123,9 +133,14 @@ class DisplayHelpers:
 
 
 class QuerySetMixin:
+    order_by = None
+
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return self.model.objects.request_qs(self.request)
+            qs = self.model.objects.request_qs(self.request)
+            if self.order_by:
+                qs = qs.order_by(self.order_by)
+            return qs
         return self.model.objects.none()
 
 

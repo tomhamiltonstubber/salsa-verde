@@ -320,7 +320,7 @@ class YieldContainer(BaseModel):
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
     def get_absolute_url(self):
-        return self.product.get_absolute_url()
+        return self.container.get_absolute_url()
 
     @property
     def total_volume(self):
@@ -447,6 +447,9 @@ class ProductIngredient(BaseModel):
                                 related_name='product_ingredients')
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+
+    def get_absolute_url(self):
+        return self.ingredient.get_absolute_url()
 
     def display_quantity(self):
         return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
