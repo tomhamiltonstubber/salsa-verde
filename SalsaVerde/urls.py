@@ -105,7 +105,6 @@ urlpatterns = [
     path('suppliers/', include(supplier_patterns)),
     path('documents/', include(document_patterns)),
     path('users/', include(user_patterns)),
-
 ]
 
 

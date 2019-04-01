@@ -1,5 +1,4 @@
 $(document).ready(() => {
-  console.log('foo')
   try {
     $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
   } catch (e) {
