@@ -21,11 +21,11 @@ BASE_DIR = os.path.dirname(DJ_DIR)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck('
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', True)
 LIVE = os.getenv('LIVE')
 
 ALLOWED_HOSTS = ['*']
-
+INTERNAL_IPS = ['127.0.0.1', 'localhost']
 
 # Application definition
 INSTALLED_APPS = [
@@ -57,6 +57,11 @@ MIDDLEWARE = [
 
     'SalsaVerde.main.middleware.AuthRequiredMiddleware',
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+
 
 ROOT_URLCONF = 'SalsaVerde.urls'
 
