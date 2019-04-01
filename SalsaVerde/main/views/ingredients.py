@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.main.forms.ingredients import UpdateIngredientTypeForm, UpdateIngredientsForm, IngredientsFormSet
-from SalsaVerde.main.models import Ingredient, IngredientType
+from SalsaVerde.main.models import Ingredient, IngredientType, Product
 
 
 class IngredientTypeList(ListView):
@@ -27,6 +27,20 @@ class IngredientTypeDetails(DetailView):
         'name',
         'unit',
     ]
+
+    def extra_display_items(self):
+        return [
+            {
+                'title': 'Ingredients',
+                'qs': self.object.ingredients.select_related('ingredient_type').order_by('-goods_intake__intake_date'),
+                'fields': [
+                    'ingredient_type',
+                    'batch_code',
+                    ('Intake date', 'goods_intake__intake_date'),
+                    'supplier',
+                ],
+            }
+        ]
 
 
 ingredient_type_details = IngredientTypeDetails.as_view()
@@ -63,7 +77,11 @@ class IngredientList(ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super().get_queryset().filter(finished=self.view_finished)
+        return (
+            super().get_queryset()
+            .filter(finished=self.view_finished)
+            .select_related('ingredient_type', 'goods_intake', 'supplier')
+        )
 
     def get_button_menu(self):
         yield {'name': 'Record ingredients intake', 'url': reverse('intake-ingredients')}
@@ -95,6 +113,28 @@ class IngredientDetails(DetailView):
         ('Intake Document', 'obj_url|intake_document'),
         'finished',
     ]
+
+    def extra_display_items(self):
+        products = (
+            Product.objects
+            .request_qs(self.request)
+            .filter(product_ingredients__ingredient=self.object)
+            .select_related('product_type')
+            .order_by('-date_of_bottling')
+        )
+        return [
+            {
+                'title': 'Products used in',
+                'qs': products,
+                'fields': [
+                    'product_type',
+                    'batch_code',
+                    'date_of_infusion',
+                    'date_of_bottling',
+                    'yield_quantity',
+                ],
+            }
+        ]
 
     def get_button_menu(self):
         btns = super().get_button_menu()

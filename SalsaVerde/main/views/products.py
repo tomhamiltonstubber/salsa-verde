@@ -1,3 +1,5 @@
+import textwrap
+
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
@@ -127,7 +129,11 @@ class ProductList(ListView):
         'date_of_best_before',
         'yield_quantity',
     ]
-    order_by = 'product_type__name'
+    order_by = '-date_of_bottling'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('product_type')
 
     def get_button_menu(self):
         return [
@@ -206,6 +212,9 @@ class ProductDetails(DetailView):
         ('Stage', 'get_status_display'),
     ]
 
+    def get_title(self):
+        return textwrap.shorten(self.object.product_type.name, width=35, placeholder='…') + self.object.batch_code
+
     def get_display_items(self):
         items = [
             'product_type',
@@ -232,7 +241,7 @@ class ProductDetails(DetailView):
         return [
             {
                 'title': 'Ingredients',
-                'qs': self.object.product_ingredients.all(),
+                'qs': self.object.product_ingredients.select_related('ingredient__ingredient_type'),
                 'fields': [
                     ('Name', 'ingredient__ingredient_type'),
                     'ingredient__batch_code',
@@ -241,7 +250,7 @@ class ProductDetails(DetailView):
             },
             {
                 'title': 'Yield',
-                'qs': self.object.yield_containers.all(),
+                'qs': self.object.yield_containers.select_related('container__container_type'),
                 'fields': [
                     ('Name', 'container__container_type'),
                     'container__batch_code',

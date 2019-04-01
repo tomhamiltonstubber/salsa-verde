@@ -11,6 +11,9 @@ class DocumentsList(ListView):
         'author',
     ]
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('author')
+
 
 document_list = DocumentsList.as_view()
 

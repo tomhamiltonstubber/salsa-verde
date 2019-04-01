@@ -268,7 +268,8 @@ class Container(BaseModel):
     )
     objects = ContainerQuerySet.as_manager()
 
-    container_type = models.ForeignKey(ContainerType, verbose_name='Container', on_delete=models.CASCADE)
+    container_type = models.ForeignKey(ContainerType, verbose_name='Container', related_name='containers',
+                                       on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
     condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='containers',

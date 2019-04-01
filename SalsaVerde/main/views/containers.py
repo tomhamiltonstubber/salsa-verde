@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.main.forms.containers import UpdateContainerTypeForm, UpdateContainerForm, ContainersFormSet
 from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
-from SalsaVerde.main.models import Container, ContainerType
+from SalsaVerde.main.models import Container, ContainerType, Product
 
 
 class ContainerTypeList(ListView):
@@ -28,6 +28,20 @@ class ContainerTypeDetails(DetailView):
         'size',
         'type',
     ]
+
+    def extra_display_items(self):
+        return [
+            {
+                'title': 'Containers',
+                'qs': self.object.containers.select_related('container_type').order_by('-goods_intake__intake_date'),
+                'fields': [
+                    'container_type',
+                    'batch_code',
+                    ('Intake date', 'goods_intake__intake_date'),
+                    'supplier',
+                ],
+            }
+        ]
 
 
 container_type_details = ContainerTypeDetails.as_view()
@@ -64,7 +78,11 @@ class ContainerList(ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return super().get_queryset().filter(finished=self.view_finished)
+        return (
+            super().get_queryset()
+            .filter(finished=self.view_finished)
+            .select_related('container_type', 'goods_intake', 'supplier')
+        )
 
     def get_button_menu(self):
         yield {'name': 'Record containers intake', 'url': reverse('intake-containers')}
@@ -109,17 +127,23 @@ class ContainerDetails(DetailView):
         return btns
 
     def extra_display_items(self):
+        products = (
+            Product.objects
+            .request_qs(self.request)
+            .filter(yield_containers__container=self.object)
+            .select_related('product_type')
+            .order_by('-date_of_bottling')
+        )
         return [
             {
                 'title': 'Products used in',
-                'qs': self.object.yield_containers.select_related('product'),
+                'qs': products,
                 'fields': [
-                    ('Product', 'product__product_type__name'),
-                    ('Batch code', 'product__batch_code'),
-                    ('Date of infusion', 'product__date_of_infusion'),
-                    ('Date of bottling', 'product__date_of_bottling'),
-                    ('Best before', 'product__date_of_best_before'),
-                    ('Quantity', 'product__yield_quantity'),
+                    'product_type',
+                    'batch_code',
+                    'date_of_infusion',
+                    'date_of_bottling',
+                    'yield_quantity',
                 ]
             },
         ]
