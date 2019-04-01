@@ -167,4 +167,3 @@ else:
 
 
 PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
-
