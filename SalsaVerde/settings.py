@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'bootstrapform_jinja',
     'storages',
     'bootstrap3_datetime',
+    'debug_toolbar',
     'raven.contrib.django.raven_compat',
 
     'SalsaVerde.main',
@@ -53,15 +54,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'SalsaVerde.main.middleware.AuthRequiredMiddleware',
 ]
-
-if DEBUG:
-    INSTALLED_APPS.append('debug_toolbar')
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-
 
 ROOT_URLCONF = 'SalsaVerde.urls'
 

@@ -1,6 +1,5 @@
 coverage==4.5.3
 codecov==2.0.15
-django-debug-toolbar==1.11
 devtools==0.5
 factory-boy==2.11.1
 
