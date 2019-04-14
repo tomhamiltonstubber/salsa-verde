@@ -19,7 +19,8 @@ BASE_DIR = os.path.dirname(DJ_DIR)
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck('
+SECRET_KEY = os.getenv('SECRET_KEY', 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck(')
+
 
 DEBUG = os.getenv('DEBUG', True)
 LIVE = os.getenv('LIVE')
