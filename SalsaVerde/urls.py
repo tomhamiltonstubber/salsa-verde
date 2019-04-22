@@ -15,7 +15,7 @@ from SalsaVerde.main.views.ingredients import (ingredient_list, ingredient_detai
 from SalsaVerde.main.views.products import (product_list, product_add, product_details, product_edit, product_type_list,
                                             product_type_add, product_type_details, product_type_edit,
                                             product_size_type_edit, product_size_type_add, product_size_type_delete,
-                                            product_bottle)
+                                            product_bottle, product_ingredient_add, yield_container_add)
 from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
 from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
 from SalsaVerde.main.views.common import login, dashboard, setup
@@ -81,6 +81,8 @@ product_patterns = [
     path('<int:pk>/', product_details, name='products-details'),
     path('<int:pk>/edit/', product_edit, name='products-edit'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Product), name='products-delete'),
+    path('<int:pk>/ingredients/add/', product_ingredient_add, name='product-ingredient-add'),
+    path('<int:pk>/containers/add/', yield_container_add, name='yield-container-add'),
 
     path('types/', product_type_list, name='product-types'),
     path('types/add/', product_type_add, name='product-types-add'),

@@ -165,6 +165,35 @@ class ProductTestCase(TestCase):
         self.assertRedirects(r, reverse('products'))
         assert not Product.objects.exists()
 
+    def test_add_product_ingredient(self):
+        product = ProductFactory(product_type=self.product_type)
+        url = reverse('product-ingredient-add', args=[product.pk])
+        ingred = IngredientFactory(batch_code='foo123', quantity=10, ingredient_type__company=self.company)
+        r = self.client.get(url)
+        assert r.status_code == 200
+        r = self.client.post(url, {'ingredient': ingred.pk, 'quantity': 12}, follow=True)
+        self.assertRedirects(r, product.get_absolute_url())
+        self.assertContains(r, 'foo123')
+
+    def test_add_yield_container_no_cap(self):
+        product = ProductFactory(product_type=self.product_type)
+        url = reverse('yield-container-add', args=[product.pk])
+        container = ContainerFactory(batch_code='foo456', quantity=10, container_type__company=self.company,
+                                     container_type__type=ContainerType.TYPE_BOTTLE)
+        r = self.client.post(url, {'container': container.pk, 'quantity': 12})
+        self.assertContains(r, 'You must select a cap')
+
+    def test_add_yield_container(self):
+        product = ProductFactory(product_type=self.product_type)
+        url = reverse('yield-container-add', args=[product.pk])
+        container = ContainerFactory(batch_code='foo456', quantity=10, container_type__company=self.company,
+                                     container_type__type=ContainerType.TYPE_OTHER)
+        r = self.client.get(url)
+        assert r.status_code == 200
+        r = self.client.post(url, {'container': container.pk, 'quantity': 12}, follow=True)
+        self.assertRedirects(r, product.get_absolute_url())
+        self.assertContains(r, 'foo456')
+
 
 class ProductTypeSizeTestCase(TestCase):
     def setUp(self):

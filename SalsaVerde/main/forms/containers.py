@@ -33,21 +33,37 @@ ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateCo
 
 class YieldContainersForm(SVModelForm):
     title = 'Containers'
+    container = forms.ModelChoiceField(Container.objects.none())
+    cap = forms.ModelChoiceField(Container.objects.none(), required=False)
 
-    container = forms.ModelChoiceField(
-        Container.objects
-        .filter(finished=False)
-        .exclude(container_type__type=ContainerType.TYPE_CAP)
-    )
-    cap = forms.ModelChoiceField(Container.objects.filter(container_type__type=ContainerType.TYPE_CAP, finished=False))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['container'].queryset = (
+            Container.objects
+            .request_qs(self.request)
+            .filter(finished=False)
+            .exclude(container_type__type=ContainerType.TYPE_CAP)
+        )
+        self.fields['cap'].queryset = (
+            Container.objects
+            .request_qs(self.request)
+            .filter(finished=False, container_type__type=ContainerType.TYPE_CAP)
+        )
+
+    def clean(self):
+        if (self.cleaned_data['container'].container_type.type == ContainerType.TYPE_BOTTLE and
+                not self.cleaned_data.get('cap')):
+            raise forms.ValidationError('You must select a cap if you are filling a bottle')
+        return self.cleaned_data
 
     def save(self, commit=True):
         obj = super().save(commit)
-        YieldContainer.objects.create(
-            container=self.cleaned_data['cap'],
-            quantity=self.cleaned_data['quantity'],
-            product_id=obj.product.id
-        )
+        if commit:
+            YieldContainer.objects.create(
+                container=self.cleaned_data['cap'],
+                quantity=self.cleaned_data['quantity'],
+                product_id=obj.product.id
+            )
         return obj
 
     class Meta:

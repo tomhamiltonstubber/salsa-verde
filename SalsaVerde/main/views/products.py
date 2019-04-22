@@ -4,12 +4,12 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 
-from SalsaVerde.main.forms.containers import YieldContainersFormSet
+from SalsaVerde.main.forms.containers import YieldContainersFormSet, YieldContainersForm
 from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm, DeleteObjectView
 from SalsaVerde.main.forms.products import (ProductIngredientFormSet, UpdateProductForm, UpdateProductTypeForm,
                                             ProductTypeSizesFormSet, UpdateProductTypeSizeForm, AddProductTypeSizeForm,
-                                            AddProductForm, BottleProductForm)
-from SalsaVerde.main.models import Product, ProductType, ProductTypeSize
+                                            AddProductForm, BottleProductForm, ProductIngredientForm)
+from SalsaVerde.main.models import Product, ProductType, ProductTypeSize, ProductIngredient, YieldContainer
 
 
 class ProductTypeList(ListView):
@@ -247,6 +247,7 @@ class ProductDetails(DetailView):
                     'ingredient__batch_code',
                     'quantity',
                 ],
+                'add_url': reverse('product-ingredient-add', kwargs={'pk': self.object.pk})
             },
             {
                 'title': 'Yield',
@@ -257,8 +258,47 @@ class ProductDetails(DetailView):
                     ('Quantity (units)', 'quantity'),
                     ('Total Volume (litres)', 'total_volume'),
                 ],
+                'add_url': reverse('yield-container-add', kwargs={'pk': self.object.pk})
             },
         ]
 
 
 product_details = ProductDetails.as_view()
+
+
+class ProductIngredientAdd(AddModelView):
+    model = ProductIngredient
+    title = 'Add another Ingredient'
+    form_class = ProductIngredientForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.product = get_object_or_404(Product.objects.request_qs(request), pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        obj.product = self.product
+        obj.save()
+        return redirect(self.product.get_absolute_url())
+
+
+product_ingredient_add = ProductIngredientAdd.as_view()
+
+
+class YieldContainerAdd(AddModelView):
+    model = YieldContainer
+    title = 'Add another Ingredient'
+    form_class = YieldContainersForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.product = get_object_or_404(Product.objects.request_qs(request), pk=kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        obj.product = self.product
+        obj.save()
+        return redirect(self.product.get_absolute_url())
+
+
+yield_container_add = YieldContainerAdd.as_view()
