@@ -87,7 +87,6 @@ class ContainerTestCase(TestCase):
             'containers-0-batch_code': '123abc',
             'containers-0-supplier': self.supplier.pk,
             'containers-0-condition': 'Good',
-            'containers-0-status': Container.STATUS_ACCEPT,
             **self.intake_management_data,
         }
         r = self.client.post(self.intake_url, data=data)
@@ -104,7 +103,6 @@ class ContainerTestCase(TestCase):
         assert container.container_type == self.container_type
         assert container.batch_code == '123abc'
         assert container.condition == 'Good'
-        assert container.status == Container.STATUS_ACCEPT
         assert container.goods_intake == goods_intake
         assert container.quantity == 10
         assert container.supplier == self.supplier
@@ -122,7 +120,6 @@ class ContainerTestCase(TestCase):
             'batch_code': '123abc',
             'quantity': 5,
             'condition': 'Good',
-            'status': Container.STATUS_ACCEPT
         }
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))

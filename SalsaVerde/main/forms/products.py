@@ -64,6 +64,13 @@ class BottleProductForm(SVModelForm):
 
 
 class UpdateProductForm(SVModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.status != Product.STATUS_BOTTLED:
+            for f in ['batch_code_applied', 'best_before_applied', 'quality_check_successful']:
+                self.fields.pop(f)
+
     class Meta:
         model = Product
-        fields = ['date_of_bottling', 'date_of_best_before', 'yield_quantity', 'batch_code']
+        fields = ['date_of_bottling', 'date_of_best_before', 'yield_quantity', 'batch_code', 'batch_code_applied',
+                  'best_before_applied', 'quality_check_successful']

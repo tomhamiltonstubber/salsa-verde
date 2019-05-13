@@ -69,7 +69,6 @@ class IngredientTestCase(TestCase):
             'ingredients-0-batch_code': '123abc',
             'ingredients-0-supplier': self.supplier.pk,
             'ingredients-0-condition': 'Good',
-            'ingredients-0-status': Ingredient.STATUS_ACCEPT,
             **self.intake_management_data,
         }
         r = self.client.post(self.intake_url, data=data)
@@ -87,7 +86,6 @@ class IngredientTestCase(TestCase):
         assert ingred.ingredient_type == self.ingredient_type
         assert ingred.batch_code == '123abc'
         assert ingred.condition == 'Good'
-        assert ingred.status == Ingredient.STATUS_ACCEPT
         assert ingred.goods_intake == goods_intake
         assert ingred.quantity == 10
         assert ingred.supplier == self.supplier
@@ -118,7 +116,6 @@ class IngredientTestCase(TestCase):
             'batch_code': '123abc',
             'quantity': 5,
             'condition': 'Good',
-            'status': Ingredient.STATUS_ACCEPT
         }
         r = self.client.post(reverse('ingredients-edit', args=[ingred.pk]), data=data)
         self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))

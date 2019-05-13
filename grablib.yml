@@ -9,7 +9,6 @@ download:
   'CDNJS/font-awesome/4.7.0/fonts/fontawesome-webfont.woff': 'fonts/fontawesome-webfont.woff'
   'CDNJS/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2': 'fonts/fontawesome-webfont.woff2'
 
-
   'GITHUB/ivaynberg/select2/3.5.1/select2.js': 'js/select2.js'
   'GITHUB/ivaynberg/select2/3.5.1/select2.css': 'css/select2.css'
   'GITHUB/ivaynberg/select2/3.5.1/select2x2.png': 'css/'

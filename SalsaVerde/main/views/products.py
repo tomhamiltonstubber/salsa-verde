@@ -174,7 +174,7 @@ class ProductBottle(SVFormsetForm, UpdateModelView):
     formset_class = YieldContainersFormSet
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.get_object().status == Product.STATUS_INFUSED:
+        if self.get_object().status != Product.STATUS_INFUSED:
             raise PermissionDenied('Product must be infused first')
         return super().dispatch(request, *args, **kwargs)
 
@@ -183,13 +183,13 @@ class ProductBottle(SVFormsetForm, UpdateModelView):
         formset.full_clean()
         if formset.is_valid():
             obj = form.save()
+            obj.status = Product.STATUS_BOTTLED
+            obj.save(update_fields=['status'])
             formset.instance = obj
-            formset.save()
+            formset.save(commit=True)
         else:
             return self.form_invalid(form)
-        obj.status = Product.STATUS_BOTTLED
-        obj.save(update_fields=['status'])
-        return redirect(obj.get_absolute_url())
+        return redirect(self.object.get_absolute_url())
 
 
 product_bottle = ProductBottle.as_view()
@@ -205,12 +205,6 @@ product_edit = ProductEdit.as_view()
 
 class ProductDetails(DetailView):
     model = Product
-    display_items = [
-        'product_type',
-        'date_of_infusion',
-        'batch_code',
-        ('Stage', 'get_status_display'),
-    ]
 
     def get_title(self):
         return textwrap.shorten(self.object.product_type.name, width=35, placeholder='…') + self.object.batch_code
@@ -226,14 +220,16 @@ class ProductDetails(DetailView):
             items += [
                 'date_of_best_before',
                 'yield_quantity',
+                'best_before_applied',
+                'quality_check_successful',
+                'batch_code_applied',
             ]
         return items
 
     def get_button_menu(self):
         btns = list(super().get_button_menu())
         if self.object.status == Product.STATUS_INFUSED:
-            edit = next(btn for btn in btns if btn['name'] == 'Edit')
-            btns.remove(edit)
+            btns = [btn for btn in btns if btn['name'] != 'Edit']
             btns.insert(1, {'name': 'Record bottling', 'rurl': 'products-bottle'})
         return btns
 

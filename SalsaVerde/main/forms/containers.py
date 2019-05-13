@@ -33,22 +33,15 @@ ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateCo
 
 class YieldContainersForm(SVModelForm):
     title = 'Containers'
-    container = forms.ModelChoiceField(Container.objects.none())
-    cap = forms.ModelChoiceField(Container.objects.none(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['container'].queryset = (
-            Container.objects
-            .request_qs(self.request)
-            .filter(finished=False)
-            .exclude(container_type__type=ContainerType.TYPE_CAP)
-        )
-        self.fields['cap'].queryset = (
-            Container.objects
-            .request_qs(self.request)
-            .filter(finished=False, container_type__type=ContainerType.TYPE_CAP)
-        )
+    container = forms.ModelChoiceField(queryset=(
+        Container.objects
+        .filter(finished=False)
+        .exclude(container_type__type=ContainerType.TYPE_CAP)
+    ))
+    cap = forms.ModelChoiceField(queryset=(
+        Container.objects
+        .filter(finished=False, container_type__type=ContainerType.TYPE_CAP)
+    ), required=False)
 
     def clean(self):
         if (self.cleaned_data['container'].container_type.type == ContainerType.TYPE_BOTTLE and
@@ -58,7 +51,7 @@ class YieldContainersForm(SVModelForm):
 
     def save(self, commit=True):
         obj = super().save(commit)
-        if commit:
+        if self.cleaned_data['cap']:
             YieldContainer.objects.create(
                 container=self.cleaned_data['cap'],
                 quantity=self.cleaned_data['quantity'],
@@ -68,7 +61,7 @@ class YieldContainersForm(SVModelForm):
 
     class Meta:
         model = YieldContainer
-        exclude = {'product'}
+        fields = ['container', 'quantity']
 
 
 YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=1,

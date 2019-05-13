@@ -116,10 +116,11 @@ class ProductTestCase(TestCase):
 
         r = self.client.get(reverse('products'))
         self.assertContains(r, pi.product.product_type.name)
-        return product
 
     def test_bottle_product(self):
-        product = self.test_add_product()
+        product = ProductFactory(product_type=self.product_type, status=Product.STATUS_INFUSED)
+        old_pi = ProductIngredient.objects.last()
+        YieldContainer.objects.all().delete()
         r = self.client.get(reverse('products-bottle', args=[product.pk]))
         self.assertContains(r, 'Yield Quantity')
         self.assertNotContains(r, 'Batch code')
@@ -133,21 +134,20 @@ class ProductTestCase(TestCase):
             **_empty_formset('yield_containers'),
         }
         r = self.client.post(reverse('products-bottle', args=[product.pk]), data=data, follow=True)
+        self.assertRedirects(r, reverse('products-details', args=[product.pk]))
         product = Product.objects.get()
         assert YieldContainer.objects.count() == 2
         for yc in YieldContainer.objects.all():
             assert yc.product == product
         assert product.product_type == self.product_type
-        assert product.batch_code == 'foobar'
         assert product.date_of_bottling.date() == datetime(2018, 3, 3).date()
-        assert product.date_of_infusion.date() == datetime(2018, 2, 2).date()
         assert product.yield_quantity == 25
         assert product.status == Product.STATUS_BOTTLED
 
         # Check that these are still right
-        pi = ProductIngredient.objects.get()
-        assert pi.product == product
-        assert pi.quantity == 8
+        pi = ProductIngredient.objects.get(id=old_pi.id)
+        assert pi.product == old_pi.product
+        assert pi.quantity == old_pi.quantity
 
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
         self.assertContains(r, self.cap.name)
@@ -193,6 +193,18 @@ class ProductTestCase(TestCase):
         r = self.client.post(url, {'container': container.pk, 'quantity': 12}, follow=True)
         self.assertRedirects(r, product.get_absolute_url())
         self.assertContains(r, 'foo456')
+
+    def test_bottled_fields_viewable(self):
+        product = ProductFactory(product_type=self.product_type, status=Product.STATUS_INFUSED)
+        r = self.client.get(product.get_absolute_url())
+        self.assertNotContains(r, 'Batch code applied')
+        r = self.client.get(reverse('products-edit', args=[product.pk]))
+        self.assertNotContains(r, 'Batch code applied')
+        Product.objects.update(status=Product.STATUS_BOTTLED)
+        r = self.client.get(product.get_absolute_url())
+        self.assertContains(r, 'Batch code applied')
+        r = self.client.get(reverse('products-edit', args=[product.pk]))
+        self.assertContains(r, 'Batch code applied')
 
 
 class ProductTypeSizeTestCase(TestCase):

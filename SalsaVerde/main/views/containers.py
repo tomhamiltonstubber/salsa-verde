@@ -112,6 +112,7 @@ class ContainerDetails(DetailView):
         'obj_url|supplier',
         'quantity',
         ('Intake Document', 'obj_url|intake_document'),
+        'intake_quality_check',
         'finished',
     ]
 

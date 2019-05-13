@@ -176,21 +176,14 @@ class IngredientQuerySet(QuerySet):
 
 
 class Ingredient(BaseModel):
-    STATUS_ACCEPT = 'accept'
-    STATUS_HOLD = 'hold'
-    STATUS_REJECT = 'reject'
-    STATUS_CHOICES = (
-        (STATUS_ACCEPT, 'Accept'),
-        (STATUS_HOLD, 'Hold'),
-        (STATUS_REJECT, 'Reject'),
-    )
     ingredient_type = models.ForeignKey(IngredientType, verbose_name='Ingredient Type',
                                         related_name='ingredients', on_delete=models.CASCADE)
     batch_code = models.CharField('Batch Code', max_length=25)
     condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
                                  null=True, on_delete=models.SET_NULL)
-    status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
+    intake_quality_check = models.BooleanField('Accept goods', default=False)
+    intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey('main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake',
                                      on_delete=models.CASCADE)
@@ -258,14 +251,6 @@ class ContainerQuerySet(QuerySet):
 
 
 class Container(BaseModel):
-    STATUS_ACCEPT = 'accept'
-    STATUS_HOLD = 'hold'
-    STATUS_REJECT = 'reject'
-    STATUS_CHOICES = (
-        (STATUS_ACCEPT, 'Accept'),
-        (STATUS_HOLD, 'Hold'),
-        (STATUS_REJECT, 'Reject'),
-    )
     objects = ContainerQuerySet.as_manager()
 
     container_type = models.ForeignKey(ContainerType, verbose_name='Container', related_name='containers',
@@ -274,7 +259,8 @@ class Container(BaseModel):
     condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='containers',
                                  null=True, on_delete=models.SET_NULL)
-    status = models.CharField('Status', max_length=25, default=STATUS_ACCEPT, choices=STATUS_CHOICES)
+    intake_quality_check = models.BooleanField('Accept goods', default=False)
+    intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey('main.GoodsIntake', related_name='containers', verbose_name='Goods Intake',
                                      on_delete=models.CASCADE)
@@ -420,6 +406,10 @@ class Product(BaseModel):
     batch_code = models.CharField('Batch Code', max_length=25, null=True, blank=True)
 
     status = models.CharField('Stage', choices=STATUSES, max_length=25)
+
+    batch_code_applied = models.BooleanField('Batch code applied', default=False)
+    best_before_applied = models.BooleanField('Best before applied', default=False)
+    quality_check_successful = models.BooleanField('Quality check successful', default=False)
 
     def __str__(self):
         return f'{self.product_type} - {self.batch_code}'
