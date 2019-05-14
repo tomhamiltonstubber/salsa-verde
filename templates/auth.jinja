@@ -44,6 +44,7 @@
         </div>
       {% endif %}
       {% block content %}{% endblock %}
+      <form id="post-form" method="POST">{% csrf_token %}</form>
     </div>
   </div>
 {% endblock %}
