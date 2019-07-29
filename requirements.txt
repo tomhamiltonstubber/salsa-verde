@@ -7,7 +7,7 @@ django-bootstrap3-datetimepicker-2==2.8.2
 django-jinja-bootstrap-form==4.2.3
 django-storages==1.7.1
 ipython==7.7.0
-psycopg2-binary==2.8.2
+psycopg2-binary==2.8.3
 pyinotify==0.9.6
 gunicorn==19.9.0
 whitenoise==4.1.2
