@@ -2,7 +2,7 @@ Django==2.2.5
 grablib[build]==0.7.4
 boto3==1.9.225
 dj-database-url==0.5.0
-django-extensions==2.1.7
+django-extensions==2.2.1
 django-bootstrap3-datetimepicker-2==2.8.2
 django-jinja-bootstrap-form==4.2.3
 django-storages==1.7.1
