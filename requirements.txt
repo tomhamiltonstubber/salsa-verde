@@ -1,6 +1,6 @@
 Django==2.2.6
 grablib[build]==0.7.4
-boto3==1.9.156
+boto3==1.9.249
 dj-database-url==0.5.0
 django-extensions==2.1.7
 django-bootstrap3-datetimepicker-2==2.8.2
