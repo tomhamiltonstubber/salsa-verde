@@ -1,0 +1,28 @@
+{% extends 'auth.jinja' %}
+
+{% block content %}
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <td><b>Order</b></td>
+        <td><b>Created</b></td>
+        <td><b>Customer</b></td>
+        <td><b>Total</b></td>
+        <td><b>Location</b></td>
+        <td><b>Status</b></td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in view.get_orders() %}
+        <tr>
+          <td>{{ order.name }}</td>
+          <td>{{ view.created_at(order.created_at) }}</td>
+          <td>{{ order.billing_address.first_name }} {{ order.billing_address.last_name }}</td>
+          <td>£{{ order.total_price }}</td>
+          <td>{{ view.get_location(order) }}</td>
+          <td>{{ order.fulfillment_status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -211,7 +211,6 @@ class ExtraContentView(BasicView):
     def get_absolute_url(obj):
         if hasattr(obj, 'get_absolute_url'):
             return obj.get_absolute_url()
-        return
 
     def _get_extra_content(self):
         for item in self.extra_display_items():
