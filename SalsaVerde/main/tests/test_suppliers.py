@@ -54,8 +54,8 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, f'<a href="tel:{sup.phone}">{sup.phone}</a>')
         sup = SupplierFactory(company=self.company, street='123 fake st', email=None, phone=None)
         r = self.client.get(reverse('suppliers-details', args=[sup.pk]))
-        self.assertNotContains(r, f'<a href="mailto:')
-        self.assertNotContains(r, f'<a href="tel:')
+        self.assertNotContains(r, '<a href="mailto:')
+        self.assertNotContains(r, '<a href="tel:')
 
     def test_supplier_list(self):
         sup = SupplierFactory(company=self.company, street='123 fake st')
