@@ -101,9 +101,9 @@ class DisplayHelpers:
         if isinstance(v, datetime.datetime):
             return display_dt(v)
         elif v is True:
-            return mark_safe(f'<span class="fa fa-check"></span')
+            return mark_safe('<span class="fa fa-check"></span')
         elif v is False:
-            return mark_safe(f'<span class="fa fa-times"></span')
+            return mark_safe('<span class="fa fa-times"></span')
         return v or '–'
 
     def _display_label(self, item, obj):
@@ -198,7 +198,7 @@ class AddModelView(FormView, CreateView):
 
 class UpdateModelView(QuerySetMixin, FormView, UpdateView, ObjMixin):
     def get_title(self):
-        return self.title or f'Edit %s' % self.object
+        return self.title or 'Edit %s' % self.object
 
 
 class ExtraContentView(BasicView):

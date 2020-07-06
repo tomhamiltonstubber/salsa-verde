@@ -140,7 +140,7 @@ class Supplier(CompanyNameBaseModel):
         return 'suppliers'
 
     def get_absolute_url(self):
-        return reverse(f'suppliers-details', kwargs={'pk': self.pk})
+        return reverse('suppliers-details', kwargs={'pk': self.pk})
 
     class Meta:
         ordering = 'name',
@@ -238,7 +238,7 @@ class ContainerType(CompanyNameBaseModel):
         return 'container-types'
 
     def get_absolute_url(self):
-        return reverse(f'container-types-details', kwargs={'pk': self.pk})
+        return reverse('container-types-details', kwargs={'pk': self.pk})
 
     class Meta:
         verbose_name = 'Container Type'
@@ -271,7 +271,7 @@ class Container(BaseModel):
         return 'containers'
 
     def get_absolute_url(self):
-        return reverse(f'containers-details', kwargs={'pk': self.pk})
+        return reverse('containers-details', kwargs={'pk': self.pk})
 
     def __str__(self):
         return mark_safe(f'{self.name} - {self.batch_code}')
@@ -347,7 +347,7 @@ class ProductType(CompanyNameBaseModel):
         return 'product-types'
 
     def get_absolute_url(self):
-        return reverse(f'product-types-details', kwargs={'pk': self.pk})
+        return reverse('product-types-details', kwargs={'pk': self.pk})
 
     def display_ingredient_types(self):
         return ', '.join(self.ingredient_types.values_list('name', flat=True).order_by('name'))
@@ -373,7 +373,7 @@ class ProductTypeSize(models.Model):
     name = models.CharField('Name', max_length=40, null=True, blank=True)
 
     def get_absolute_url(self):
-        return reverse(f'product-type-sizes-edit', kwargs={'pk': self.pk})
+        return reverse('product-type-sizes-edit', kwargs={'pk': self.pk})
 
     @classmethod
     def prefix(cls):
@@ -415,7 +415,7 @@ class Product(BaseModel):
         return f'{self.product_type} - {self.batch_code}'
 
     def get_absolute_url(self):
-        return reverse(f'products-details', kwargs={'pk': self.pk})
+        return reverse('products-details', kwargs={'pk': self.pk})
 
     @classmethod
     def prefix(cls):
