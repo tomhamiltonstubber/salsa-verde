@@ -7,7 +7,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse, NoReverseMatch
 from django.utils.safestring import mark_safe
 from django.views import View
-from django.views.generic import TemplateView, CreateView, UpdateView
+from django.views.generic import TemplateView, CreateView, UpdateView, FormView
 
 
 def get_nav_menu():
@@ -182,7 +182,7 @@ class ObjMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class FormView(DisplayHelpers):
+class SVModelFormView(DisplayHelpers):
     template_name = 'form_view.jinja'
 
     def get_form_kwargs(self):
@@ -191,12 +191,21 @@ class FormView(DisplayHelpers):
         return kwargs
 
 
-class AddModelView(FormView, CreateView):
+class SVFormView(DisplayHelpers, FormView):
+    template_name = 'form_view.jinja'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update(request=self.request)
+        return kwargs
+
+
+class AddModelView(SVModelFormView, CreateView):
     def get_title(self):
         return self.title or 'Create new %s' % self.model._meta.verbose_name
 
 
-class UpdateModelView(QuerySetMixin, FormView, UpdateView, ObjMixin):
+class UpdateModelView(QuerySetMixin, SVModelFormView, UpdateView, ObjMixin):
     def get_title(self):
         return self.title or f'Edit %s' % self.object
 
