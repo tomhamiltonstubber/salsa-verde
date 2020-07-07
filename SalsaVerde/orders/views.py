@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 from django import forms
 from django.conf import settings
 from django.core.cache import cache
+from django.shortcuts import redirect
 from django.utils.timezone import now
 from django.views.generic import TemplateView
 
@@ -34,10 +35,14 @@ def get_ef_auth_token():
     return token
 
 
-def expressfreight_request(url):
+def expressfreight_request(url, data, method='GET'):
     if not (token := cache.get('ef_auth_token')):
         token = get_ef_auth_token()
-    r = session.get(f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'})
+    if method == 'POST':
+        r = session.post(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'}, json=data)
+    else:
+        r = session.get(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'})
+    debug(r.content.decode())
     r.raise_for_status()
     return r.json()
 
@@ -71,10 +76,11 @@ class ExpressFreightLabelForm(forms.Form):
     town = forms.CharField()
     county = forms.CharField()
     postcode = forms.CharField()
+    country = forms.ChoiceField(choices=[('NORTH IRELAND', 'NI'), ('REST OF IRELAND', 'ROI')])
     phone = forms.CharField()
-    region = forms.ChoiceField(choices=[('North of Ireland', 'NI'), (2, 'REST OF IRELAND')])
     item_type = forms.ChoiceField(choices=[('carton', 'Carton'), ('pallet', 'Pallet')])
     item_count = forms.IntegerField()
+    despatch_date = forms.DateField()
 
     def __init__(self, shopify_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -86,6 +92,7 @@ class ExpressFreightLabelForm(forms.Form):
         self.fields['county'].initial = address['province']
         self.fields['postcode'].initial = address['zip']
         self.fields['phone'].initial = address['phone']
+        self.fields['despatch_date'].widget.attrs = {'daysOfWeekDisabled': [0, 6], 'format': 'LT'}
 
 
 class ExpressFreightLabelCreate(SVFormView, TemplateView):
@@ -114,9 +121,21 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
             'contactNo': cd['phone'],
             'orderReference': self.order_data['id'],
             'serviceType': 'STANDARD',
-            'consigne'
+            'consigneeRegion': cd['country'],
+            'items': [
+                {
+                    'itemType': cd['item_type'],
+                    'itemWeight': 0,
+                    'itemHeight': 0,
+                    'itemWidth': 0,
+                    'itemLength': 0,
+                    'dangerousGoods': False,
+                } for _ in cd['item_count']
+            ]
         }
-        pass
+        data = expressfreight_request('api/Consignment/CreateConsignment', data=data, method='POST')
+        debug(data)
+        return redirect('/')
 
 
 ef_label_create = ExpressFreightLabelCreate.as_view()
