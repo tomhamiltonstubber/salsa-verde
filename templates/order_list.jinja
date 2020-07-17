@@ -10,6 +10,7 @@
         <td><b>Total</b></td>
         <td><b>Location</b></td>
         <td><b>Status</b></td>
+        <td></td>
       </tr>
     </thead>
     <tbody>
@@ -20,7 +21,10 @@
           <td>{{ order.billing_address.first_name }} {{ order.billing_address.last_name }}</td>
           <td>£{{ order.total_price }}</td>
           <td>{{ view.get_location(order) }}</td>
-          <td>{{ order.fulfillment_status }}</td>
+          <td>{{ order.fulfillment_status or 'Not fulfilled'}}</td>
+          <td><a href="{{ url('fulfill-order', order_id=order.id) }}" class="btn btn-primary">
+            <span class="fa fa-truck"></span>&nbsp;Fullfil order
+          </a></td>
         </tr>
       {% endfor %}
     </tbody>

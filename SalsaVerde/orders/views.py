@@ -1,22 +1,27 @@
+import logging
 from datetime import datetime
 from operator import itemgetter
 from urllib.parse import urlencode
 
 import requests
 from dateutil.relativedelta import relativedelta
-from django import forms
 from django.conf import settings
+from django.contrib import messages
 from django.core.cache import cache
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.timezone import now
 from django.views.generic import TemplateView
 
 from SalsaVerde.main.views.base_views import DisplayHelpers, SVFormView
+from SalsaVerde.orders.forms import ExpressFreightLabelForm, DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES
 
 session = requests.Session()
+logger = logging.getLogger('SV.request')
 
 
 def shopify_request(url):
+    logger.info(f'Making request to Shopify {url}')
     r = session.get(f'{settings.SHOPIFY_BASE_URL}/{url}', auth=(settings.SHOPIFY_API_KEY, settings.SHOPIFY_PASSWORD))
     r.raise_for_status()
     return r.json()
@@ -29,20 +34,21 @@ def get_ef_auth_token():
         'username': settings.EF_USERNAME,
         'password': settings.EF_PASSWORD,
     }
-    data = expressfreight_request(f'/Token/GetNewToken?{urlencode(auth_data)}')
-    token = data['bearerToken']
+    r = session.get(f'{settings.EF_URL}/Token/GetNewToken?{urlencode(auth_data)}')
+    r.raise_for_status()
+    token = r.json()['bearerToken']
     cache.set('ef_auth_token', token, 86400)
     return token
 
 
-def expressfreight_request(url, data, method='GET'):
+def expressfreight_request(url, data=None, method='GET'):
+    logger.info(f'Making request to ExpressFreight {url}')
     if not (token := cache.get('ef_auth_token')):
         token = get_ef_auth_token()
     if method == 'POST':
         r = session.post(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'}, json=data)
     else:
         r = session.get(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'})
-    debug(r.content.decode())
     r.raise_for_status()
     return r.json()
 
@@ -68,74 +74,42 @@ class ShopifyOrdersView(DisplayHelpers, TemplateView):
 shopify_orders = ShopifyOrdersView.as_view()
 
 
-class ExpressFreightLabelForm(forms.Form):
-    shopify_order = forms.CharField(label='Shopify Order ID', disabled=True)
-    name = forms.CharField()
-    first_line = forms.CharField()
-    second_line = forms.CharField()
-    town = forms.CharField()
-    county = forms.CharField()
-    postcode = forms.CharField()
-    country = forms.ChoiceField(choices=[('NORTH IRELAND', 'NI'), ('REST OF IRELAND', 'ROI')])
-    phone = forms.CharField()
-    item_type = forms.ChoiceField(choices=[('carton', 'Carton'), ('pallet', 'Pallet')])
-    item_count = forms.IntegerField()
-    despatch_date = forms.DateField()
-
-    def __init__(self, shopify_data, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        address = shopify_data['shipping_address']
-        self.fields['name'].initial = address['first_name'] + address['last_name']
-        self.fields['first_line'].initial = address['address1']
-        self.fields['second_line'].initial = address['address2']
-        self.fields['town'].initial = address['city']
-        self.fields['county'].initial = address['province']
-        self.fields['postcode'].initial = address['zip']
-        self.fields['phone'].initial = address['phone']
-        self.fields['despatch_date'].widget.attrs = {'daysOfWeekDisabled': [0, 6], 'format': 'LT'}
-
-
 class ExpressFreightLabelCreate(SVFormView, TemplateView):
-    template_name = 'ef-label-create.jinja'
+    template_name = 'ef_order_form.jinja'
     form_class = ExpressFreightLabelForm
+    title = 'Create shipping order'
 
     def get(self, request, *args, **kwargs):
-        self.order_data = shopify_request(f"orders/{kwargs['order_id']}.json")
+        self.order_data = shopify_request(f'orders/{self.order_id}.json')
         return super().get(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.order_id = kwargs['order_id']
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(
+            dublin_counties=dict(DUBLIN_COUNTIES),
+            ie_counties=dict(IE_COUNTIES),
+            ni_counties=dict(NI_COUNTIES),
+        )
+        return ctx
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update(shopify_order=self.order_data)
+        kwargs['order_id'] = self.order_id
+        if not self.request.POST:
+            kwargs.update(shopify_data=self.order_data['order'])
         return kwargs
 
     def form_valid(self, form):
-        cd = form.cleaned_data
-        data = {
-            'consigneeName': cd['name'],
-            'consigneeStreet': cd['first_line'],
-            'consigneeStreet2': cd['second_line'],
-            'consigneeCity': cd['town'],
-            'consigneeCounty': cd['province'],
-            'consigneePostcode': cd['postcode'],
-            'contactName': cd['name'],
-            'contactNo': cd['phone'],
-            'orderReference': self.order_data['id'],
-            'serviceType': 'STANDARD',
-            'consigneeRegion': cd['country'],
-            'items': [
-                {
-                    'itemType': cd['item_type'],
-                    'itemWeight': 0,
-                    'itemHeight': 0,
-                    'itemWidth': 0,
-                    'itemLength': 0,
-                    'dangerousGoods': False,
-                } for _ in cd['item_count']
-            ]
-        }
-        data = expressfreight_request('api/Consignment/CreateConsignment', data=data, method='POST')
+        data = form.ef_form_data()
         debug(data)
-        return redirect('/')
+        r_data = expressfreight_request('Consignment/CreateConsignment', data=data, method='POST')
+        debug(r_data)
+        messages.success(self.request, 'Order created')
+        return redirect(reverse('shopify-orders'))
 
 
 ef_label_create = ExpressFreightLabelCreate.as_view()

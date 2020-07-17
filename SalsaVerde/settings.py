@@ -183,7 +183,7 @@ SHOPIFY_BASE_URL = os.getenv(
 # ExpressFreight
 # =======================================
 
-EF_URL = os.getenv('EF_URL', 'https://testwebservices.expressfreight.co.uk:10813/api')
+EF_URL = os.getenv('EF_URL', 'https://online.expressfreight.co.uk:10813/api')
 EF_USERNAME = os.getenv('EF_USERNAME', 'MANUALUSER')
 EF_PASSWORD = os.getenv('EF_PASSWORD')
 EF_CLIENT_ID = os.getenv('EF_CLIENT_ID', 'MANUALCLIENT')

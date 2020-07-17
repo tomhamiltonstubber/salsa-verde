@@ -4,17 +4,25 @@ from SalsaVerde.main.models import GoodsIntake, Document
 from SalsaVerde.main.widgets import DateTimePicker
 
 
-class SVModelForm(forms.ModelForm):
-    full_width = False
-
+class SVFormMixin:
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         for field in self.fields:
             if isinstance(self.fields[field].widget, forms.DateTimeInput):
                 self.fields[field].widget = DateTimePicker(self.fields[field])
-            if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
+            # elif isinstance(self.fields[field].widget, forms.DateInput):
+            #     self.fields[field].widget = DateTimePicker(self.fields[field], dt_type='date')
+            elif isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
                 self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
+
+
+class SVForm(SVFormMixin, forms.Form):
+    pass
+
+
+class SVModelForm(SVFormMixin, forms.ModelForm):
+    full_width = False
 
 
 class GoodsIntakeForm(SVModelForm):

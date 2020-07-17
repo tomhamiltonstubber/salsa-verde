@@ -8,4 +8,4 @@ coverage.xml
 /staticfiles
 .pytest_cache/
 *.dump
-/localsettings.py
+localsettings.py
