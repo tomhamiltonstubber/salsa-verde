@@ -14,12 +14,13 @@ from SalsaVerde.storage_backends import PrivateMediaStorage
 
 class Company(models.Model):
     name = models.CharField('Name', max_length=255)
+    website = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return self.name
 
 
-class CompanyQuerySet(QuerySet):
+class CompanyQueryset(QuerySet):
     def request_qs(self, request):
         return self.filter(company=request.user.company)
 
@@ -39,7 +40,7 @@ class BaseModel(models.Model):
 class CompanyNameBaseModel(BaseModel):
     name = models.CharField('Name', max_length=255)
     company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
-    objects = CompanyQuerySet.as_manager()
+    objects = CompanyQueryset.as_manager()
 
     def __str__(self):
         return self.name
@@ -65,7 +66,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    objects = UserManager.from_queryset(CompanyQuerySet)()
+    objects = UserManager.from_queryset(CompanyQueryset)()
 
     company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
 

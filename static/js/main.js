@@ -27,6 +27,9 @@ $(document).ready(() => {
     })
   })
   init_confirm_follow()
+  if ($('#order-list').length) {
+    init_ef_form()
+  }
 })
 
 function init_confirm_follow () {
@@ -84,4 +87,33 @@ function init_confirm_follow () {
     }
     form.submit()
   })
+}
+
+function reset_choices ($select, choices) {
+  $select.empty()
+  $.each(choices, (k, v) => {
+    $select.append($('<option></option>').attr('value', k).text(v))
+  })
+  $select.select2()
+}
+
+function init_ef_form() {
+  const $county = $('#id_county')
+  const $postcode = $('#id_postcode')
+  const check_county_choices = v => {
+    if (v === 'DUBLIN') {
+      reset_choices($county, window.dublin_counties)
+      $postcode.val(null).addClass('disabled').attr('disabled', true)
+    } else if (v === 'NORTH IRELAND') {
+      reset_choices($county, window.ni_counties)
+      $postcode.removeClass('disabled').removeAttr('disabled')
+    } else {
+      reset_choices($county, window.ie_counties)
+      $postcode.val(null).addClass('disabled').attr('disabled', true)
+    }
+  }
+  $('#id_region').change(function () {
+    check_county_choices($(this).val())
+  })
+  check_county_choices($('#id_region').val())
 }

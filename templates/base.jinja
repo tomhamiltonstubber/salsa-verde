@@ -19,6 +19,7 @@
     {% block body %}{% endblock %}
   </body>
   <footer>
+    {% block extra_js %}{% endblock %}
     <form id="post-form" method="POST">{% csrf_token %}</form>
   </footer>
 </html>
