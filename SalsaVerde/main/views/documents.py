@@ -1,6 +1,7 @@
 from SalsaVerde.main.forms.documents import UpdateDocumentForm
-from .base_views import ListView, DetailView, AddModelView, UpdateModelView
 from SalsaVerde.main.models import Document
+
+from .base_views import AddModelView, DetailView, ListView, UpdateModelView
 
 
 class DocumentsList(ListView):

@@ -1,14 +1,13 @@
 from datetime import datetime
-
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.main.factories.raw_materials import IngredientTypeFactory, IngredientFactory
+from SalsaVerde.main.factories.raw_materials import IngredientFactory, IngredientTypeFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
-from SalsaVerde.main.models import IngredientType, Ingredient, GoodsIntake, Document
-from SalsaVerde.main.tests.test_common import _empty_formset, AuthenticatedClient, refresh
+from SalsaVerde.main.models import Document, GoodsIntake, Ingredient, IngredientType
+from SalsaVerde.main.tests.test_common import AuthenticatedClient, _empty_formset, refresh
 
 
 class IngredientTypeTestCase(TestCase):
@@ -106,8 +105,13 @@ class IngredientTestCase(TestCase):
 
     def test_edit_ingredient(self):
         gi = GoodsIntake.objects.create(intake_user=self.user)
-        ingred = Ingredient.objects.create(ingredient_type=self.ingredient_type, batch_code='foo123',
-                                           quantity=10, supplier=self.supplier, goods_intake=gi)
+        ingred = Ingredient.objects.create(
+            ingredient_type=self.ingredient_type,
+            batch_code='foo123',
+            quantity=10,
+            supplier=self.supplier,
+            goods_intake=gi,
+        )
         r = self.client.get(reverse('ingredients-edit', args=[ingred.pk]))
         self.assertContains(r, 'foo123')
         data = {

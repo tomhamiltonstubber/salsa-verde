@@ -1,6 +1,5 @@
 import os
 import re
-
 from django.conf import settings
 from django.core.management import BaseCommand
 from grablib import Grab, setup_logging
@@ -22,6 +21,7 @@ class Command(BaseCommand):
         self._build()
 
         import pyinotify
+
         wm = pyinotify.WatchManager()
         notifier = pyinotify.Notifier(wm, self._handle_event)
 

@@ -1,11 +1,12 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
-from SalsaVerde.main.forms.containers import UpdateContainerTypeForm, UpdateContainerForm, ContainersFormSet
-from .base_views import UpdateModelView, ListView, AddModelView, DetailView, SVFormsetForm
+from SalsaVerde.main.forms.containers import ContainersFormSet, UpdateContainerForm, UpdateContainerTypeForm
 from SalsaVerde.main.models import Container, ContainerType, Product
+
+from .base_views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class ContainerTypeList(ListView):
@@ -34,12 +35,7 @@ class ContainerTypeDetails(DetailView):
             {
                 'title': 'Containers',
                 'qs': self.object.containers.select_related('container_type').order_by('-goods_intake__intake_date'),
-                'fields': [
-                    'container_type',
-                    'batch_code',
-                    ('Intake date', 'goods_intake__intake_date'),
-                    'supplier',
-                ],
+                'fields': ['container_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier',],
             }
         ]
 
@@ -79,7 +75,8 @@ class ContainerList(ListView):
 
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .filter(finished=self.view_finished)
             .select_related('container_type', 'goods_intake', 'supplier')
         )
@@ -129,8 +126,7 @@ class ContainerDetails(DetailView):
 
     def extra_display_items(self):
         products = (
-            Product.objects
-            .request_qs(self.request)
+            Product.objects.request_qs(self.request)
             .filter(yield_containers__container=self.object)
             .select_related('product_type')
             .order_by('-date_of_bottling')
@@ -139,13 +135,7 @@ class ContainerDetails(DetailView):
             {
                 'title': 'Products used in',
                 'qs': products,
-                'fields': [
-                    'product_type',
-                    'batch_code',
-                    'date_of_infusion',
-                    'date_of_bottling',
-                    'yield_quantity',
-                ]
+                'fields': ['product_type', 'batch_code', 'date_of_infusion', 'date_of_bottling', 'yield_quantity',],
             },
         ]
 

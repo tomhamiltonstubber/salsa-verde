@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.main.models import Company, ProductType, IngredientType, ContainerType
+from SalsaVerde.main.models import Company, ContainerType, IngredientType, ProductType
 from SalsaVerde.main.views.base_views import BasicView, ExtraContentView
 
 
@@ -48,30 +48,19 @@ class Setup(ExtraContentView):
             {
                 'title': 'Product Types',
                 'qs': ProductType.objects.request_qs(self.request),
-                'fields': [
-                    'name',
-                    'ingredient_types',
-                    'code',
-                ],
+                'fields': ['name', 'ingredient_types', 'code',],
                 'add_url': reverse('product-types-add'),
             },
             {
                 'title': 'Ingredient Types',
                 'qs': IngredientType.objects.request_qs(self.request),
-                'fields': [
-                    'name',
-                    'unit',
-                ],
+                'fields': ['name', 'unit',],
                 'add_url': reverse('ingredient-types-add'),
             },
             {
                 'title': 'Container Types',
                 'qs': ContainerType.objects.request_qs(self.request),
-                'fields': [
-                    'name',
-                    'size',
-                    'type',
-                ],
+                'fields': ['name', 'size', 'type',],
                 'add_url': reverse('container-types-add'),
             },
         ]

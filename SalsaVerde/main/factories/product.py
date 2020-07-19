@@ -1,9 +1,8 @@
 import datetime
+import factory
 from django.utils import timezone
 
-import factory
-
-from SalsaVerde.main.factories.raw_materials import ContainerFactory, ProductTypeFactory, IngredientFactory
+from SalsaVerde.main.factories.raw_materials import ContainerFactory, IngredientFactory, ProductTypeFactory
 from SalsaVerde.main.models import Product, ProductIngredient, YieldContainer
 
 
@@ -38,21 +37,21 @@ class ProductFactory(factory.django.DjangoModelFactory):
     product_ingredient_1 = factory.RelatedFactory(
         ProductIngredientFactory,
         'product',
-        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company')
+        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company'),
     )
     product_ingredient_2 = factory.RelatedFactory(
         ProductIngredientFactory,
         'product',
-        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company')
+        ingredient__ingredient_type__company=factory.SelfAttribute('....product_type.company'),
     )
 
     yield_container_1 = factory.RelatedFactory(
         YieldContainerFactory,
         'product',
-        container__container_type__company=factory.SelfAttribute('....product_type.company')
+        container__container_type__company=factory.SelfAttribute('....product_type.company'),
     )
     yield_container_2 = factory.RelatedFactory(
         YieldContainerFactory,
         'product',
-        container__container_type__company=factory.SelfAttribute('....product_type.company')
+        container__container_type__company=factory.SelfAttribute('....product_type.company'),
     )

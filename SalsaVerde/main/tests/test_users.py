@@ -1,6 +1,5 @@
 from datetime import datetime as dt
-
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -17,16 +16,18 @@ class UserTestCase(TestCase):
         self.user = self.client.user
 
     def test_login(self):
-        user = User.objects.create(first_name='Brain', last_name='Johnson', email='testing@salsaverde.com',
-                                   company=self.user.company)
+        user = User.objects.create(
+            first_name='Brain', last_name='Johnson', email='testing@salsaverde.com', company=self.user.company
+        )
         user.set_password('testing1')
         user.save()
         assert user.last_logged_in == dt(2018, 1, 1, tzinfo=timezone.utc)
         client = Client()
         r = client.get(reverse('suppliers'))
         self.assertRedirects(r, reverse('login'))
-        r = client.post(reverse('login'), data={'username': 'testing@salsaverde.com', 'password': 'testing1'},
-                        follow=True)
+        r = client.post(
+            reverse('login'), data={'username': 'testing@salsaverde.com', 'password': 'testing1'}, follow=True
+        )
         self.assertRedirects(r, '/')
         self.assertNotContains(r, 'Login')
         assert refresh(user).last_logged_in.date() == timezone.now().date()
@@ -56,8 +57,9 @@ class UserTestCase(TestCase):
         edit_url = reverse('users-edit', args=[self.user.pk])
         r = self.client.get(edit_url)
         self.assertContains(r, 'Edit Tom Owner')
-        r = self.client.post(edit_url, data={'last_name': 'Foobar', 'email': 'testing@salsaverde.com',
-                                             'first_name': 'Tom'})
+        r = self.client.post(
+            edit_url, data={'last_name': 'Foobar', 'email': 'testing@salsaverde.com', 'first_name': 'Tom'}
+        )
         self.assertRedirects(r, reverse('users-details', args=[self.user.pk]))
         assert refresh(self.user).last_name == 'Foobar'
 

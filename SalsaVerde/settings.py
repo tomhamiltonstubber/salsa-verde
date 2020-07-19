@@ -35,15 +35,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'django_extensions',
     'bootstrapform_jinja',
     'storages',
     'bootstrap3_datetime',
     'debug_toolbar',
     'raven.contrib.django.raven_compat',
-
     'SalsaVerde.main',
+    'SalsaVerde.orders',
 ]
 
 MIDDLEWARE = [
@@ -54,10 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'SalsaVerde.main.middleware.AuthRequiredMiddleware',
 ]
 
@@ -68,9 +65,7 @@ TEMPLATES = [
         "BACKEND": "django_jinja.backend.Jinja2",
         "APP_DIRS": True,
         'DIRS': ['templates'],
-        "OPTIONS": {
-            "match_extension": ".jinja",
-        }
+        "OPTIONS": {"match_extension": ".jinja",},
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -100,6 +95,7 @@ if LIVE:
 
 if LIVE:
     import dj_database_url
+
     DATABASES = {'default': dj_database_url.config()}
 else:
     DATABASES = {
@@ -118,18 +114,10 @@ else:
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -138,6 +126,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
+DATE_FORMAT = '%d/%m/%Y'
 
 AUTH_USER_MODEL = 'main.User'
 
@@ -165,3 +154,30 @@ else:
 
 
 PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
+
+
+# =======================================
+# Shopify
+# =======================================
+SHOPIFY_API_KEY = os.getenv('SHOPIFY_API_KEY')
+SHOPIFY_PASSWORD = os.getenv('SHOPIFY_PASSWORD')
+SHOPIFY_SHARED_KEY = os.getenv('SHOPIFY_SHARED_KEY')
+SHOPIFY_API_VERSION = os.getenv('SHOPIFY_API_VERSION', '2020-07')
+SHOPIFY_BASE_URL = os.getenv(
+    'SHOPIFY_BASE_URL', f'https://burren-balsamics.myshopify.com/admin/api/{SHOPIFY_API_VERSION}'
+)
+
+# =======================================
+# ExpressFreight
+# =======================================
+
+EF_URL = os.getenv('EF_URL', 'https://online.expressfreight.co.uk:10813/api')
+EF_USERNAME = os.getenv('EF_USERNAME', 'MANUALUSER')
+EF_PASSWORD = os.getenv('EF_PASSWORD')
+EF_CLIENT_ID = os.getenv('EF_CLIENT_ID', 'MANUALCLIENT')
+EF_CLIENT_SECRET = os.getenv('EF_CLIENT_SECRET')
+
+try:
+    from localsettings import *
+except ImportError:
+    pass

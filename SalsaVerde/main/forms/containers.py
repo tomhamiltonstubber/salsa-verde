@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.main.forms.base_forms import SVModelForm
-from SalsaVerde.main.models import ContainerType, Container, GoodsIntake, YieldContainer, Product
+from SalsaVerde.main.models import Container, ContainerType, GoodsIntake, Product, YieldContainer
 
 
 class UpdateContainerTypeForm(SVModelForm):
@@ -33,19 +33,17 @@ ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateCo
 
 class YieldContainersForm(SVModelForm):
     title = 'Containers'
-    container = forms.ModelChoiceField(queryset=(
-        Container.objects
-        .filter(finished=False)
-        .exclude(container_type__type=ContainerType.TYPE_CAP)
-    ))
-    cap = forms.ModelChoiceField(queryset=(
-        Container.objects
-        .filter(finished=False, container_type__type=ContainerType.TYPE_CAP)
-    ), required=False)
+    container = forms.ModelChoiceField(
+        queryset=(Container.objects.filter(finished=False).exclude(container_type__type=ContainerType.TYPE_CAP))
+    )
+    cap = forms.ModelChoiceField(
+        queryset=(Container.objects.filter(finished=False, container_type__type=ContainerType.TYPE_CAP)), required=False
+    )
 
     def clean(self):
-        if (self.cleaned_data['container'].container_type.type == ContainerType.TYPE_BOTTLE and
-                not self.cleaned_data.get('cap')):
+        if self.cleaned_data[
+            'container'
+        ].container_type.type == ContainerType.TYPE_BOTTLE and not self.cleaned_data.get('cap'):
             raise forms.ValidationError('You must select a cap if you are filling a bottle')
         return self.cleaned_data
 
@@ -53,9 +51,7 @@ class YieldContainersForm(SVModelForm):
         obj = super().save(commit)
         if self.cleaned_data['cap']:
             YieldContainer.objects.create(
-                container=self.cleaned_data['cap'],
-                quantity=self.cleaned_data['quantity'],
-                product_id=obj.product.id
+                container=self.cleaned_data['cap'], quantity=self.cleaned_data['quantity'], product_id=obj.product.id
             )
         return obj
 
@@ -64,5 +60,6 @@ class YieldContainersForm(SVModelForm):
         fields = ['container', 'quantity']
 
 
-YieldContainersFormSet = forms.inlineformset_factory(Product, YieldContainer, YieldContainersForm, extra=1,
-                                                     can_delete=False)
+YieldContainersFormSet = forms.inlineformset_factory(
+    Product, YieldContainer, YieldContainersForm, extra=1, can_delete=False
+)

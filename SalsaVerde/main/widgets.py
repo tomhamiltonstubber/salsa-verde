@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.forms import widgets, DateTimeField
+from django.forms import DateTimeField, widgets
 
 DT_OUTER_PICKER_HTML = """\
 <div class="input-group date date-time-picker">
@@ -20,7 +20,7 @@ class DateTimePicker(widgets.DateTimeInput):
             'data-type': 'datetime',
             'data-format': self.format,
             'data-minDate': '1900-01-01',
-            'data-sideBySide': True
+            'data-sideBySide': True,
         }
         formats = [settings.DT_FORMAT]
         self._is_datetime = True
@@ -40,8 +40,7 @@ class DateTimePicker(widgets.DateTimeInput):
             return value.strftime(format)
 
     def render(self, name, value, attrs=None, renderer=None):
-        attrs.update({
-            'data-date': self._data_value(value, '%Y-%m-%d'),
-            'data-time': self._data_value(value, '%H:%M'),
-        })
+        attrs.update(
+            {'data-date': self._data_value(value, '%Y-%m-%d'), 'data-time': self._data_value(value, '%H:%M'),}
+        )
         return DT_OUTER_PICKER_HTML.format(super().render(name, value, attrs=attrs, renderer=renderer))

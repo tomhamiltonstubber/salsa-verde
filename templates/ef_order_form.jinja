@@ -1,0 +1,9 @@
+{% extends 'form_view.jinja' %}
+
+{% block extra_js %}
+  <script id="order-list">
+    window.ni_counties = {{ ni_counties | safe }}
+    window.ie_counties = {{ ie_counties | safe }}
+    window.dublin_counties = {{ dublin_counties | safe }}
+  </script>
+{% endblock %}

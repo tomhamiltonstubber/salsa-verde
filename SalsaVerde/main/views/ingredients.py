@@ -1,12 +1,12 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-
 from django.views.decorators.http import require_POST
 
-from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm
 from SalsaVerde.main.forms.base_forms import GoodsIntakeForm
-from SalsaVerde.main.forms.ingredients import UpdateIngredientTypeForm, UpdateIngredientsForm, IngredientsFormSet
+from SalsaVerde.main.forms.ingredients import IngredientsFormSet, UpdateIngredientsForm, UpdateIngredientTypeForm
 from SalsaVerde.main.models import Ingredient, IngredientType, Product
+
+from .base_views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class IngredientTypeList(ListView):
@@ -33,12 +33,7 @@ class IngredientTypeDetails(DetailView):
             {
                 'title': 'Ingredients',
                 'qs': self.object.ingredients.select_related('ingredient_type').order_by('-goods_intake__intake_date'),
-                'fields': [
-                    'ingredient_type',
-                    'batch_code',
-                    ('Intake date', 'goods_intake__intake_date'),
-                    'supplier',
-                ],
+                'fields': ['ingredient_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier',],
             }
         ]
 
@@ -78,7 +73,8 @@ class IngredientList(ListView):
 
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .filter(finished=self.view_finished)
             .select_related('ingredient_type', 'goods_intake', 'supplier')
         )
@@ -117,8 +113,7 @@ class IngredientDetails(DetailView):
 
     def extra_display_items(self):
         products = (
-            Product.objects
-            .request_qs(self.request)
+            Product.objects.request_qs(self.request)
             .filter(product_ingredients__ingredient=self.object)
             .select_related('product_type')
             .order_by('-date_of_bottling')
@@ -127,13 +122,7 @@ class IngredientDetails(DetailView):
             {
                 'title': 'Products used in',
                 'qs': products,
-                'fields': [
-                    'product_type',
-                    'batch_code',
-                    'date_of_infusion',
-                    'date_of_bottling',
-                    'yield_quantity',
-                ],
+                'fields': ['product_type', 'batch_code', 'date_of_infusion', 'date_of_bottling', 'yield_quantity',],
             }
         ]
 
