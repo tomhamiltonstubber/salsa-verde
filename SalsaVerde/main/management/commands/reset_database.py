@@ -6,8 +6,7 @@ class Command(BaseCommand):
     help = 'Recreates database schema and populates it with fake data'
 
     def add_arguments(self, parser):
-        parser.add_argument('--create-demo-data', action='store_true',
-                            dest='create_demo_data', default=False, help='')
+        parser.add_argument('--create-demo-data', action='store_true', dest='create_demo_data', default=False, help='')
 
     def handle(self, *args, **options):
 

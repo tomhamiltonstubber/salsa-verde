@@ -1,6 +1,6 @@
 from django import forms
 
-from SalsaVerde.main.models import GoodsIntake, Document
+from SalsaVerde.main.models import Document, GoodsIntake
 from SalsaVerde.main.widgets import DateTimePicker
 
 

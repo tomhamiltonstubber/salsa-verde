@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.main.forms.base_forms import SVModelForm
-from SalsaVerde.main.models import IngredientType, Ingredient, GoodsIntake
+from SalsaVerde.main.models import GoodsIntake, Ingredient, IngredientType
 
 
 class UpdateIngredientTypeForm(SVModelForm):
@@ -23,8 +23,6 @@ class UpdateIngredientsForm(SVModelForm):
         fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier', 'intake_quality_check']
 
 
-IngredientsFormSet = forms.inlineformset_factory(GoodsIntake,
-                                                 Ingredient,
-                                                 form=UpdateIngredientsForm,
-                                                 extra=1,
-                                                 can_delete=False)
+IngredientsFormSet = forms.inlineformset_factory(
+    GoodsIntake, Ingredient, form=UpdateIngredientsForm, extra=1, can_delete=False
+)

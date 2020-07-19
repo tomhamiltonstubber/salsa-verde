@@ -1,13 +1,11 @@
-
 import datetime
-from functools import partial
-
 from django.conf import settings
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse, NoReverseMatch
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django.views import View
-from django.views.generic import TemplateView, CreateView, UpdateView, FormView
+from django.views.generic import CreateView, FormView, TemplateView, UpdateView
+from functools import partial
 
 
 def get_nav_menu():
@@ -46,10 +44,7 @@ class DisplayHelpers:
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            nav_links=get_nav_menu(),
-            title=self.get_title(),
-            button_menu=self.process_button_menu(),
-            **kwargs
+            nav_links=get_nav_menu(), title=self.get_title(), button_menu=self.process_button_menu(), **kwargs
         )
 
     def _object_url(self, rurl):
@@ -157,9 +152,7 @@ class ListView(BasicView):
     model = None
 
     def get_button_menu(self):
-        return [
-            {'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}
-        ]
+        return [{'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}]
 
     def get_field_data(self):
         for obj in self.get_queryset():
@@ -170,8 +163,7 @@ class ListView(BasicView):
 
     def get_context_data(self, **kwargs):
         kwargs.update(
-            field_names=self.get_display_labels(self.get_display_items()),
-            field_data=self.get_field_data(),
+            field_names=self.get_display_labels(self.get_display_items()), field_data=self.get_field_data(),
         )
         return super().get_context_data(**kwargs)
 

@@ -35,14 +35,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'django_extensions',
     'bootstrapform_jinja',
     'storages',
     'bootstrap3_datetime',
     'debug_toolbar',
     'raven.contrib.django.raven_compat',
-
     'SalsaVerde.main',
     'SalsaVerde.orders',
 ]
@@ -55,10 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'SalsaVerde.main.middleware.AuthRequiredMiddleware',
 ]
 
@@ -69,9 +65,7 @@ TEMPLATES = [
         "BACKEND": "django_jinja.backend.Jinja2",
         "APP_DIRS": True,
         'DIRS': ['templates'],
-        "OPTIONS": {
-            "match_extension": ".jinja",
-        }
+        "OPTIONS": {"match_extension": ".jinja",},
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -101,6 +95,7 @@ if LIVE:
 
 if LIVE:
     import dj_database_url
+
     DATABASES = {'default': dj_database_url.config()}
 else:
     DATABASES = {
@@ -119,18 +114,10 @@ else:
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
 LANGUAGE_CODE = 'en-us'

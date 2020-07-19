@@ -1,13 +1,19 @@
 import datetime
-
 import factory
 from django.utils import timezone
 
 from SalsaVerde.main.factories.company import CompanyFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.factories.users import UserFactory
-from SalsaVerde.main.models import IngredientType, ContainerType, ProductType, Ingredient, GoodsIntake, Container, \
-    ProductTypeSize
+from SalsaVerde.main.models import (
+    Container,
+    ContainerType,
+    GoodsIntake,
+    Ingredient,
+    IngredientType,
+    ProductType,
+    ProductTypeSize,
+)
 
 
 class IngredientTypeFactory(factory.django.DjangoModelFactory):
@@ -54,7 +60,7 @@ class ProductTypeSizeFactory(factory.django.DjangoModelFactory):
     product_type = factory.SubFactory(ProductTypeFactory)
     sku_code = '987654'
     bar_code = '123foo456bar'
-    size = .250
+    size = 0.250
 
 
 class GoodsIntakeFactory(factory.django.DjangoModelFactory):
@@ -73,7 +79,7 @@ class IngredientFactory(factory.django.DjangoModelFactory):
     ingredient_type = factory.SubFactory(
         IngredientTypeFactory,
         company=factory.SubFactory(CompanyFactory),
-        name=factory.Sequence(lambda n: 'IngredType%d' % n)
+        name=factory.Sequence(lambda n: 'IngredType%d' % n),
     )
     batch_code = factory.Sequence(lambda n: 'ingred_%d' % n)
     supplier = factory.SubFactory(SupplierFactory, company=factory.SelfAttribute('..ingredient_type.company'))
@@ -90,7 +96,7 @@ class ContainerFactory(factory.django.DjangoModelFactory):
     container_type = factory.SubFactory(
         ContainerTypeFactory,
         company=factory.SubFactory(CompanyFactory),
-        name=factory.Sequence(lambda n: 'ContainerType%d' % n)
+        name=factory.Sequence(lambda n: 'ContainerType%d' % n),
     )
     batch_code = factory.Sequence(lambda n: 'container_%d' % n)
     supplier = factory.SubFactory(SupplierFactory, company=factory.SelfAttribute('..container_type.company'))

@@ -18,8 +18,9 @@ class DocumentTestCase(TestCase):
         r = self.client.get(self.url)
         self.assertContains(r, 'Salsa Form Type')
         other_user = UserFactory(company=self.company)
-        r = self.client.post(self.url, data={'author': self.user.pk, 'focus': other_user.pk,
-                                             'type': Document.FORM_VIS01})
+        r = self.client.post(
+            self.url, data={'author': self.user.pk, 'focus': other_user.pk, 'type': Document.FORM_VIS01}
+        )
         doc = Document.objects.get()
         self.assertRedirects(r, reverse('documents-details', args=[doc.pk]))
         r = self.client.get(reverse('users-details', args=[self.user.pk]))

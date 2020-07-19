@@ -1,25 +1,62 @@
 from django.conf import settings
 from django.contrib.auth import views as auth_views
-from django.urls import path, include
+from django.urls import include, path
 
-from SalsaVerde.main.models import (Container, ContainerType, Ingredient, IngredientType, Supplier, Product,
-                                    ProductType, User, Document)
+from SalsaVerde.main.models import (
+    Container,
+    ContainerType,
+    Document,
+    Ingredient,
+    IngredientType,
+    Product,
+    ProductType,
+    Supplier,
+    User,
+)
 from SalsaVerde.main.views.base_views import DeleteObjectView
-from SalsaVerde.main.views.containers import (containers_list, intake_containers, containers_details, containers_edit,
-                                              container_type_list, container_type_add, container_type_details,
-                                              container_type_edit, change_container_status)
-from SalsaVerde.main.views.documents import (document_list, document_add, document_details, document_edit)
-from SalsaVerde.main.views.ingredients import (ingredient_list, ingredient_details, ingredient_edit,
-                                               change_ingredient_status, ingredient_type_list, ingredient_type_add,
-                                               ingredient_type_details, ingredient_type_edit, intake_ingredients)
-from SalsaVerde.main.views.products import (product_list, product_add, product_details, product_edit, product_type_list,
-                                            product_type_add, product_type_details, product_type_edit,
-                                            product_size_type_edit, product_size_type_add, product_size_type_delete,
-                                            product_bottle, product_ingredient_add, yield_container_add)
-from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
-from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
-from SalsaVerde.main.views.common import login, dashboard, setup
-from SalsaVerde.orders.views import shopify_orders, ef_label_create, dhl_label_create
+from SalsaVerde.main.views.common import dashboard, login, setup
+from SalsaVerde.main.views.containers import (
+    change_container_status,
+    container_type_add,
+    container_type_details,
+    container_type_edit,
+    container_type_list,
+    containers_details,
+    containers_edit,
+    containers_list,
+    intake_containers,
+)
+from SalsaVerde.main.views.documents import document_add, document_details, document_edit, document_list
+from SalsaVerde.main.views.ingredients import (
+    change_ingredient_status,
+    ingredient_details,
+    ingredient_edit,
+    ingredient_list,
+    ingredient_type_add,
+    ingredient_type_details,
+    ingredient_type_edit,
+    ingredient_type_list,
+    intake_ingredients,
+)
+from SalsaVerde.main.views.products import (
+    product_add,
+    product_bottle,
+    product_details,
+    product_edit,
+    product_ingredient_add,
+    product_list,
+    product_size_type_add,
+    product_size_type_delete,
+    product_size_type_edit,
+    product_type_add,
+    product_type_details,
+    product_type_edit,
+    product_type_list,
+    yield_container_add,
+)
+from SalsaVerde.main.views.suppliers import supplier_add, supplier_details, supplier_edit, supplier_list
+from SalsaVerde.main.views.users import user_add, user_details, user_edit, user_list
+from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
 
 user_patterns = [
     path('', user_list, name='users'),
@@ -44,7 +81,6 @@ container_patterns = [
     path('<int:pk>/edit/', containers_edit, name='containers-edit'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Container), name='containers-delete'),
     path('<int:pk>/status/', change_container_status, name='container-status'),
-
     path('types/', container_type_list, name='container-types'),
     path('types/add/', container_type_add, name='container-types-add'),
     path('types/<int:pk>/delete/', DeleteObjectView.as_view(model=ContainerType), name='container-types-delete'),
@@ -59,7 +95,6 @@ ingredient_patterns = [
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Ingredient), name='ingredients-delete'),
     path('<int:pk>/status/', change_ingredient_status, name='ingredient-status'),
     path('intake-goods/ingredients/', intake_ingredients, name='intake-ingredients'),
-
     path('types/', ingredient_type_list, name='ingredient-types'),
     path('types/add/', ingredient_type_add, name='ingredient-types-add'),
     path('types/<int:pk>/', ingredient_type_details, name='ingredient-types-details'),
@@ -84,13 +119,11 @@ product_patterns = [
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Product), name='products-delete'),
     path('<int:pk>/ingredients/add/', product_ingredient_add, name='product-ingredient-add'),
     path('<int:pk>/containers/add/', yield_container_add, name='yield-container-add'),
-
     path('types/', product_type_list, name='product-types'),
     path('types/add/', product_type_add, name='product-types-add'),
     path('types/<int:pk>/', product_type_details, name='product-types-details'),
     path('types/<int:pk>/edit/', product_type_edit, name='product-types-edit'),
     path('types/<int:pk>/delete/', DeleteObjectView.as_view(model=ProductType), name='product-types-delete'),
-
     path('types/size/<int:pk>/edit/', product_size_type_edit, name='product-type-sizes-edit'),
     path('types/size/<int:pk>/delete/', product_size_type_delete, name='product-type-sizes-delete'),
     path('types/<int:product_type>/size/add/', product_size_type_add, name='product-type-sizes-add'),
@@ -101,7 +134,6 @@ urlpatterns = [
     path('login/', login, name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='base.jinja'), name='logout'),
     path('setup/', setup, name='setup'),
-
     path('ingredients/', include(ingredient_patterns)),
     path('products/', include(product_patterns)),
     path('containers/', include(container_patterns)),
@@ -116,6 +148,7 @@ urlpatterns = [
 
 if settings.DEBUG:  # pragma: no cover
     import debug_toolbar
+
     urlpatterns += [
         path('__debug__/', include(debug_toolbar.urls)),
     ]

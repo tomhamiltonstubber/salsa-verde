@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.main.forms.base_forms import SVModelForm
-from SalsaVerde.main.models import ProductType, ProductTypeSize, ProductIngredient, Product
+from SalsaVerde.main.models import Product, ProductIngredient, ProductType, ProductTypeSize
 
 
 class UpdateProductTypeForm(SVModelForm):
@@ -31,8 +31,9 @@ class UpdateProductTypeSizeForm(SVModelForm):
         fields = ['name', 'size', 'sku_code', 'bar_code']
 
 
-ProductTypeSizesFormSet = forms.inlineformset_factory(ProductType, ProductTypeSize, UpdateProductTypeSizeForm, extra=1,
-                                                      can_delete=False)
+ProductTypeSizesFormSet = forms.inlineformset_factory(
+    ProductType, ProductTypeSize, UpdateProductTypeSizeForm, extra=1, can_delete=False
+)
 
 
 class ProductIngredientForm(SVModelForm):
@@ -43,8 +44,9 @@ class ProductIngredientForm(SVModelForm):
         exclude = {'product'}
 
 
-ProductIngredientFormSet = forms.inlineformset_factory(Product, ProductIngredient, form=ProductIngredientForm, extra=1,
-                                                       can_delete=False)
+ProductIngredientFormSet = forms.inlineformset_factory(
+    Product, ProductIngredient, form=ProductIngredientForm, extra=1, can_delete=False
+)
 
 
 class AddProductForm(SVModelForm):
@@ -72,5 +74,12 @@ class UpdateProductForm(SVModelForm):
 
     class Meta:
         model = Product
-        fields = ['date_of_bottling', 'date_of_best_before', 'yield_quantity', 'batch_code', 'batch_code_applied',
-                  'best_before_applied', 'quality_check_successful']
+        fields = [
+            'date_of_bottling',
+            'date_of_best_before',
+            'yield_quantity',
+            'batch_code',
+            'batch_code_applied',
+            'best_before_applied',
+            'quality_check_successful',
+        ]

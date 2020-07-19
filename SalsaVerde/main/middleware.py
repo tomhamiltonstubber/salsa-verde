@@ -1,11 +1,7 @@
 import re
-
 from django.shortcuts import redirect
 
-EXEMPT_URLS = [re.compile(url) for url in [
-    r'/login/$',
-    r'/static/*'
-]]
+EXEMPT_URLS = [re.compile(url) for url in [r'/login/$', r'/static/*']]
 
 
 class AuthRequiredMiddleware(object):

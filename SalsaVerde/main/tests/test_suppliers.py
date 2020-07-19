@@ -2,9 +2,9 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.main.factories.raw_materials import IngredientFactory, ContainerFactory
+from SalsaVerde.main.factories.raw_materials import ContainerFactory, IngredientFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
-from SalsaVerde.main.models import Supplier, IngredientType
+from SalsaVerde.main.models import IngredientType, Supplier
 from SalsaVerde.main.tests.test_common import AuthenticatedClient
 from SalsaVerde.main.views.base_views import display_dt
 
@@ -71,9 +71,15 @@ class SupplierTestCase(TestCase):
     def test_display_ingredients(self):
         date = timezone.now()
         supplier = SupplierFactory(company=self.company)
-        IngredientFactory(ingredient_type__company=self.company, batch_code='foo123', quantity=10,
-                          ingredient_type__name='blackberries', supplier=supplier,
-                          ingredient_type__unit=IngredientType.UNIT_LITRE, goods_intake__intake_date=date)
+        IngredientFactory(
+            ingredient_type__company=self.company,
+            batch_code='foo123',
+            quantity=10,
+            ingredient_type__name='blackberries',
+            supplier=supplier,
+            ingredient_type__unit=IngredientType.UNIT_LITRE,
+            goods_intake__intake_date=date,
+        )
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
         self.assertContains(r, 'Supplied Ingredients')
         self.assertContains(r, 'blackberries')

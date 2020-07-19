@@ -1,7 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-
 # Create your models here.
 from SalsaVerde.main.models import Company, CompanyQueryset
 

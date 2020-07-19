@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.forms import JSONField
@@ -144,7 +143,7 @@ class Supplier(CompanyNameBaseModel):
         return reverse('suppliers-details', kwargs={'pk': self.pk})
 
     class Meta:
-        ordering = 'name',
+        ordering = ('name',)
         verbose_name = 'Supplier'
         verbose_name_plural = 'Suppliers'
 
@@ -166,7 +165,7 @@ class IngredientType(CompanyNameBaseModel):
         return reverse('ingredient-types-details', kwargs={'pk': self.pk})
 
     class Meta:
-        ordering = 'name',
+        ordering = ('name',)
         verbose_name = 'Ingredient Type'
         verbose_name_plural = 'Ingredients Types'
 
@@ -177,17 +176,20 @@ class IngredientQuerySet(QuerySet):
 
 
 class Ingredient(BaseModel):
-    ingredient_type = models.ForeignKey(IngredientType, verbose_name='Ingredient Type',
-                                        related_name='ingredients', on_delete=models.CASCADE)
+    ingredient_type = models.ForeignKey(
+        IngredientType, verbose_name='Ingredient Type', related_name='ingredients', on_delete=models.CASCADE
+    )
     batch_code = models.CharField('Batch Code', max_length=25)
     condition = models.CharField('Condition', max_length=25, default='Good')
-    supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='ingredients',
-                                 null=True, on_delete=models.SET_NULL)
+    supplier = models.ForeignKey(
+        Supplier, verbose_name='Supplier', related_name='ingredients', null=True, on_delete=models.SET_NULL
+    )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey('main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake',
-                                     on_delete=models.CASCADE)
+    goods_intake = models.ForeignKey(
+        'main.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake', on_delete=models.CASCADE
+    )
     finished = models.BooleanField('Finished', default=False)
     objects = IngredientQuerySet.as_manager()
 
@@ -217,7 +219,7 @@ class Ingredient(BaseModel):
         return 'ingredients'
 
     class Meta:
-        ordering = 'ingredient_type__name',
+        ordering = ('ingredient_type__name',)
         verbose_name = 'Ingredient'
         verbose_name_plural = 'Ingredients'
 
@@ -254,17 +256,20 @@ class ContainerQuerySet(QuerySet):
 class Container(BaseModel):
     objects = ContainerQuerySet.as_manager()
 
-    container_type = models.ForeignKey(ContainerType, verbose_name='Container', related_name='containers',
-                                       on_delete=models.CASCADE)
+    container_type = models.ForeignKey(
+        ContainerType, verbose_name='Container', related_name='containers', on_delete=models.CASCADE
+    )
     batch_code = models.CharField('Batch Code', max_length=25)
     condition = models.CharField('Condition', max_length=25, default='Good')
-    supplier = models.ForeignKey(Supplier, verbose_name='Supplier', related_name='containers',
-                                 null=True, on_delete=models.SET_NULL)
+    supplier = models.ForeignKey(
+        Supplier, verbose_name='Supplier', related_name='containers', null=True, on_delete=models.SET_NULL
+    )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey('main.GoodsIntake', related_name='containers', verbose_name='Goods Intake',
-                                     on_delete=models.CASCADE)
+    goods_intake = models.ForeignKey(
+        'main.GoodsIntake', related_name='containers', verbose_name='Goods Intake', on_delete=models.CASCADE
+    )
     finished = models.BooleanField('Finished', default=False)
 
     @classmethod
@@ -302,8 +307,9 @@ class YieldContainerQuerySet(QuerySet):
 class YieldContainer(BaseModel):
     objects = YieldContainerQuerySet.as_manager()
 
-    product = models.ForeignKey('main.Product', verbose_name='Product', related_name='yield_containers',
-                                on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        'main.Product', verbose_name='Product', related_name='yield_containers', on_delete=models.CASCADE
+    )
     container = models.ForeignKey(Container, related_name='yield_containers', on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
@@ -354,7 +360,7 @@ class ProductType(CompanyNameBaseModel):
         return ', '.join(self.ingredient_types.values_list('name', flat=True).order_by('name'))
 
     class Meta:
-        ordering = 'name',
+        ordering = ('name',)
         verbose_name = 'Product Type'
         verbose_name_plural = 'Product Types'
 
@@ -396,14 +402,16 @@ class Product(BaseModel):
 
     objects = ProductQuerySet.as_manager()
 
-    product_type = models.ForeignKey(ProductType, verbose_name='Product', related_name='products',
-                                     on_delete=models.CASCADE)
+    product_type = models.ForeignKey(
+        ProductType, verbose_name='Product', related_name='products', on_delete=models.CASCADE
+    )
     date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
     date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now, null=True, blank=True)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now, null=True, blank=True)
 
-    yield_quantity = models.DecimalField('Yield Quantity (in litres)', max_digits=25, decimal_places=3, null=True,
-                                         blank=True)
+    yield_quantity = models.DecimalField(
+        'Yield Quantity (in litres)', max_digits=25, decimal_places=3, null=True, blank=True
+    )
     batch_code = models.CharField('Batch Code', max_length=25, null=True, blank=True)
 
     status = models.CharField('Stage', choices=STATUSES, max_length=25)
@@ -435,8 +443,9 @@ class ProductIngredientQuerySet(QuerySet):
 class ProductIngredient(BaseModel):
     objects = ProductIngredientQuerySet.as_manager()
 
-    product = models.ForeignKey(Product, verbose_name='Product', on_delete=models.CASCADE,
-                                related_name='product_ingredients')
+    product = models.ForeignKey(
+        Product, verbose_name='Product', on_delete=models.CASCADE, related_name='product_ingredients'
+    )
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
 
@@ -494,16 +503,35 @@ class Document(BaseModel):
     objects = DocumentQuerySet.as_manager()
 
     date_created = models.DateTimeField('Date Created', auto_now_add=True)
-    author = models.ForeignKey(User, verbose_name='Author', null=True, blank=True, on_delete=models.SET_NULL,
-                               related_name='documents')
+    author = models.ForeignKey(
+        User, verbose_name='Author', null=True, blank=True, on_delete=models.SET_NULL, related_name='documents'
+    )
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
-    focus = models.ForeignKey('main.User', verbose_name='Associated with', null=True, blank=True,
-                              related_name='focused_documents', on_delete=models.SET_NULL)
-    goods_intake = models.ForeignKey(GoodsIntake, verbose_name='Intake of Goods', null=True, blank=True,
-                                     on_delete=models.SET_NULL, related_name='documents')
-    supplier = models.ForeignKey(Supplier, verbose_name='Linked Supplier', null=True, blank=True,
-                                 on_delete=models.SET_NULL, related_name='documents')
+    focus = models.ForeignKey(
+        'main.User',
+        verbose_name='Associated with',
+        null=True,
+        blank=True,
+        related_name='focused_documents',
+        on_delete=models.SET_NULL,
+    )
+    goods_intake = models.ForeignKey(
+        GoodsIntake,
+        verbose_name='Intake of Goods',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='documents',
+    )
+    supplier = models.ForeignKey(
+        Supplier,
+        verbose_name='Linked Supplier',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='documents',
+    )
     edits = JSONField()
 
     def __str__(self):
@@ -588,8 +616,7 @@ class GlassBreakageReport(Document):
 class PlasterReport(Document):
     recipient = models.ForeignKey(User, related_name='plaster_reports', on_delete=models.CASCADE)
     plaster_check_time = models.DateTimeField('Plaster Check Time')
-    plaster_check_employee = models.ForeignKey(User, null=True, blank=True,
-                                               on_delete=models.SET_NULL)
+    plaster_check_employee = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
 
 def link(link, name):

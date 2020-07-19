@@ -1,8 +1,8 @@
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from SalsaVerde.main.factories.company import CompanyFactory
-from SalsaVerde.main.factories.raw_materials import ProductTypeFactory, IngredientTypeFactory, ContainerTypeFactory
+from SalsaVerde.main.factories.raw_materials import ContainerTypeFactory, IngredientTypeFactory, ProductTypeFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
 from SalsaVerde.main.models import User
 
@@ -38,9 +38,13 @@ class AuthenticatedClient(Client):
 
     def __init__(self):
         super().__init__()
-        self.user = User.objects.create_user(first_name='Tom', last_name='Owner',
-                                             email='owner@salsaverde.com', password='testing',
-                                             company=CompanyFactory())
+        self.user = User.objects.create_user(
+            first_name='Tom',
+            last_name='Owner',
+            email='owner@salsaverde.com',
+            password='testing',
+            company=CompanyFactory(),
+        )
         logged_in = self.login(username=self.user.email, password='testing')
         if not logged_in:  # pragma: no cover
             raise RuntimeError('Not logged in')

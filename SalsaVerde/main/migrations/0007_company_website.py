@@ -10,9 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='company',
-            name='website',
-            field=models.CharField(blank=True, max_length=255),
-        ),
+        migrations.AddField(model_name='company', name='website', field=models.CharField(blank=True, max_length=255),),
     ]

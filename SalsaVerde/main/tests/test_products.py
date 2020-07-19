@@ -1,16 +1,25 @@
 import decimal
 from datetime import datetime
-
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 
 from SalsaVerde.main.factories.product import ProductFactory
-from SalsaVerde.main.factories.raw_materials import (IngredientTypeFactory, ProductTypeFactory, IngredientFactory,
-                                                     ContainerFactory)
-from SalsaVerde.main.models import (ProductType, ProductTypeSize, ContainerType, Product, YieldContainer,
-                                    ProductIngredient)
-from SalsaVerde.main.tests.test_common import _empty_formset, AuthenticatedClient
+from SalsaVerde.main.factories.raw_materials import (
+    ContainerFactory,
+    IngredientFactory,
+    IngredientTypeFactory,
+    ProductTypeFactory,
+)
+from SalsaVerde.main.models import (
+    ContainerType,
+    Product,
+    ProductIngredient,
+    ProductType,
+    ProductTypeSize,
+    YieldContainer,
+)
+from SalsaVerde.main.tests.test_common import AuthenticatedClient, _empty_formset
 
 
 class ProductTypeTestCase(TestCase):
@@ -78,8 +87,9 @@ class ProductTestCase(TestCase):
         self.company = self.user.company
         self.intake_url = reverse('intake-containers')
 
-        self.bottle = ContainerFactory(container_type__type=ContainerType.TYPE_BOTTLE,
-                                       container_type__company=self.company)
+        self.bottle = ContainerFactory(
+            container_type__type=ContainerType.TYPE_BOTTLE, container_type__company=self.company
+        )
         self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
         self.product_type = ProductTypeFactory(company=self.user.company)
         self.product_ingred_mngmnt = _empty_formset('product_ingredients')
@@ -178,16 +188,24 @@ class ProductTestCase(TestCase):
     def test_add_yield_container_no_cap(self):
         product = ProductFactory(product_type=self.product_type)
         url = reverse('yield-container-add', args=[product.pk])
-        container = ContainerFactory(batch_code='foo456', quantity=10, container_type__company=self.company,
-                                     container_type__type=ContainerType.TYPE_BOTTLE)
+        container = ContainerFactory(
+            batch_code='foo456',
+            quantity=10,
+            container_type__company=self.company,
+            container_type__type=ContainerType.TYPE_BOTTLE,
+        )
         r = self.client.post(url, {'container': container.pk, 'quantity': 12})
         self.assertContains(r, 'You must select a cap')
 
     def test_add_yield_container(self):
         product = ProductFactory(product_type=self.product_type)
         url = reverse('yield-container-add', args=[product.pk])
-        container = ContainerFactory(batch_code='foo456', quantity=10, container_type__company=self.company,
-                                     container_type__type=ContainerType.TYPE_OTHER)
+        container = ContainerFactory(
+            batch_code='foo456',
+            quantity=10,
+            container_type__company=self.company,
+            container_type__type=ContainerType.TYPE_OTHER,
+        )
         r = self.client.get(url)
         assert r.status_code == 200
         r = self.client.post(url, {'container': container.pk, 'quantity': 12}, follow=True)
@@ -213,11 +231,11 @@ class ProductTypeSizeTestCase(TestCase):
         self.product_type = ProductTypeFactory(company=self.client.user.company)
 
     def test_pst_form(self):
-        r = self.client.post(reverse('product-type-sizes-add', args=[self.product_type.pk]), data={
-            'name': 'PTS1',
-            'size': '100',
-            'sku_code': '123'
-        }, follow=True)
+        r = self.client.post(
+            reverse('product-type-sizes-add', args=[self.product_type.pk]),
+            data={'name': 'PTS1', 'size': '100', 'sku_code': '123'},
+            follow=True,
+        )
         self.assertRedirects(r, self.product_type.get_absolute_url())
         pts = ProductTypeSize.objects.get()
         assert pts.size == 100
@@ -227,11 +245,11 @@ class ProductTypeSizeTestCase(TestCase):
 
         r = self.client.get(reverse('product-type-sizes-edit', args=[pts.pk]))
         self.assertContains(r, 'PTS1')
-        r = self.client.post(reverse('product-type-sizes-edit', args=[pts.pk]), data={
-            'name': 'PTS2',
-            'size': '100',
-            'sku_code': '456'
-        }, follow=True)
+        r = self.client.post(
+            reverse('product-type-sizes-edit', args=[pts.pk]),
+            data={'name': 'PTS2', 'size': '100', 'sku_code': '456'},
+            follow=True,
+        )
         self.assertRedirects(r, self.product_type.get_absolute_url())
         pts = ProductTypeSize.objects.get()
         assert pts.size == 100

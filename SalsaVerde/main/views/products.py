@@ -1,15 +1,23 @@
 import textwrap
-
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
-from SalsaVerde.main.forms.containers import YieldContainersFormSet, YieldContainersForm
-from .base_views import DetailView, UpdateModelView, ListView, AddModelView, SVFormsetForm, DeleteObjectView
-from SalsaVerde.main.forms.products import (ProductIngredientFormSet, UpdateProductForm, UpdateProductTypeForm,
-                                            ProductTypeSizesFormSet, UpdateProductTypeSizeForm, AddProductTypeSizeForm,
-                                            AddProductForm, BottleProductForm, ProductIngredientForm)
-from SalsaVerde.main.models import Product, ProductType, ProductTypeSize, ProductIngredient, YieldContainer
+from SalsaVerde.main.forms.containers import YieldContainersForm, YieldContainersFormSet
+from SalsaVerde.main.forms.products import (
+    AddProductForm,
+    AddProductTypeSizeForm,
+    BottleProductForm,
+    ProductIngredientForm,
+    ProductIngredientFormSet,
+    ProductTypeSizesFormSet,
+    UpdateProductForm,
+    UpdateProductTypeForm,
+    UpdateProductTypeSizeForm,
+)
+from SalsaVerde.main.models import Product, ProductIngredient, ProductType, ProductTypeSize, YieldContainer
+
+from .base_views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class ProductTypeList(ListView):
@@ -36,11 +44,7 @@ class ProductTypeDetails(DetailView):
             {
                 'title': 'Sizes',
                 'qs': self.object.product_type_sizes.all(),
-                'fields': [
-                    'size',
-                    'sku_code',
-                    'bar_code',
-                ],
+                'fields': ['size', 'sku_code', 'bar_code',],
                 'add_url': reverse('product-type-sizes-add', kwargs={'product_type': self.object.pk}),
             }
         ]
@@ -238,12 +242,8 @@ class ProductDetails(DetailView):
             {
                 'title': 'Ingredients',
                 'qs': self.object.product_ingredients.select_related('ingredient__ingredient_type'),
-                'fields': [
-                    ('Name', 'ingredient__ingredient_type'),
-                    'ingredient__batch_code',
-                    'quantity',
-                ],
-                'add_url': reverse('product-ingredient-add', kwargs={'pk': self.object.pk})
+                'fields': [('Name', 'ingredient__ingredient_type'), 'ingredient__batch_code', 'quantity',],
+                'add_url': reverse('product-ingredient-add', kwargs={'pk': self.object.pk}),
             },
             {
                 'title': 'Yield',
@@ -254,7 +254,7 @@ class ProductDetails(DetailView):
                     ('Quantity (units)', 'quantity'),
                     ('Total Volume (litres)', 'total_volume'),
                 ],
-                'add_url': reverse('yield-container-add', kwargs={'pk': self.object.pk})
+                'add_url': reverse('yield-container-add', kwargs={'pk': self.object.pk}),
             },
         ]
 

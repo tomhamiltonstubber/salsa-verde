@@ -1,9 +1,6 @@
 import logging
-from datetime import datetime
-from operator import itemgetter
-from urllib.parse import urlencode
-
 import requests
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib import messages
@@ -12,9 +9,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
 from django.views.generic import TemplateView
+from operator import itemgetter
+from urllib.parse import urlencode
 
 from SalsaVerde.main.views.base_views import DisplayHelpers, SVFormView
-from SalsaVerde.orders.forms import ExpressFreightLabelForm, DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, DHLLabelForm
+from SalsaVerde.orders.forms import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, DHLLabelForm, ExpressFreightLabelForm
 from SalsaVerde.orders.models import Order
 
 session = requests.Session()
@@ -64,22 +63,14 @@ class ShopifyOrdersView(DisplayHelpers, TemplateView):
     title = 'Shopify Orders'
 
     def get_orders(self):
-        data = shopify_request('orders.json?' + urlencode(
-            {
-                'created_at_min': now().date() - relativedelta(weeks=1),
-                'limit': 250,
-                'status': 'any',
-                'fields': ','.join([
-                    'name',
-                    'created_at',
-                    'billing_address',
-                    'shipping_address',
-                    'total_price',
-                    'fulfillment_status',
-                    'id',
-                ]),
-            }
-        ))
+        fields = 'name,created_at,billing_address,shipping_address,total_price,fulfillment_status,id'
+        args = {
+            'created_at_min': now().date() - relativedelta(weeks=1),
+            'limit': 250,
+            'status': 'any',
+            'fields': fields,
+        }
+        data = shopify_request('orders.json?' + urlencode(args))
         order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request)}
         for order in data['orders']:
             if sv_order := order_lu.get(str(order['id'])):
@@ -116,9 +107,7 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(
-            dublin_counties=dict(DUBLIN_COUNTIES),
-            ie_counties=dict(IE_COUNTIES),
-            ni_counties=dict(NI_COUNTIES),
+            dublin_counties=dict(DUBLIN_COUNTIES), ie_counties=dict(IE_COUNTIES), ni_counties=dict(NI_COUNTIES),
         )
         return ctx
 
@@ -139,7 +128,7 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
             shipping_id=ef_data['consignmentNumber'],
             tracking_url=ef_data['trackingLink'],
             label_urls=ef_data['labels'],
-            company=self.request.user.company
+            company=self.request.user.company,
         )
         return redirect(reverse('shopify-orders'))
 
@@ -176,9 +165,7 @@ class DHLLabelCreate(SVFormView, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(
-            dublin_counties=dict(DUBLIN_COUNTIES),
-            ie_counties=dict(IE_COUNTIES),
-            ni_counties=dict(NI_COUNTIES),
+            dublin_counties=dict(DUBLIN_COUNTIES), ie_counties=dict(IE_COUNTIES), ni_counties=dict(NI_COUNTIES),
         )
         return ctx
 

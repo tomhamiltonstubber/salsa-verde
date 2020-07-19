@@ -1,14 +1,13 @@
 from datetime import datetime
-
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.main.factories.raw_materials import ContainerTypeFactory, ContainerFactory
+from SalsaVerde.main.factories.raw_materials import ContainerFactory, ContainerTypeFactory
 from SalsaVerde.main.factories.supplier import SupplierFactory
-from SalsaVerde.main.models import ContainerType, Container, GoodsIntake, Document
-from SalsaVerde.main.tests.test_common import _empty_formset, AuthenticatedClient, refresh
+from SalsaVerde.main.models import Container, ContainerType, Document, GoodsIntake
+from SalsaVerde.main.tests.test_common import AuthenticatedClient, _empty_formset, refresh
 
 
 class ContainerTypeTestCase(TestCase):
@@ -19,7 +18,7 @@ class ContainerTypeTestCase(TestCase):
     def test_add_container_type(self):
         r = self.client.get(reverse('container-types-add'))
         self.assertContains(r, 'Size')
-        data = dict(size=.200, name='bottle 1')
+        data = dict(size=0.200, name='bottle 1')
         r = self.client.post(reverse('container-types-add'), data=data)
         assert r.status_code == 200
         assert ContainerType.objects.count() == 0
@@ -43,7 +42,7 @@ class ContainerTypeTestCase(TestCase):
         assert ContainerType.objects.count() == 1
 
     def test_edit_container_type(self):
-        data = dict(name='bottle 1', type=ContainerType.TYPE_BOTTLE, size=.2)
+        data = dict(name='bottle 1', type=ContainerType.TYPE_BOTTLE, size=0.2)
         ct = ContainerType.objects.create(**data, company=self.user.company)
         r = self.client.get(reverse('container-types-edit', args=[ct.pk]))
         self.assertContains(r, 'bottle 1')

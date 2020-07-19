@@ -1,11 +1,9 @@
 import re
-
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 
 from SalsaVerde.main.forms.base_forms import SVForm
-
 
 DUBLIN_COUNTIES = [(f'DUBLIN {i}', f'Dublin {i}') for i in range(1, 24)]
 NI_COUNTIES = [
@@ -121,8 +119,9 @@ class ExpressFreightLabelForm(SVForm):
                     'itemLength': 0,
                     'dangerousGoods': False,
                     'limitedQuantities': False,
-                } for _ in range(cd['item_count'])
-            ]
+                }
+                for _ in range(cd['item_count'])
+            ],
         }
 
 
