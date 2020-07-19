@@ -17,7 +17,9 @@ jobs:
         image: postgres:12
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: testing
+          POSTGRES_PASSWORD: waffle
+        ports:
+        - 5432:5432
 
     steps:
     - uses: actions/checkout@v2
