@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SalsaVerde.settings')
 
 import django
+
 django.setup()
 
 from SalsaVerde.main.models import ProductType, ProductTypeSize
@@ -46,15 +47,10 @@ def correct_product_types(**kwargs):
                     continue
             try:
                 name = m.group(3).strip()
-            except:
+            except RuntimeError:
                 print('Error in', name)
                 continue
-            ProductTypeSize.objects.create(
-                product_type=flavour,
-                bar_code=pt['sku_code'],
-                size=.250,
-                name=name
-            )
+            ProductTypeSize.objects.create(product_type=flavour, bar_code=pt['sku_code'], size=0.250, name=name)
         ProductType.objects.exclude(id__in=flavour_ids).filter(code=code).delete()
 
 

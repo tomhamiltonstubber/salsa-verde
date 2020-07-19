@@ -48,19 +48,19 @@ class Setup(ExtraContentView):
             {
                 'title': 'Product Types',
                 'qs': ProductType.objects.request_qs(self.request),
-                'fields': ['name', 'ingredient_types', 'code',],
+                'fields': ['name', 'ingredient_types', 'code'],
                 'add_url': reverse('product-types-add'),
             },
             {
                 'title': 'Ingredient Types',
                 'qs': IngredientType.objects.request_qs(self.request),
-                'fields': ['name', 'unit',],
+                'fields': ['name', 'unit'],
                 'add_url': reverse('ingredient-types-add'),
             },
             {
                 'title': 'Container Types',
                 'qs': ContainerType.objects.request_qs(self.request),
-                'fields': ['name', 'size', 'type',],
+                'fields': ['name', 'size', 'type'],
                 'add_url': reverse('container-types-add'),
             },
         ]

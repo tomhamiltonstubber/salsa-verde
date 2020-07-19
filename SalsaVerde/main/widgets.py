@@ -40,7 +40,5 @@ class DateTimePicker(widgets.DateTimeInput):
             return value.strftime(format)
 
     def render(self, name, value, attrs=None, renderer=None):
-        attrs.update(
-            {'data-date': self._data_value(value, '%Y-%m-%d'), 'data-time': self._data_value(value, '%H:%M'),}
-        )
+        attrs.update({'data-date': self._data_value(value, '%Y-%m-%d'), 'data-time': self._data_value(value, '%H:%M')})
         return DT_OUTER_PICKER_HTML.format(super().render(name, value, attrs=attrs, renderer=renderer))

@@ -33,12 +33,12 @@ class UserDetails(DetailView):
             {
                 'title': 'Authored Documents',
                 'qs': Document.objects.request_qs(self.request).filter(author=self.object),
-                'fields': [('Document', 'name'), 'date_created',],
+                'fields': [('Document', 'name'), 'date_created'],
             },
             {
                 'title': 'Associated Documents',
                 'qs': Document.objects.request_qs(self.request).filter(focus=self.object),
-                'fields': [('Document', 'name'), 'date_created',],
+                'fields': [('Document', 'name'), 'date_created'],
                 'add_url': reverse('documents-add') + f'?focus={self.object.pk}',
             },
         ]

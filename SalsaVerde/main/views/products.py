@@ -44,7 +44,7 @@ class ProductTypeDetails(DetailView):
             {
                 'title': 'Sizes',
                 'qs': self.object.product_type_sizes.all(),
-                'fields': ['size', 'sku_code', 'bar_code',],
+                'fields': ['size', 'sku_code', 'bar_code'],
                 'add_url': reverse('product-type-sizes-add', kwargs={'product_type': self.object.pk}),
             }
         ]
@@ -242,7 +242,7 @@ class ProductDetails(DetailView):
             {
                 'title': 'Ingredients',
                 'qs': self.object.product_ingredients.select_related('ingredient__ingredient_type'),
-                'fields': [('Name', 'ingredient__ingredient_type'), 'ingredient__batch_code', 'quantity',],
+                'fields': [('Name', 'ingredient__ingredient_type'), 'ingredient__batch_code', 'quantity'],
                 'add_url': reverse('product-ingredient-add', kwargs={'pk': self.object.pk}),
             },
             {

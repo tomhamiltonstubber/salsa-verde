@@ -65,7 +65,7 @@ TEMPLATES = [
         "BACKEND": "django_jinja.backend.Jinja2",
         "APP_DIRS": True,
         'DIRS': ['templates'],
-        "OPTIONS": {"match_extension": ".jinja",},
+        "OPTIONS": {"match_extension": ".jinja"},
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -114,10 +114,10 @@ else:
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 LANGUAGE_CODE = 'en-us'
@@ -178,6 +178,6 @@ EF_CLIENT_ID = os.getenv('EF_CLIENT_ID', 'MANUALCLIENT')
 EF_CLIENT_SECRET = os.getenv('EF_CLIENT_SECRET')
 
 try:
-    from localsettings import *
+    from localsettings import *  # noqa
 except ImportError:
     pass

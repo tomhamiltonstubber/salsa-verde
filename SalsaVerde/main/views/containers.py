@@ -35,7 +35,7 @@ class ContainerTypeDetails(DetailView):
             {
                 'title': 'Containers',
                 'qs': self.object.containers.select_related('container_type').order_by('-goods_intake__intake_date'),
-                'fields': ['container_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier',],
+                'fields': ['container_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier'],
             }
         ]
 
@@ -135,7 +135,7 @@ class ContainerDetails(DetailView):
             {
                 'title': 'Products used in',
                 'qs': products,
-                'fields': ['product_type', 'batch_code', 'date_of_infusion', 'date_of_bottling', 'yield_quantity',],
+                'fields': ['product_type', 'batch_code', 'date_of_infusion', 'date_of_bottling', 'yield_quantity'],
             },
         ]
 
