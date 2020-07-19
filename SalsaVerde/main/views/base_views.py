@@ -12,7 +12,7 @@ from django.views.generic import TemplateView, CreateView, UpdateView, FormView
 
 def get_nav_menu():
     return [
-        ('Dashboard', reverse('index')),
+        ('Orders', reverse('shopify-orders')),
         ('Products', reverse('products')),
         ('Suppliers', reverse('suppliers')),
         ('Containers', reverse('containers')),

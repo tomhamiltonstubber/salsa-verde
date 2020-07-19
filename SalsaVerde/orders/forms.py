@@ -80,6 +80,10 @@ class ExpressFreightLabelForm(SVForm):
         if town := self.cleaned_data.get('town'):
             return re.sub('[^A-Za-z0-9]+', '', town)
 
+    def clean_phone(self):
+        if phone := self.cleaned_data.get('phone'):
+            return re.sub('[^0-9]+', '', phone.replace('+', '00'))
+
     def clean_county(self):
         if self.cleaned_data.get('region', '') == 'DUBLIN' and not self.cleaned_data.get('county').startswith('DUBLIN'):
             raise ValidationError('If the customer is in Dublin, you have to choose a Dublin county.')
@@ -120,3 +124,7 @@ class ExpressFreightLabelForm(SVForm):
                 } for _ in range(cd['item_count'])
             ]
         }
+
+
+class DHLLabelForm(SVForm):
+    pass

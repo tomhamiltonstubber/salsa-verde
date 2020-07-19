@@ -10,7 +10,8 @@
         <td><b>Total</b></td>
         <td><b>Location</b></td>
         <td><b>Status</b></td>
-        <td></td>
+        <td><b>Shopify link</b></td>
+        <td><b>Fulfillment</b></td>
       </tr>
     </thead>
     <tbody>
@@ -22,9 +23,36 @@
           <td>£{{ order.total_price }}</td>
           <td>{{ view.get_location(order) }}</td>
           <td>{{ order.fulfillment_status or 'Not fulfilled'}}</td>
-          <td><a href="{{ url('fulfill-order', order_id=order.id) }}" class="btn btn-primary">
-            <span class="fa fa-truck"></span>&nbsp;Fullfil order
+          <td><a href="{{ view.get_shopify_url(order) }}" target="_blank" class="btn btn-default">
+            <span class="fa fa-shopping-basket"></span>&nbsp;View
           </a></td>
+          <td>
+            {% if order.fulfillment_status == 'fulfilled' %}
+              {% if order.label_urls %}
+                <div class="dropdown">
+                  <button class="btn btn-default dropdown-toggle" type="button" id="label_dd_{{ loop.index }}" data-toggle="dropdown">
+                    Labels
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {% for l_url in order.label_urls %}
+                      <li><a target="_blank" href="{{ l_url }}">Label {{ loop.index }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="fulfill_dd_{{ loop.index }}" data-toggle="dropdown">
+                  <span class="fa fa-truck"></span>&nbsp;Fulfill
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="{{ url('fulfill-order-ef', order_id=order.id) }}">Using ExpressFreight</a></li>
+                </ul>
+              </div>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>

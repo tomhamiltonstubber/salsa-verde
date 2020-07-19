@@ -139,6 +139,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
+DATE_FORMAT = '%d/%m/%Y'
 
 AUTH_USER_MODEL = 'main.User'
 

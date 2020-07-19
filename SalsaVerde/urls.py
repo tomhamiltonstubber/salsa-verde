@@ -19,7 +19,7 @@ from SalsaVerde.main.views.products import (product_list, product_add, product_d
 from SalsaVerde.main.views.suppliers import supplier_list, supplier_add, supplier_details, supplier_edit
 from SalsaVerde.main.views.users import user_list, user_add, user_details, user_edit
 from SalsaVerde.main.views.common import login, dashboard, setup
-from SalsaVerde.orders.views import shopify_orders, ef_label_create
+from SalsaVerde.orders.views import shopify_orders, ef_label_create, dhl_label_create
 
 user_patterns = [
     path('', user_list, name='users'),
@@ -109,7 +109,8 @@ urlpatterns = [
     path('documents/', include(document_patterns)),
     path('users/', include(user_patterns)),
     path('orders/', shopify_orders, name='shopify-orders'),
-    path('orders/fullfill/<int:order_id>/', ef_label_create, name='fulfill-order'),
+    path('orders/fulfill/<int:order_id>/express/', ef_label_create, name='fulfill-order-ef'),
+    path('orders/fulfill/<int:order_id>/dhl/', dhl_label_create, name='fulfill-order-dhl'),
 ]
 
 
