@@ -1,5 +1,5 @@
 black==19.10b0
-coverage==5.1
+coverage==5.2
 codecov==2.1.7
 devtools==0.5.1
 factory-boy==2.12.0
