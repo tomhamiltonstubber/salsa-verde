@@ -99,17 +99,13 @@ function reset_choices ($select, choices) {
 
 function init_ef_form() {
   const $county = $('#id_county')
-  const $postcode = $('#id_postcode')
   const check_county_choices = v => {
     if (v === 'DUBLIN') {
       reset_choices($county, window.dublin_counties)
-      $postcode.val(null).addClass('disabled').attr('disabled', true)
     } else if (v === 'NORTH IRELAND') {
       reset_choices($county, window.ni_counties)
-      $postcode.removeClass('disabled').removeAttr('disabled')
     } else {
       reset_choices($county, window.ie_counties)
-      $postcode.val(null).addClass('disabled').attr('disabled', true)
     }
   }
   $('#id_region').change(function () {

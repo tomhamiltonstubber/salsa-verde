@@ -42,7 +42,7 @@ def get_ef_auth_token():
     r = session.get(f'{settings.EF_URL}/Token/GetNewToken?{urlencode(auth_data)}')
     r.raise_for_status()
     token = r.json()['bearerToken']
-    cache.set('ef_auth_token', token, 86400)
+    cache.set('ef_auth_token', token, 3600)
     return token
 
 
