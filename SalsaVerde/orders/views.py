@@ -28,8 +28,12 @@ def shopify_request(url, method='GET', data=None):
         r = session.request(method, url, auth=(settings.SHOPIFY_API_KEY, settings.SHOPIFY_PASSWORD))
     else:
         r = session.request(method, url, auth=(settings.SHOPIFY_API_KEY, settings.SHOPIFY_PASSWORD), json=data)
-    r.raise_for_status()
-    return r.json()
+    try:
+        r.raise_for_status()
+    except requests.HTTPError:
+        logger.warning('Request to Shopify failed: %r', r.content.decode())
+        return False, r.content.decode()
+    return True, r.json()
 
 
 def get_ef_auth_token():
@@ -54,8 +58,12 @@ def expressfreight_request(url, data=None, method='GET'):
         r = session.post(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'}, json=data)
     else:
         r = session.get(url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'})
-    r.raise_for_status()
-    return r.json()
+    try:
+        r.raise_for_status()
+    except requests.HTTPError:
+        logger.warning('Request to EF failed: %r', r.content.decode())
+        return False, r.content.decode()
+    return True, r.json()
 
 
 class ShopifyOrdersView(DisplayHelpers, TemplateView):
@@ -70,7 +78,7 @@ class ShopifyOrdersView(DisplayHelpers, TemplateView):
             'status': 'any',
             'fields': fields,
         }
-        data = shopify_request('orders.json?' + urlencode(args))
+        _, data = shopify_request('orders.json?' + urlencode(args))
         order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request)}
         for order in data['orders']:
             if sv_order := order_lu.get(str(order['id'])):
@@ -97,7 +105,7 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
     title = 'Create shipping order'
 
     def get(self, request, *args, **kwargs):
-        self.order_data = shopify_request(f'orders/{self.order_id}.json')
+        _, self.order_data = shopify_request(f'orders/{self.order_id}.json')
         return super().get(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
@@ -120,9 +128,12 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
 
     def form_valid(self, form):
         data = form.ef_form_data()
-        ef_data = expressfreight_request('Consignment/CreateConsignment', data=data, method='POST')
-        messages.success(self.request, 'Order created')
-        shopify_fulfill_order(self.order_id, ef_data)
+        success, ef_data = expressfreight_request('Consignment/CreateConsignment', data=data, method='POST')
+        if success:
+            messages.success(self.request, 'Order created')
+        else:
+            messages.error(self.request, 'Error creating shipment: %r' % ef_data)
+            return super().form_invalid(form)
         Order.objects.create(
             shopify_id=self.order_id,
             shipping_id=ef_data['consignmentNumber'],
@@ -130,6 +141,12 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
             label_urls=ef_data['labels'],
             company=self.request.user.company,
         )
+        success, _ = shopify_fulfill_order(self.order_id, ef_data)
+        if success:
+            messages.success(self.request, 'Order fulfilled')
+        else:
+            messages.error(self.request, 'Error fulfilling Shopify order: %r' % ef_data)
+            return super().form_invalid(form)
         return redirect(reverse('shopify-orders'))
 
 
@@ -146,7 +163,7 @@ def shopify_fulfill_order(order_id: int, data: dict):
             'notify_customer': True,
         }
     }
-    shopify_request(f'orders/{order_id}/fulfillments.json', method='POST', data=data)
+    return shopify_request(f'orders/{order_id}/fulfillments.json', method='POST', data=data)
 
 
 class DHLLabelCreate(SVFormView, TemplateView):
@@ -155,7 +172,7 @@ class DHLLabelCreate(SVFormView, TemplateView):
     title = 'Create shipping order'
 
     def get(self, request, *args, **kwargs):
-        self.order_data = shopify_request(f'orders/{self.order_id}.json')
+        _, self.order_data = shopify_request(f'orders/{self.order_id}.json')
         return super().get(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
