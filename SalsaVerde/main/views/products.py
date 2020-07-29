@@ -1,4 +1,5 @@
 import textwrap
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -165,6 +166,7 @@ class ProductAdd(SVFormsetForm, AddModelView):
             return self.form_invalid(form)
         obj.status = Product.STATUS_INFUSED
         obj.save(update_fields=['status'])
+        messages.success(self.request, 'New product added')
         return redirect(obj.get_absolute_url())
 
 

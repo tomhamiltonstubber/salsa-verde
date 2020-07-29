@@ -60,25 +60,29 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'SalsaVerde.urls'
 
+_TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.template.context_processors.debug',
+    'django.template.context_processors.media',
+    'django.template.context_processors.static',
+    'django.template.context_processors.tz',
+    'django.template.context_processors.request',
+    'django.template.context_processors.csrf',
+    'django.contrib.messages.context_processors.messages',
+)
+
 TEMPLATES = [
     {
-        "BACKEND": "django_jinja.backend.Jinja2",
-        "APP_DIRS": True,
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'APP_DIRS': True,
         'DIRS': ['templates'],
-        "OPTIONS": {"match_extension": ".jinja"},
+        'OPTIONS': {'match_extension': '.jinja', 'context_processors': _TEMPLATE_CONTEXT_PROCESSORS},
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
         'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
+        'OPTIONS': {'context_processors': _TEMPLATE_CONTEXT_PROCESSORS},
     },
 ]
 

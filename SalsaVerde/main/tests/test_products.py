@@ -121,6 +121,7 @@ class ProductTestCase(TestCase):
 
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
         self.assertContains(r, 'Record bottling')
+        self.assertContains(r, 'New product added')
         r = self.client.get(reverse('products-edit', args=[product.pk]))
         self.assertContains(r, pi.product.product_type.name)
 

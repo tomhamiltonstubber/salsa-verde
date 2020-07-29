@@ -29,6 +29,7 @@
 {% block body %}
   <div id="content">
     <div class="container main">
+      xxxxxxx{{ messages }}xxxxxxxxxxxxxx
       {% for message in messages %}
         {% if 'error' in message.tags %}
           {% set alert_class = 'alert-danger' %}
