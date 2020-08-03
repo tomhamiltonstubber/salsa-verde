@@ -121,7 +121,10 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
     title = 'Create shipping order'
 
     def get(self, request, *args, **kwargs):
-        _, self.order_data = shopify_request(f'orders/{self.order_id}.json')
+        success, self.order_data = shopify_request(f'orders/{self.order_id}.json')
+        if not success:
+            messages.error('Error getting data from shopify: %s' % self.order_data)
+            return reverse('shopify-orders')
         return super().get(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
