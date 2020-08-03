@@ -17,7 +17,7 @@ from SalsaVerde.orders.forms import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, D
 from SalsaVerde.orders.models import Order
 
 session = requests.Session()
-logger = logging.getLogger('SV.request')
+logger = logging.getLogger('salsa-verde.request')
 
 
 def shopify_request(url, method='GET', data=None):
@@ -48,6 +48,22 @@ def get_ef_auth_token():
     token = r.json()['bearerToken']
     cache.set('ef_auth_token', token, 3600)
     return token
+
+
+def dhl_request(url, data=None, method='GET'):
+    logger.info(f'Making request to DHL {url}')
+    url = f'{settings.DHL_BASE_URL}/{url}'
+    data = data or {}
+    if method == 'GET':
+        r = session.request(method, url, auth=(settings.DHL_API_KEY, settings.DHL_PASSWORD))
+    else:
+        r = session.request(method, url, auth=(settings.DHL_API_KEY, settings.DHL_PASSWORD), json=data)
+    try:
+        r.raise_for_status()
+    except requests.HTTPError:
+        logger.warning('Request to DHL failed: %r', r.content.decode())
+        return False, r.content.decode()
+    return True, r.json()
 
 
 def expressfreight_request(url, data=None, method='GET'):
@@ -141,11 +157,11 @@ class ExpressFreightLabelCreate(SVFormView, TemplateView):
             label_urls=ef_data['labels'],
             company=self.request.user.company,
         )
-        success, _ = shopify_fulfill_order(self.order_id, ef_data)
+        success, r = shopify_fulfill_order(self.order_id, ef_data)
         if success:
             messages.success(self.request, 'Order fulfilled')
         else:
-            messages.error(self.request, 'Error fulfilling Shopify order: %r' % ef_data)
+            messages.error(self.request, 'Error fulfilling Shopify order: %s' % r.content.decode())
             return super().form_invalid(form)
         return redirect(reverse('shopify-orders'))
 
