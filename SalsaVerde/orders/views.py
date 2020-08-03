@@ -17,7 +17,7 @@ from SalsaVerde.orders.forms import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, D
 from SalsaVerde.orders.models import Order
 
 session = requests.Session()
-logger = logging.getLogger('salsa-verde.request')
+logger = logging.getLogger('salsa-verde.orders')
 
 
 def shopify_request(url, method='GET', data=None):

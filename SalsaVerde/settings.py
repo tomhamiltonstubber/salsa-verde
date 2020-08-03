@@ -174,22 +174,31 @@ LOGGING = {
         'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue'},
     },
     'formatters': {
-        'salsa-verde': {
+        'salsa': {
             'format': '%(name)16s ⬢ %(message)s' if ON_HEROKU else '[%(asctime)s] %(name)-16s %(message)s',
             'datefmt': '%d/%b/%Y %H:%M:%S',
         },
         'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s'},
+        'sentry': {
+            'level': 'WARNING',
+            'class': 'raven.contrib.django.handlers.SentryHandler',
+        },
     },
     'handlers': {
         'debug_console': {'level': 'DEBUG', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler'},
         'null': {'class': 'logging.NullHandler'},
         'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
         'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server'},
+        'tc_console': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'class': 'SalsaVerde.streamhandler.StreamHandler',
+            'formatter': 'salsa',
+        },
     },
     'loggers': {
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False},
         'django': {'handlers': ['debug_console'], 'level': 'INFO'},
-        'salsa-verde': {'handlers': ['sentry'], 'level': 'DEBUG', 'propagate': False},
+        'salsa': {'handlers': ['sentry'], 'level': 'DEBUG', 'propagate': False},
         'django.security': {'handlers': ['sentry', 'debug_console'], 'level': 'ERROR', 'propagate': False},
         'django.security.DisallowedHost': {'handlers': ['null'], 'propagate': False},
         'sentry.errors': {'level': 'WARNING', 'handlers': ['debug_console'], 'propagate': False},
