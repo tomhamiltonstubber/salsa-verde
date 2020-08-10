@@ -6,7 +6,7 @@ django-extensions==3.0.5
 django-bootstrap3-datetimepicker-2==2.8.2
 django-jinja-bootstrap-form==4.2.3
 django-storages==1.9.1
-ipython==7.16.1
+ipython==7.17.0
 psycopg2-binary==2.8.5
 pyinotify==0.9.6
 gunicorn==20.0.4
