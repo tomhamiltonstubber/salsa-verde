@@ -20,6 +20,14 @@ class Company(models.Model):
         return self.name
 
 
+class UserCompany(models.Model):
+    name = models.CharField('Name', max_length=255)
+    website = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class CompanyNameBaseModel(BaseModel):
     name = models.CharField('Name', max_length=255)
     company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)

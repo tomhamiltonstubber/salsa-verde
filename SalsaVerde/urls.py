@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
 from SalsaVerde.stock.models import (
     Container,
     ContainerType,
@@ -56,7 +57,6 @@ from SalsaVerde.stock.views.products import (
 )
 from SalsaVerde.stock.views.suppliers import supplier_add, supplier_details, supplier_edit, supplier_list
 from SalsaVerde.stock.views.users import user_add, user_details, user_edit, user_list
-from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
 
 user_patterns = [
     path('', user_list, name='users'),
