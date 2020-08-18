@@ -28,7 +28,6 @@ LIVE = os.getenv('LIVE')
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ['127.0.0.1', 'localhost']
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'bootstrap3_datetime',
     'debug_toolbar',
     'raven.contrib.django.raven_compat',
+    'SalsaVerde.company',
     'SalsaVerde.stock',
     'SalsaVerde.orders',
 ]

@@ -79,7 +79,7 @@ stock_models = {
 
 
 @command
-def update_apps(live):
+def rename_stock_app(live):
     # Rename app from main to stock
     with connection.cursor() as cursor:
         cursor.execute("UPDATE django_content_type SET app_label='stock' WHERE app_label='main'")
