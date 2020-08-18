@@ -8,19 +8,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from SalsaVerde.company.models import BaseModel, CompanyQueryset, UserManager
+from SalsaVerde.company.models import BaseModel, CompanyQueryset, UserManager, Company, User
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
-class Company(models.Model):
-    name = models.CharField('Name', max_length=255)
-    website = models.CharField(max_length=255, blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class UserCompany(models.Model):
+class OldCompany(models.Model):
     name = models.CharField('Name', max_length=255)
     website = models.CharField(max_length=255, blank=True)
 
@@ -40,7 +32,7 @@ class CompanyNameBaseModel(BaseModel):
         abstract = True
 
 
-class User(AbstractUser):
+class OldUser(AbstractUser):
     objects = UserManager.from_queryset(CompanyQueryset)()
 
     company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)

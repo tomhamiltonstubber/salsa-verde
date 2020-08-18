@@ -132,7 +132,7 @@ USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
 DATE_FORMAT = '%d/%m/%Y'
 
-AUTH_USER_MODEL = 'stock.User'
+AUTH_USER_MODEL = 'company.User'
 
 # Storage
 

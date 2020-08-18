@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
-from SalsaVerde.stock.models import Document, Supplier, User
+from SalsaVerde.stock.models import Document, Supplier
+from SalsaVerde.company.models import User
 
 
 class UpdateDocumentForm(SVModelForm):
