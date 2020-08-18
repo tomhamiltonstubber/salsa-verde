@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('main', '0006_auto_20190513_1821'),
+        ('stock', '0006_auto_20190513_1821'),
     ]
 
     operations = [
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                     'label_urls',
                     django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=255), size=None),
                 ),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='main.Company')),
+                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stock.Company')),
             ],
         ),
     ]

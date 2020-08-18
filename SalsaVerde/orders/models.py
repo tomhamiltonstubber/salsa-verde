@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 # Create your models here.
-from SalsaVerde.main.models import Company, CompanyQueryset
+from SalsaVerde.stock.models import Company, CompanyQueryset
 
 
 class Order(models.Model):

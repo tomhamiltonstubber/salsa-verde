@@ -12,7 +12,7 @@ from django.views.generic import TemplateView
 from operator import itemgetter
 from urllib.parse import urlencode
 
-from SalsaVerde.main.views.base_views import DisplayHelpers, SVFormView
+from SalsaVerde.stock.views.base_views import DisplayHelpers, SVFormView
 from SalsaVerde.orders.forms import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, DHLLabelForm, ExpressFreightLabelForm
 from SalsaVerde.orders.models import Order
 
