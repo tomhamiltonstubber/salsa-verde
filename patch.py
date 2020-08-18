@@ -92,7 +92,6 @@ def rename_stock_app(live):
 
 
 user_fields = [
-    'company',
     'email',
     'password',
     'first_name',
@@ -110,8 +109,10 @@ user_fields = [
 def create_new_items(live):
     for company in Company.objects.order_by('id'):
         NewCompany.objects.create(name=company.name, website=company.website)
+    companies = {c.name: c.id for c in NewCompany.objects.all()}
     for user in User.objects.order_by('id'):
         kwargs = {f: getattr(user, f) for f in user_fields if getattr(user, f, None)}
+        kwargs['company_id'] = companies[user.company.name]
         NewUser.objects.create(**kwargs)
 
 
