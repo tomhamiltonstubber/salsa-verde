@@ -6,6 +6,7 @@ from itertools import groupby
 from pathlib import Path
 
 import click
+from django.db import connection
 from django.db.transaction import commit, set_autocommit
 
 sys.path.append(str(Path(__file__).resolve().parent))
@@ -15,7 +16,9 @@ import django
 
 django.setup()
 
-from SalsaVerde.main.models import ProductType, ProductTypeSize
+from SalsaVerde.stock.models import ProductType, ProductTypeSize, Company, User
+from SalsaVerde.company.models import Company as NewCompany
+from SalsaVerde.company.models import User as NewUser
 
 commands = []
 
@@ -52,6 +55,65 @@ def correct_product_types(**kwargs):
                 continue
             ProductTypeSize.objects.create(product_type=flavour, bar_code=pt['sku_code'], size=0.250, name=name)
         ProductType.objects.exclude(id__in=flavour_ids).filter(code=code).delete()
+
+
+stock_models = {
+    'Company',
+    'Supplier',
+    'IngredientType',
+    'Ingredient',
+    'ContainerType',
+    'Container',
+    'YieldContainer',
+    'GoodsIntake',
+    'ProductType',
+    'ProductTypeSize',
+    'Product',
+    'ProductIngredient',
+    'Document',
+    'Area',
+    'Complaint',
+    'GlassAudit',
+    'GlassBreakagereport',
+    'PlasterReport',
+    'User',
+}
+
+
+@command
+def rename_stock_app(live):
+    # Rename app from main to stock
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE django_content_type SET app_label='stock' WHERE app_label='main'")
+        # Rename models in app
+        for model in stock_models:
+            cursor.execute(f"ALTER TABLE main_{model} RENAME TO stock_{model}")
+        cursor.execute("UPDATE django_migrations SET app='stock' WHERE app='main'")
+
+
+user_fields = [
+    'email',
+    'password',
+    'first_name',
+    'last_name',
+    'last_logged_in',
+    'street',
+    'town',
+    'country',
+    'postcode',
+    'phone',
+]
+
+
+@command
+def create_new_items(live):
+    for company in Company.objects.order_by('id'):
+        NewCompany.objects.create(name=company.name, website=company.website)
+    companies = {c.name: c.id for c in NewCompany.objects.all()}
+    for user in User.objects.order_by('id'):
+        kwargs = {f: getattr(user, f) for f in user_fields if getattr(user, f, None)}
+        kwargs['company_id'] = companies[user.company.name]
+        NewUser.objects.create(**kwargs)
 
 
 @click.command()

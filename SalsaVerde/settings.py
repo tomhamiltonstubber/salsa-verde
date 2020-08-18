@@ -28,7 +28,6 @@ LIVE = os.getenv('LIVE')
 ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ['127.0.0.1', 'localhost']
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,7 +40,8 @@ INSTALLED_APPS = [
     'bootstrap3_datetime',
     'debug_toolbar',
     'raven.contrib.django.raven_compat',
-    'SalsaVerde.main',
+    'SalsaVerde.company',
+    'SalsaVerde.stock',
     'SalsaVerde.orders',
 ]
 
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'SalsaVerde.main.middleware.AuthRequiredMiddleware',
+    'SalsaVerde.stock.middleware.AuthRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'SalsaVerde.urls'
@@ -132,7 +132,7 @@ USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
 DATE_FORMAT = '%d/%m/%Y'
 
-AUTH_USER_MODEL = 'main.User'
+AUTH_USER_MODEL = 'stock.User'
 
 # Storage
 
@@ -157,7 +157,7 @@ else:
     PUBLIC_URL = '/media/public/'
 
 
-PRIVATE_FILE_STORAGE = 'main.storage_backends.PrivateMediaStorage'
+PRIVATE_FILE_STORAGE = 'stock.storage_backends.PrivateMediaStorage'
 
 
 ON_HEROKU = 'DYNO' in os.environ
@@ -179,10 +179,7 @@ LOGGING = {
             'datefmt': '%d/%b/%Y %H:%M:%S',
         },
         'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s'},
-        'sentry': {
-            'level': 'WARNING',
-            'class': 'raven.contrib.django.handlers.SentryHandler',
-        },
+        'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
     },
     'handlers': {
         'debug_console': {'level': 'DEBUG', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler'},

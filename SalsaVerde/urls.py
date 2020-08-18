@@ -2,7 +2,8 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from SalsaVerde.main.models import (
+from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
+from SalsaVerde.stock.models import (
     Container,
     ContainerType,
     Document,
@@ -13,9 +14,9 @@ from SalsaVerde.main.models import (
     Supplier,
     User,
 )
-from SalsaVerde.main.views.base_views import DeleteObjectView
-from SalsaVerde.main.views.common import dashboard, login, setup
-from SalsaVerde.main.views.containers import (
+from SalsaVerde.stock.views.base_views import DeleteObjectView
+from SalsaVerde.stock.views.common import dashboard, login, setup
+from SalsaVerde.stock.views.containers import (
     change_container_status,
     container_type_add,
     container_type_details,
@@ -26,8 +27,8 @@ from SalsaVerde.main.views.containers import (
     containers_list,
     intake_containers,
 )
-from SalsaVerde.main.views.documents import document_add, document_details, document_edit, document_list
-from SalsaVerde.main.views.ingredients import (
+from SalsaVerde.stock.views.documents import document_add, document_details, document_edit, document_list
+from SalsaVerde.stock.views.ingredients import (
     change_ingredient_status,
     ingredient_details,
     ingredient_edit,
@@ -38,7 +39,7 @@ from SalsaVerde.main.views.ingredients import (
     ingredient_type_list,
     intake_ingredients,
 )
-from SalsaVerde.main.views.products import (
+from SalsaVerde.stock.views.products import (
     product_add,
     product_bottle,
     product_details,
@@ -54,9 +55,8 @@ from SalsaVerde.main.views.products import (
     product_type_list,
     yield_container_add,
 )
-from SalsaVerde.main.views.suppliers import supplier_add, supplier_details, supplier_edit, supplier_list
-from SalsaVerde.main.views.users import user_add, user_details, user_edit, user_list
-from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
+from SalsaVerde.stock.views.suppliers import supplier_add, supplier_details, supplier_edit, supplier_list
+from SalsaVerde.stock.views.users import user_add, user_details, user_edit, user_list
 
 user_patterns = [
     path('', user_list, name='users'),
