@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.forms import JSONField
 from django.db import models
 from django.db.models import QuerySet
@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from SalsaVerde.company.models import BaseModel, CompanyQueryset, UserManager
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
@@ -17,23 +18,6 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class CompanyQueryset(QuerySet):
-    def request_qs(self, request):
-        return self.filter(company=request.user.company)
-
-
-class NoQS(QuerySet):
-    def request_qs(self, request):
-        raise NotImplementedError
-
-
-class BaseModel(models.Model):
-    objects = NoQS.as_manager()
-
-    class Meta:
-        abstract = True
 
 
 class CompanyNameBaseModel(BaseModel):
@@ -46,22 +30,6 @@ class CompanyNameBaseModel(BaseModel):
 
     class Meta:
         abstract = True
-
-
-class UserManager(BaseUserManager):
-    def _create_user(self, email, company, password, is_superuser=False, **extra_fields):
-        """Create and save a User with the given email and password."""
-        email = self.normalize_email(email)
-        user = self.model(email=email, is_superuser=is_superuser, company=company, **extra_fields)
-        user.set_password(password)
-        user.save()
-        return user
-
-    def create_user(self, email, company, password=None, **extra_fields):
-        return self._create_user(email, company, password, **extra_fields)
-
-    def create_superuser(self, email, company, password, **extra_fields):
-        return self.create_superuser(email, company, password, is_superuser=True, **extra_fields)
 
 
 class User(AbstractUser):
