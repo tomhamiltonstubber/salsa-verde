@@ -116,6 +116,12 @@ def create_new_items(live):
         NewUser.objects.create(**kwargs)
 
 
+@command
+def delete_all_migrations(**kwargs):
+    with connection.cursor() as cursor:
+        cursor.execute('DELETE FROM django_migrations')
+
+
 @click.command()
 @click.argument('command', type=click.Choice([c.__name__ for c in commands]))
 @click.option('--live', is_flag=True)
