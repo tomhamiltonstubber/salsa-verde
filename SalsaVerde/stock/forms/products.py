@@ -39,6 +39,12 @@ ProductTypeSizesFormSet = forms.inlineformset_factory(
 class ProductIngredientForm(SVModelForm):
     title = 'Ingredients'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['ingredient'].queryset = (
+            self.fields['ingredient'].queryset.filter(finished=False).select_related('ingredient_type')
+        )
+
     class Meta:
         model = ProductIngredient
         exclude = {'product'}

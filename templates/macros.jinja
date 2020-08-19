@@ -41,12 +41,11 @@
 
 {% macro display_formset(formset) %}
   {{ formset.management_form|safe }}
-  {% set title = formset.empty_form.title %}
   {% set el_id = formset.empty_form.title | replace(' ', '-') | lower %}
   <table class="table">
     <h4 class="table-title">{{ formset.empty_form.title }}</h4>
     {% for form in formset %}
-      <tr class="formset-{{ el_id }} form-row">
+      <tr class="formset-{{ el_id }} form-row" data-prefix="{{ formset.prefix }}" data-formset-id="{{ el_id }}">
         {% for field in form.visible_fields() %}
           <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
         {% endfor %}
@@ -54,7 +53,7 @@
       </tr>
     {% endfor %}
     {% with form = formset.empty_form %}
-      <tr class="formset-{{ el_id }} form-row" id="id_empty_{{ el_id }}" style="display:none;">
+      <tr class="formset-form formset-{{ el_id }} form-row" data-prefix="{{ formset.prefix }}" data-formset_id="{{ el_id }}" id="id_empty_{{ el_id }}" style="display:none;">
         {% for field in form.visible_fields() %}
           <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
         {% endfor %}
@@ -62,32 +61,52 @@
       </tr>
     {% endwith %}
   </table>
+{% endmacro %}
 
-  <script>
-    $('#formsets-form .formset-{{ el_id }}.form-row').formset({
-      formTemplate: '#id_empty_{{ el_id }}',
-      addCssClass: 'btn btn-default',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another',
-      deleteText:'Remove',
-      prefix: '{{ formset.prefix }}',
-      added: () => {
-        hide_extra_buttons()
-      },
-    })
-
-    if (!window.hide_buttons_declared) {
-      const hide_extra_buttons = () => {
-        $('.dynamic-form').each((i, el) => {
-          const $els = $(el).find('.btn-danger')
-          if ($els.length === 2) {
-            $($els[0]).hide()
-          }
-        })
-      }
-      window.hide_buttons_declared = true
-
-    hide_extra_buttons()
-    }
-  </script>
+{% macro order_details(order_data) %}
+  <div class="order-details">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4>Order details: <a href="{{ view.get_shopify_url(order_data) }}" target="_blank">{{ order_data.id }}</a></h4>
+        <h4 class="pull-right">{{ view.dt_format(order_data.created_at) }}</h4>
+      </div>
+      <div class="panel-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Item Price</th>
+              <th>Quantity</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order_data.line_items %}
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>£{{ item.price }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>£{{ (item.price | int) * (item.quantity | int) }}</td>
+              </tr>
+            {% endfor %}
+            <tr class="border-top">
+              <td colspan="2"></td>
+              <td><b>Subtotal</b></td>
+              <td>£{{ order_data.total_line_items_price }}</td>
+            </tr>
+            <tr>
+              <td colspan="2"></td>
+              <td><b>Discount</b></td>
+              <td>-£{{ order_data.total_discounts }}</td>
+            </tr>
+            <tr>
+              <td colspan="2"></td>
+              <td><b>Total</b></td>
+              <td><b>£{{ order_data.total_price }}</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 {% endmacro %}

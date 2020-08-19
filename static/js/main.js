@@ -1,10 +1,4 @@
 $(document).ready(() => {
-  try {
-    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
-  } catch (e) {
-    // this seems to happen occasionally when something has gone wrong, ignore it
-  }
-
   const icons = {
     time: 'fa fa-clock',
     date: 'fa fa-calendar',
@@ -30,7 +24,17 @@ $(document).ready(() => {
   if ($('#order-list').length) {
     init_ef_form()
   }
+  init_select2()
+  init_formsets()
 })
+
+function init_select2 () {
+  try {
+    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
+  } catch (e) {
+    // this seems to happen occasionally when something has gone wrong, ignore it
+  }
+}
 
 function init_confirm_follow () {
   const $el = $(document)
@@ -99,6 +103,7 @@ function reset_choices ($select, choices) {
 
 function init_ef_form() {
   const $county = $('#id_county')
+  const $region = $('#id_region')
   const check_county_choices = v => {
     if (v === 'DUBLIN') {
       reset_choices($county, window.dublin_counties)
@@ -108,8 +113,39 @@ function init_ef_form() {
       reset_choices($county, window.ie_counties)
     }
   }
-  $('#id_region').change(function () {
+  $region.change(function () {
     check_county_choices($(this).val())
   })
-  check_county_choices($('#id_region').val())
+  check_county_choices($region.val())
+}
+
+function init_formsets () {
+  $('.formsets-form .formset-form').each((i, el) => {
+    $(el).formset({
+      formTemplate: '#id_empty_' + el.dataset.formset_id,
+      addCssClass: 'btn btn-default',
+      deleteCssClass: 'btn btn-danger',
+      addText: 'Add another',
+      deleteText:'Remove',
+      prefix: el.dataset.prefix,
+      added: () => {
+        init_select2()
+        hide_extra_buttons()
+      },
+    })
+    let hide_buttons_declared = false
+
+    const hide_extra_buttons = () => {
+      if (!hide_buttons_declared) {
+        $('.dynamic-form').each((i, el) => {
+          const $els = $(el).find('.btn-danger')
+          if ($els.length === 2) {
+            $($els[0]).hide()
+          }
+        })
+        hide_buttons_declared = true
+      }
+    }
+    hide_extra_buttons()
+  })
 }

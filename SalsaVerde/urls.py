@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-from SalsaVerde.orders.views import dhl_label_create, ef_label_create, shopify_orders
 from SalsaVerde.stock.models import (
     Container,
     ContainerType,
@@ -140,9 +139,7 @@ urlpatterns = [
     path('suppliers/', include(supplier_patterns)),
     path('documents/', include(document_patterns)),
     path('users/', include(user_patterns)),
-    path('orders/', shopify_orders, name='shopify-orders'),
-    path('orders/fulfill/<int:order_id>/express/', ef_label_create, name='fulfill-order-ef'),
-    path('orders/fulfill/<int:order_id>/dhl/', dhl_label_create, name='fulfill-order-dhl'),
+    path('orders/', include('SalsaVerde.orders.urls')),
 ]
 
 

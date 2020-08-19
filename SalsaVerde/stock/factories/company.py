@@ -1,6 +1,6 @@
 import factory
 
-from SalsaVerde.stock.models import Company
+from SalsaVerde.company.models import Company
 
 
 class CompanyFactory(factory.django.DjangoModelFactory):

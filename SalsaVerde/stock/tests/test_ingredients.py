@@ -7,7 +7,7 @@ from django.utils import timezone
 from SalsaVerde.stock.factories.raw_materials import IngredientFactory, IngredientTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.models import Document, GoodsIntake, Ingredient, IngredientType
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, _empty_formset, refresh
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset, refresh
 
 
 class IngredientTypeTestCase(TestCase):
@@ -53,7 +53,7 @@ class IngredientTestCase(TestCase):
         self.intake_url = reverse('intake-ingredients')
         self.ingredient_type = IngredientTypeFactory(company=self.user.company, name='blackberries')
         self.supplier = SupplierFactory(name='good food', company=self.user.company)
-        self.intake_management_data = _empty_formset('ingredients')
+        self.intake_management_data = empty_formset('ingredients')
 
     def test_intake_ingredients(self):
         r = self.client.get(self.intake_url)

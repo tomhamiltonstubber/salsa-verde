@@ -7,7 +7,7 @@ from django.utils import timezone
 from SalsaVerde.stock.factories.raw_materials import ContainerFactory, ContainerTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.models import Container, ContainerType, Document, GoodsIntake
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, _empty_formset, refresh
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset, refresh
 
 
 class ContainerTypeTestCase(TestCase):
@@ -71,7 +71,7 @@ class ContainerTestCase(TestCase):
         self.intake_url = reverse('intake-containers')
         self.container_type = ContainerTypeFactory(company=self.company, name='bottle', type=ContainerType.TYPE_BOTTLE)
         self.supplier = SupplierFactory(name='good bottle', company=self.company)
-        self.intake_management_data = _empty_formset('containers')
+        self.intake_management_data = empty_formset('containers')
 
     def test_intake_containers(self):
         r = self.client.get(self.intake_url)

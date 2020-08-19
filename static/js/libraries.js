@@ -6308,7 +6308,7 @@ return d.keepInvalid=a,l},l.datepickerInput=function(a){if(0===arguments.length)
 
       if (!button.className) {
         if (total <= 2 && index === total-1) {
-          // always add a primary to the stock option in a two-button dialog
+          // always add a primary to the main option in a two-button dialog
           button.className = "btn-primary";
         } else {
           button.className = "btn-default";

@@ -22,7 +22,7 @@ class QSTestCase(TestCase):
         self.assertNotContains(r, wrong_supplier)
 
 
-def _empty_formset(prefix):
+def empty_formset(prefix):
     return {
         f'{prefix}-TOTAL_FORMS': 1,
         f'{prefix}-INITIAL_FORMS': 0,
@@ -36,14 +36,11 @@ class AuthenticatedClient(Client):
     Client an authenticated django.test.Client
     """
 
-    def __init__(self):
+    def __init__(self, company=None):
         super().__init__()
+        company = company or CompanyFactory()
         self.user = User.objects.create_user(
-            first_name='Tom',
-            last_name='Owner',
-            email='owner@salsaverde.com',
-            password='testing',
-            company=CompanyFactory(),
+            first_name='Tom', last_name='Owner', email='owner@salsaverde.com', password='testing', company=company,
         )
         logged_in = self.login(username=self.user.email, password='testing')
         if not logged_in:  # pragma: no cover

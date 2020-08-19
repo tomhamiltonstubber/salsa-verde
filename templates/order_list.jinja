@@ -48,7 +48,7 @@
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><a href="{{ url('fulfill-order-ef', order_id=order.id) }}">Using ExpressFreight</a></li>
+                  <li><a href="{{ url('fulfill-order-ef') }}?shopify_order={{ order.id }}">Using ExpressFreight</a></li>
                 </ul>
               </div>
             {% endif %}

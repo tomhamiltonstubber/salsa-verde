@@ -19,7 +19,7 @@ from SalsaVerde.stock.models import (
     ProductTypeSize,
     YieldContainer,
 )
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, _empty_formset
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
 
 
 class ProductTypeTestCase(TestCase):
@@ -31,7 +31,7 @@ class ProductTypeTestCase(TestCase):
         self.ingred_type_2 = IngredientTypeFactory(company=self.company, name='thyme')
         self.ingred_type_3 = IngredientTypeFactory(company=self.company, name='vinegar')
         self.add_url = reverse('product-types-add')
-        self.management_data = _empty_formset('product_type_sizes')
+        self.management_data = empty_formset('product_type_sizes')
 
     def test_add_product_type(self):
         r = self.client.get(self.add_url)
@@ -92,8 +92,8 @@ class ProductTestCase(TestCase):
         )
         self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
         self.product_type = ProductTypeFactory(company=self.user.company)
-        self.product_ingred_mngmnt = _empty_formset('product_ingredients')
-        self.yield_containers_mngmnt = _empty_formset('yield_containers')
+        self.product_ingred_mngmnt = empty_formset('product_ingredients')
+        self.yield_containers_mngmnt = empty_formset('yield_containers')
         self.url = reverse('products-add')
 
     def test_add_product(self):
@@ -106,7 +106,7 @@ class ProductTestCase(TestCase):
             'date_of_infusion': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
             'product_ingredients-0-ingredient': ingred.pk,
             'product_ingredients-0-quantity': 8,
-            **_empty_formset('product_ingredients'),
+            **empty_formset('product_ingredients'),
         }
         r = self.client.post(self.url, data=data, follow=True)
         product = Product.objects.get()
@@ -142,7 +142,7 @@ class ProductTestCase(TestCase):
             'yield_containers-0-quantity': 15,
             'date_of_bottling': datetime(2018, 3, 3).strftime(settings.DT_FORMAT),
             'yield_quantity': 25,
-            **_empty_formset('yield_containers'),
+            **empty_formset('yield_containers'),
         }
         r = self.client.post(reverse('products-bottle', args=[product.pk]), data=data, follow=True)
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))

@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from SalsaVerde.company.models import Company
+from SalsaVerde.orders.models import PackageTemplate
 from SalsaVerde.stock.models import ContainerType, IngredientType, ProductType
 from SalsaVerde.stock.views.base_views import BasicView, ExtraContentView
 
@@ -63,6 +64,12 @@ class Setup(ExtraContentView):
                 'qs': ContainerType.objects.request_qs(self.request),
                 'fields': ['name', 'size', 'type'],
                 'add_url': reverse('container-types-add'),
+            },
+            {
+                'title': 'Package Templates',
+                'qs': PackageTemplate.objects.request_qs(self.request),
+                'fields': ['name', 'length', 'width', 'height'],
+                'add_url': reverse('package-temp-add'),
             },
         ]
 

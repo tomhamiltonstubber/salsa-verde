@@ -74,4 +74,18 @@ body {
   padding-left: 10px;
   padding-right: 10px; }
 
+.table .border-top td {
+  border-top-width: 2px; }
+
+.custom-form .form-panel {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px; }
+  .custom-form .form-panel .form-control {
+    margin-bottom: 10px; }
+  .custom-form .form-panel .row {
+    padding: 10px 15px 0 15px; }
+  .custom-form .form-panel .table-title {
+    display: none; }
+
 /*# sourceMappingURL=styles.css.map */

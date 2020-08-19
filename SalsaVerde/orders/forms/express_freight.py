@@ -44,7 +44,7 @@ IE_COUNTIES = [
 
 
 class ExpressFreightLabelForm(SVForm):
-    shopify_order = forms.CharField(label='Shopify Order ID', disabled=True)
+    shopify_order = forms.CharField(widget=forms.HiddenInput, required=False)
     name = forms.CharField()
     first_line = forms.CharField()
     second_line = forms.CharField(required=False)
@@ -53,16 +53,13 @@ class ExpressFreightLabelForm(SVForm):
     county = forms.ChoiceField(choices=sorted(DUBLIN_COUNTIES + IE_COUNTIES + NI_COUNTIES))
     postcode = forms.CharField(required=False)
     phone = forms.CharField()
-    item_type = forms.ChoiceField(choices=[('CARTON', 'Carton'), ('PALLET', 'Pallet'), ('OTHER', 'Other')])
-    item_count = forms.IntegerField(initial=1)
-    item_weight = forms.DecimalField(label='Weight (kg)', decimal_places=2, initial=2)
     dispatch_date = forms.DateTimeField(initial=now())
 
     def __init__(self, order_id, shopify_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if shopify_data:
             address = shopify_data.get('shipping_address')
-            self.fields['name'].initial = f"{address['first_name']} {address['last_name']}"
+            self.fields['name'].initial = address['name']
             self.fields['first_line'].initial = address['address1']
             self.fields['second_line'].initial = address['address2']
             self.fields['town'].initial = address['city']
@@ -71,6 +68,8 @@ class ExpressFreightLabelForm(SVForm):
             self.fields['phone'].initial = address['phone']
             if any('dublin' in c.lower() for c in {address['city'], address['province']} if c):
                 self.fields['region'].initial = 'DUBLIN'
+            elif address['zip'].lower().startswith('bt'):
+                self.fields['region'].initial = 'NORTH IRELAND'
         self.fields['shopify_order'].initial = order_id
         # self.fields['dispatch_date'].widget.attrs = {'daysOfWeekDisabled': [0, 6], 'format': 'LT'}
 
@@ -90,40 +89,3 @@ class ExpressFreightLabelForm(SVForm):
     def clean_dispatch_date(self):
         if dt := self.cleaned_data.get('dispatch_date'):
             return dt.date().strftime('%Y-%m-%d')
-
-    def ef_form_data(self):
-        cd = self.cleaned_data
-        return {
-            'consigneeName': cd['name'],
-            'ConsigneeNumber': '',
-            'ConsigneeTownland': '',
-            'SpecialInstructions': '',
-            'consigneeStreet': cd['first_line'],
-            'consigneeStreet2': cd['second_line'] or '',
-            'consigneeCity': cd['town'] or '',
-            'consigneeCounty': cd['county'],
-            'consigneePostcode': cd['postcode'] or '',
-            'contactName': cd['name'],
-            'contactNo': cd['phone'],
-            'orderReference': cd['shopify_order'],
-            'serviceType': 'STANDARD',
-            'consigneeRegion': cd['region'],
-            'dispatchDate': cd['dispatch_date'],
-            'labelsLink': True,
-            'items': [
-                {
-                    'itemType': cd['item_type'],
-                    'itemWeight': float(cd['item_weight']),
-                    'itemHeight': 0,
-                    'itemWidth': 0,
-                    'itemLength': 0,
-                    'dangerousGoods': False,
-                    'limitedQuantities': False,
-                }
-                for _ in range(cd['item_count'])
-            ],
-        }
-
-
-class DHLLabelForm(SVForm):
-    pass
