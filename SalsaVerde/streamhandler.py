@@ -1,6 +1,7 @@
 import logging
-from django.utils.termcolors import colorize
 from functools import cached_property
+
+from django.utils.termcolors import colorize
 
 
 class StreamHandler(logging.StreamHandler):  # pragma: no cover

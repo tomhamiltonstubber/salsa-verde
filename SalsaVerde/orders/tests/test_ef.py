@@ -1,8 +1,9 @@
 from datetime import datetime
+from unittest import mock
+
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
-from unittest import mock
 
 from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.tests.mock_objs import fake_ef, fake_shopify

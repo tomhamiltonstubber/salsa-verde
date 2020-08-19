@@ -1,12 +1,13 @@
 import logging
-import requests
 from datetime import datetime
+from operator import itemgetter
+from urllib.parse import urlencode
+
+import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.utils.timezone import now
 from django.views.generic import TemplateView
-from operator import itemgetter
-from urllib.parse import urlencode
 
 from SalsaVerde.orders.models import Order
 from SalsaVerde.stock.views.base_views import DisplayHelpers, display_dt

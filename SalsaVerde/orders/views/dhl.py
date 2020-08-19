@@ -1,4 +1,5 @@
 import logging
+
 import requests
 from django.conf import settings
 from django.contrib import messages
@@ -51,7 +52,7 @@ class DHLLabelCreate(SVFormView, TemplateView):
         return kwargs
 
     def form_valid(self, form):
-        data = form.ef_form_data()
+        form.ef_form_data()
         messages.success(self.request, 'Order created')
         shopify_fulfill_order(self.order_id)
         return redirect(reverse('shopify-orders'))

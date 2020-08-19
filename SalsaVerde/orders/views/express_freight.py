@@ -1,9 +1,10 @@
 import logging
+from urllib.parse import urlencode
+
 import requests
 from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
-from urllib.parse import urlencode
 
 from SalsaVerde.orders.forms.express_freight import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, ExpressFreightLabelForm
 from SalsaVerde.orders.models import Order
