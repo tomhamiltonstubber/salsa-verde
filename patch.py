@@ -16,9 +16,7 @@ import django
 
 django.setup()
 
-from SalsaVerde.stock.models import ProductType, ProductTypeSize, Company, User
-from SalsaVerde.company.models import Company as NewCompany
-from SalsaVerde.company.models import User as NewUser
+from SalsaVerde.stock.models import ProductType, ProductTypeSize
 
 commands = []
 
@@ -103,17 +101,6 @@ user_fields = [
     'postcode',
     'phone',
 ]
-
-
-@command
-def create_new_items(live):
-    for company in Company.objects.order_by('id'):
-        NewCompany.objects.create(name=company.name, website=company.website)
-    companies = {c.name: c.id for c in NewCompany.objects.all()}
-    for user in User.objects.order_by('id'):
-        kwargs = {f: getattr(user, f) for f in user_fields if getattr(user, f, None)}
-        kwargs['company_id'] = companies[user.company.name]
-        NewUser.objects.create(**kwargs)
 
 
 @command
