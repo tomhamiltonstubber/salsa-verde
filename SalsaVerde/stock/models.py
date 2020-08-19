@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.forms import JSONField
@@ -8,80 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from SalsaVerde.company.models import BaseModel, CompanyQueryset, UserManager
+from SalsaVerde.company.models import BaseModel, Company, User, CompanyNameBaseModel
 from SalsaVerde.storage_backends import PrivateMediaStorage
-
-
-class Company(models.Model):
-    name = models.CharField('Name', max_length=255)
-    website = models.CharField(max_length=255, blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class UserCompany(models.Model):
-    name = models.CharField('Name', max_length=255)
-    website = models.CharField(max_length=255, blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class CompanyNameBaseModel(BaseModel):
-    name = models.CharField('Name', max_length=255)
-    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
-    objects = CompanyQueryset.as_manager()
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        abstract = True
-
-
-class User(AbstractUser):
-    objects = UserManager.from_queryset(CompanyQueryset)()
-
-    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
-
-    username = None
-    email = models.EmailField('Email Address', unique=True)
-    first_name = models.CharField('First name', max_length=30, blank=True)
-    last_name = models.CharField('Last name', max_length=150, blank=True)
-    last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1, tzinfo=timezone.utc))
-    street = models.TextField('Street Address', null=True, blank=True)
-    town = models.CharField('Town', max_length=50, null=True, blank=True)
-    country = models.CharField('Country', max_length=50, null=True, blank=True)
-    postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
-    phone = models.CharField('Phone', max_length=255, null=True, blank=True)
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
-    def has_document(self, doc_type):
-        return self.focused_documents.filter(doc_type=doc_type).exists()
-
-    def display_name(self):
-        return str(self)
-
-    def display_address(self):
-        address = [a for a in [self.street, self.town, self.postcode, self.country] if a]
-        return ', '.join(address) or '–'
-
-    def get_absolute_url(self):
-        return reverse('users-details', kwargs={'pk': self.pk})
-
-    def __str__(self):
-        return f'{self.first_name} {self.last_name}'
-
-    @staticmethod
-    def prefix():
-        return 'users'
-
-    class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
 
 
 class Supplier(CompanyNameBaseModel):
@@ -485,7 +412,7 @@ class Document(BaseModel):
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
     focus = models.ForeignKey(
-        'stock.User',
+        User,
         verbose_name='Associated with',
         null=True,
         blank=True,
