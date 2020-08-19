@@ -5,7 +5,8 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
-from SalsaVerde.stock.models import Company, ContainerType, IngredientType, ProductType
+from SalsaVerde.company.models import Company
+from SalsaVerde.stock.models import ContainerType, IngredientType, ProductType
 from SalsaVerde.stock.views.base_views import BasicView, ExtraContentView
 
 

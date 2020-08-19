@@ -1,7 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from SalsaVerde.company.models import CompanyQueryset, Company
+from SalsaVerde.company.models import Company, CompanyQueryset
 
 
 class Order(models.Model):

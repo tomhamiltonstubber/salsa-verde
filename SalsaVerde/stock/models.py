@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.forms import JSONField
 from django.db import models
 from django.db.models import QuerySet
@@ -7,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from SalsaVerde.company.models import BaseModel, Company, User, CompanyNameBaseModel
+from SalsaVerde.company.models import BaseModel, CompanyNameBaseModel, User
 from SalsaVerde.storage_backends import PrivateMediaStorage
 
 
