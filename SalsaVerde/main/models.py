@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.postgres.forms import JSONField

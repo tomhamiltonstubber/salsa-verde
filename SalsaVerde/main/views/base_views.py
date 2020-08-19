@@ -1,11 +1,12 @@
 import datetime
+from functools import partial
+
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django.views import View
 from django.views.generic import CreateView, FormView, TemplateView, UpdateView
-from functools import partial
 
 
 def get_nav_menu():

@@ -1,6 +1,9 @@
 import logging
-import requests
 from datetime import datetime
+from operator import itemgetter
+from urllib.parse import urlencode
+
+import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib import messages
@@ -9,8 +12,6 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.timezone import now
 from django.views.generic import TemplateView
-from operator import itemgetter
-from urllib.parse import urlencode
 
 from SalsaVerde.main.views.base_views import DisplayHelpers, SVFormView
 from SalsaVerde.orders.forms import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, DHLLabelForm, ExpressFreightLabelForm
