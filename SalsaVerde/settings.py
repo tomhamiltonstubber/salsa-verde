@@ -179,7 +179,7 @@ LOGGING = {
             'datefmt': '%d/%b/%Y %H:%M:%S',
         },
         'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s'},
-        'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler',},
+        'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
     },
     'handlers': {
         'debug_console': {'level': 'DEBUG', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler'},
