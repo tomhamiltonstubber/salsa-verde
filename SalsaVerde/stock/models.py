@@ -336,6 +336,7 @@ class Product(BaseModel):
     class Meta:
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
+        ordering = ('product_type__name',)
 
 
 class ProductIngredientQuerySet(QuerySet):
