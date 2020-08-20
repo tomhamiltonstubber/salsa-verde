@@ -55,7 +55,7 @@ class DHLLabelCreate(SVFormView, TemplateView):
         form.ef_form_data()
         messages.success(self.request, 'Order created')
         shopify_fulfill_order(self.order_id)
-        return redirect(reverse('shopify-orders'))
+        return redirect(reverse('orders-list'))
 
 
 dhl_label_create = DHLLabelCreate.as_view()

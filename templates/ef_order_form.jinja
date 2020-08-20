@@ -3,7 +3,7 @@
 {% from 'macros.jinja' import order_details, display_formset with context %}
 
 {% block content %}
-  {{ order_details(view.order_data.order) }}
+  {{ order_details(view.order_data.order, show_amounts=False) }}
   <form method="post" enctype="multipart/form-data" class="formsets-form custom-form">
     {% csrf_token %}
     {{ form.shopify_order }}

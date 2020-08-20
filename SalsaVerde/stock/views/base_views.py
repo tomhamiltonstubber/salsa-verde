@@ -11,7 +11,7 @@ from django.views.generic import CreateView, FormView, TemplateView, UpdateView
 
 def get_nav_menu():
     return [
-        ('Orders', reverse('shopify-orders')),
+        ('Orders', reverse('orders-list')),
         ('Products', reverse('products')),
         ('Suppliers', reverse('suppliers')),
         ('Containers', reverse('containers')),
@@ -122,10 +122,10 @@ class DisplayHelpers:
             return self._get_v(obj, item)
 
     def get_display_values(self, obj, display_items):
-        return [self.display_value(obj, f) for f in display_items]
+        return [self.display_value(obj, f) for f in (display_items or [])]
 
     def get_display_labels(self, display_items, obj=None):
-        return [self._display_label(item, obj) for item in display_items]
+        return [self._display_label(item, obj) for item in (display_items or [])]
 
 
 class QuerySetMixin:

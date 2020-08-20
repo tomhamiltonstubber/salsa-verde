@@ -1,0 +1,36 @@
+{% extends 'auth.jinja' %}
+
+{% from 'macros.jinja' import order_details with context %}
+
+{% block content %}
+  {% if order_data %}
+    {{ order_details(order_data) }}
+  {% endif %}
+  {% if products %}
+    <div class="panel panel-default" id="extra-details">
+      <div class="panel-heading">
+        <h4>Products Used</h4>
+      </div>
+      <div class="panel-body">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Amount</th>
+              <th>Batch Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product, count in products.items() %}
+              <tr>
+                <td>{{ product.product_type }}</td>
+                <td>{{ count }}</td>
+                <td>{{ product.batch_code }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

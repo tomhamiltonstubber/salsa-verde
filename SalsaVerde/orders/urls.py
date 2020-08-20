@@ -1,14 +1,16 @@
 from django.urls import path
 
 from SalsaVerde.orders.models import PackageTemplate
+from SalsaVerde.orders.views.common import order_details, orders_list, shopify_order_details
 from SalsaVerde.orders.views.dhl import dhl_label_create
 from SalsaVerde.orders.views.express_freight import ef_label_create
 from SalsaVerde.orders.views.setup import package_temp_add, package_temp_edit
-from SalsaVerde.orders.views.shopify import shopify_orders
 from SalsaVerde.stock.views.base_views import DeleteObjectView
 
 urlpatterns = [
-    path('', shopify_orders, name='shopify-orders'),
+    path('', orders_list, name='orders-list'),
+    path('<int:pk>/', order_details, name='order-details'),
+    path('shopify/<int:id>/', shopify_order_details, name='order-details-shopify'),
     path('setup/package-temp/add/', package_temp_add, name='package-temp-add'),
     path('setup/package-temp/<int:pk>/edit/', package_temp_edit, name='package-temp-edit'),
     path(

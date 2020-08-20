@@ -9,50 +9,22 @@
         <td><b>Customer</b></td>
         <td><b>Total</b></td>
         <td><b>Location</b></td>
-        <td><b>Status</b></td>
-        <td><b>Shopify link</b></td>
-        <td><b>Fulfillment</b></td>
       </tr>
     </thead>
     <tbody>
-      {% for order in view.get_orders() %}
+      {% for shopify_order in orders %}
         <tr>
-          <td>{{ order.name }}</td>
-          <td>{{ view.created_at(order.created_at) }}</td>
-          <td>{{ order.billing_address.first_name }} {{ order.billing_address.last_name }}</td>
-          <td>£{{ order.total_price }}</td>
-          <td>{{ view.get_location(order) }}</td>
-          <td>{{ order.fulfillment_status or 'Not fulfilled'}}</td>
-          <td><a href="{{ view.get_shopify_url(order) }}" target="_blank" class="btn btn-default">
-            <span class="fa fa-shopping-basket"></span>&nbsp;View
-          </a></td>
           <td>
-            {% if order.fulfillment_status == 'fulfilled' %}
-              {% if order.label_urls %}
-                <div class="dropdown">
-                  <button class="btn btn-default dropdown-toggle" type="button" id="label_dd_{{ loop.index }}" data-toggle="dropdown">
-                    Labels
-                    <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    {% for l_url in order.label_urls %}
-                      <li><a target="_blank" href="{{ l_url }}">Label {{ loop.index }}</a></li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              {% endif %}
+            {% if shopify_order.order_obj %}
+              <a href="{{ url('order-details', pk=shopify_order.order_obj.id) }}">Order {{ shopify_order.name }}</a>
             {% else %}
-              <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" type="button" id="fulfill_dd_{{ loop.index }}" data-toggle="dropdown">
-                  <span class="fa fa-truck"></span>&nbsp;Fulfill
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a href="{{ url('fulfill-order-ef') }}?shopify_order={{ order.id }}">Using ExpressFreight</a></li>
-                </ul>
-              </div>
+              <a href="{{ url('order-details-shopify', id=shopify_order.id) }}">Order {{ shopify_order.name }}</a>
             {% endif %}
           </td>
+          <td>{{ view.created_at(shopify_order.created_at) }}</td>
+          <td>{{ shopify_order.billing_address.name }}</td>
+          <td>£{{ shopify_order.total_price }}</td>
+          <td>{{ view.get_location(shopify_order) }}</td>
         </tr>
       {% endfor %}
     </tbody>

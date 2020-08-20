@@ -50,13 +50,13 @@ class ExpressFreightLabelForm(SVForm):
     first_line = forms.CharField()
     second_line = forms.CharField(required=False)
     town = forms.CharField(help_text='Note that anything other than letters will be removed from this.')
-    region = forms.ChoiceField(choices=[('NORTH IRELAND', 'NI'), ('DUBLIN', 'Dublin'), ('REST OF IRELAND', 'ROI')])
+    region = forms.ChoiceField(choices=[('REST OF IRELAND', 'ROI'), ('NORTH IRELAND', 'NI'), ('DUBLIN', 'Dublin')])
     county = forms.ChoiceField(choices=sorted(DUBLIN_COUNTIES + IE_COUNTIES + NI_COUNTIES))
     postcode = forms.CharField(required=False)
     phone = forms.CharField()
     dispatch_date = forms.DateTimeField(initial=now())
 
-    def __init__(self, order_id, shopify_data=None, *args, **kwargs):
+    def __init__(self, order_id=None, shopify_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if shopify_data:
             address = shopify_data.get('shipping_address')
@@ -71,16 +71,18 @@ class ExpressFreightLabelForm(SVForm):
                 self.fields['region'].initial = 'DUBLIN'
             elif address['zip'].lower().startswith('bt'):
                 self.fields['region'].initial = 'NORTH IRELAND'
-        self.fields['shopify_order'].initial = order_id
+            self.fields['shopify_order'].initial = order_id
         # self.fields['dispatch_date'].widget.attrs = {'daysOfWeekDisabled': [0, 6], 'format': 'LT'}
-
-    def clean_town(self):
-        if town := self.cleaned_data.get('town'):
-            return re.sub('[^A-Za-z0-9]+', '', town)
 
     def clean_phone(self):
         if phone := self.cleaned_data.get('phone'):
             return re.sub('[^0-9]+', '', phone.replace('+', '00'))
+
+    def clean(self):
+        for field in ['first_line', 'second_line', 'town', 'postcode']:
+            if v := self.cleaned_data.get(field):
+                self.cleaned_data[field] = re.sub('[^A-Za-z0-9 ]+', '', v)
+        return self.cleaned_data
 
     def clean_county(self):
         if self.cleaned_data.get('region', '') == 'DUBLIN' and not self.cleaned_data.get('county').startswith('DUBLIN'):

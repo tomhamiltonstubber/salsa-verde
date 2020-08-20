@@ -34,7 +34,8 @@ def fake_shopify(error=False):
             self.method = method
             self.orders = [
                 {
-                    'id': 123,
+                    'id': '123',
+                    'name': '#123',
                     'created_at': '2020-08-19T08:47:12+01:00',
                     'total_price': '40.50',
                     'total_discounts': '4.50',
@@ -66,6 +67,40 @@ def fake_shopify(error=False):
                         'country_code': 'GB',
                     },
                 },
+                {
+                    'id': '456',
+                    'created_at': '2020-08-19T08:47:12+01:00',
+                    'total_price': '40.50',
+                    'total_discounts': '4.50',
+                    'total_line_items_price': '45.00',
+                    'fulfillment_status': 'fulfilled',
+                    'name': '#456',
+                    'line_items': [
+                        {'quantity': 5, 'name': 'Bramley apple infused Balsamic Vinegar - 250ml', 'price': '9.00'},
+                    ],
+                    'shipping_address': {
+                        'address1': '123 Fake st',
+                        'phone': '07714 123456',
+                        'city': 'Belfast',
+                        'zip': 'BT72 2LL',
+                        'province': None,
+                        'country': 'United Kingdom',
+                        'address2': '',
+                        'name': 'Brain Fulfilled',
+                        'country_code': 'GB',
+                    },
+                    'billing_address': {
+                        'address1': '123 Fake st',
+                        'phone': '07714 123456',
+                        'city': 'Belfast',
+                        'zip': 'BT72 2LL',
+                        'province': None,
+                        'country': 'United Kingdom',
+                        'address2': '',
+                        'name': 'Brain Johnston',
+                        'country_code': 'GB',
+                    },
+                },
             ]
 
         def raise_for_status(self):
@@ -73,9 +108,13 @@ def fake_shopify(error=False):
                 raise HTTPError('Bah humbug')
 
         def json(self):
-            if re.match(r'.*orders/(\d+)\.json', self.url) and self.method == 'GET':
-                return {'order': self.orders[0]}
+            if re.match(r'.*orders/\d+\.json', self.url) and self.method == 'GET':
+                id = re.search(r'orders/(\d+)\.json', self.url).group(1)
+                return {'order': next(o for o in self.orders if o['id'] == id)}
             elif re.match(r'.*orders\.json', self.url) and self.method == 'GET':
-                return {'orders': self.orders}
+                if 'shipped' in self.url:
+                    return {'orders': [o for o in self.orders if o['fulfillment_status'] == 'fulfilled']}
+                else:
+                    return {'orders': [o for o in self.orders if not o['fulfillment_status']]}
 
     return MockShopify
