@@ -8,10 +8,10 @@ from django.utils import timezone
 from SalsaVerde.company.models import Company
 from SalsaVerde.orders.models import PackageTemplate
 from SalsaVerde.stock.models import ContainerType, IngredientType, ProductType
-from SalsaVerde.stock.views.base_views import BasicView, ExtraContentView
+from SalsaVerde.stock.views.base_views import ExtraContentView, ModelBasicView
 
 
-class Index(BasicView):
+class Index(ModelBasicView):
     template_name = 'auth.jinja'
     title = 'Dashboard'
 

@@ -1,0 +1,14 @@
+{% extends 'auth.jinja' %}
+
+{% from 'macros.jinja' import display_formset, order_details with context %}
+
+{% block content %}
+  {% if order_data %}
+    {{ order_details(order_data, False) }}
+  {% endif %}
+  <form method="post" action="" class="formsets-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ display_formset(formset) }}
+    <input type="submit" value="Submit" class="btn btn-default" />
+  </form>
+{% endblock %}

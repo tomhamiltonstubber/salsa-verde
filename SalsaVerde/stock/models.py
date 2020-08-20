@@ -321,6 +321,7 @@ class Product(BaseModel):
     batch_code_applied = models.BooleanField('Batch code applied', default=False)
     best_before_applied = models.BooleanField('Best before applied', default=False)
     quality_check_successful = models.BooleanField('Quality check successful', default=False)
+    finished = models.BooleanField('Finished', default=False)
 
     def __str__(self):
         return f'{self.product_type} - {self.batch_code}'

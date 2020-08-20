@@ -9,6 +9,7 @@ from SalsaVerde.orders.factories.orders import OrderFactory
 from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.tests.mock_objs import fake_ef, fake_shopify
 from SalsaVerde.stock.factories.company import CompanyFactory
+from SalsaVerde.stock.factories.product import ProductFactory
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
 
 
@@ -122,5 +123,42 @@ class OrderTestCase(TestCase):
         r = self.client.get(reverse('order-details-shopify', args=[123]))
         self.assertContains(r, 'Bramley apple')
 
-    def test_record_products(self):
-        pass
+    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
+    def test_add_product_batch_codes(self, mock_shopify):
+        mock_shopify.side_effect = fake_shopify()
+        order = OrderFactory(company=self.company, shopify_id=456)
+        r = self.client.get(reverse('order-packed-product', args=[order.id]))
+        self.assertContains(r, 'Bramley apple')
+        p1 = ProductFactory(product_type__company=self.company, product_type__name='Foo')
+        p2 = ProductFactory(product_type__company=self.company, product_type__name='Bar')
+        formset_data = empty_formset('form')
+        formset_data['form-TOTAL_FORMS'] = 2
+        form_data = {
+            'form-0-product': p1.id,
+            'form-0-quantity': 2,
+            'form-1-product': p2.id,
+            'form-1-quantity': 3,
+            **formset_data,
+        }
+        r = self.client.post(reverse('order-packed-product', args=[order.id]), follow=True, data=form_data)
+        self.assertRedirects(r, order.get_absolute_url())
+        order = Order.objects.get()
+        assert order.products.count() == 2
+        assert sum(order.products.values_list('quantity', flat=True)) == 5
+        self.assertContains(r, 'Foo')
+        self.assertContains(r, 'Bar')
+
+        # Now delete one
+        form_data = {
+            'form-0-product': p1.id,
+            'form-0-quantity': 0,
+            'form-1-product': p2.id,
+            'form-1-quantity': 1,
+            **formset_data,
+        }
+        r = self.client.post(reverse('order-packed-product', args=[order.id]), follow=True, data=form_data)
+        self.assertRedirects(r, order.get_absolute_url())
+        order = Order.objects.get()
+        assert order.products.count() == 1
+        self.assertNotContains(r, 'Foo')
+        self.assertContains(r, 'Bar')

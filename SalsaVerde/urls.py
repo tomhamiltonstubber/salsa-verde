@@ -39,6 +39,7 @@ from SalsaVerde.stock.views.ingredients import (
     intake_ingredients,
 )
 from SalsaVerde.stock.views.products import (
+    change_product_status,
     product_add,
     product_bottle,
     product_details,
@@ -115,6 +116,7 @@ product_patterns = [
     path('<int:pk>/bottle/', product_bottle, name='products-bottle'),
     path('<int:pk>/', product_details, name='products-details'),
     path('<int:pk>/edit/', product_edit, name='products-edit'),
+    path('<int:pk>/status/', change_product_status, name='product-status'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Product), name='products-delete'),
     path('<int:pk>/ingredients/add/', product_ingredient_add, name='product-ingredient-add'),
     path('<int:pk>/containers/add/', yield_container_add, name='yield-container-add'),

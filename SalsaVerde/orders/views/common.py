@@ -1,4 +1,3 @@
-from collections import Counter
 from datetime import datetime
 from operator import itemgetter
 
@@ -8,15 +7,15 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
 
-from SalsaVerde.orders.forms.common import PackageFormSet
-from SalsaVerde.orders.models import Order
+from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
+from SalsaVerde.orders.models import Order, ProductOrder
 from SalsaVerde.orders.views.shopify import (
     ShopifyHelperMixin,
     get_shopify_order,
     get_shopify_orders,
     shopify_fulfill_order,
 )
-from SalsaVerde.stock.views.base_views import DetailView, DisplayHelpers, SVFormView
+from SalsaVerde.stock.views.base_views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 
 
 class CreateShipmentError(Exception):
@@ -128,26 +127,34 @@ class OrderDetails(ShopifyHelperMixin, DetailView):
 
     def get_button_menu(self):
         yield {'name': 'Back', 'url': reverse('orders-list') + '?fulfilled=true'}
+        yield {
+            'name': 'Update Product Batch Codes',
+            'url': reverse('order-packed-product', kwargs={'pk': self.object.pk}),
+        }
         if self.object.shopify_id:
-            yield {'name': 'View in Shopify', 'url': self.get_shopify_url(self.object.shopify_id), 'newtab': True}
-        for i, label in enumerate(self.object.label_urls):
-            yield {'name': f'Label {i + 1}', 'url': label, 'newtab': True, 'icon': 'fa-shopping-basket'}
+            yield {
+                'name': 'View in Shopify',
+                'url': self.get_shopify_url(self.object.shopify_id),
+                'newtab': True,
+                'icon': 'fa-shopping-basket',
+            }
         if self.object.tracking_url:
             yield {'name': 'Tracking', 'url': self.object.tracking_url, 'newtab': True}
+        for i, label in enumerate(self.object.label_urls):
+            yield {'name': f'Shipping Label {i + 1}', 'url': label, 'newtab': True}
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if shopify_order := self.object.shopify_id:
             _, order_data = get_shopify_order(shopify_order)
             ctx.update(order_data=order_data['order'])
-        ctx['products'] = Counter(self.object.products.select_related('product_type'))
         return ctx
 
 
 order_details = OrderDetails.as_view()
 
 
-class ShopifyOrderView(ShopifyHelperMixin, DisplayHelpers, TemplateView):
+class ShopifyOrderView(ShopifyHelperMixin, BasicView):
     template_name = 'order_view.jinja'
     title = 'Order'
 
@@ -159,19 +166,60 @@ class ShopifyOrderView(ShopifyHelperMixin, DisplayHelpers, TemplateView):
             'newtab': True,
             'icon': 'fa-shopping-basket',
         }
-        yield {
-            'name': 'Fulfill with ExpressFreight',
-            'url': reverse('fulfill-order-ef') + f'?shopify_order={self.shopify_id}',
-            'icon': 'fa-truck',
-        }
+        if not self.order_data['fulfillment_status']:
+            yield {
+                'name': 'Fulfill with ExpressFreight',
+                'url': reverse('fulfill-order-ef') + f'?shopify_order={self.shopify_id}',
+                'icon': 'fa-truck',
+            }
 
     def dispatch(self, request, *args, **kwargs):
         self.shopify_id = kwargs['id']
+        _, order_data = get_shopify_order(self.shopify_id)
+        self.order_data = order_data['order']
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        _, order_data = get_shopify_order(self.shopify_id)
-        return super().get_context_data(order_data=order_data['order'])
+        return super().get_context_data(order_data=self.order_data)
 
 
 shopify_order_details = ShopifyOrderView.as_view()
+
+
+class OrderUpdatePackedProduct(ShopifyHelperMixin, UpdateModelView):
+    form_class = PackedProductFormSet
+    title = 'Record product'
+    template_name = 'packed_product_form.jinja'
+    model = Order
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs.pop('instance')
+        return form_kwargs
+
+    def get_initial(self):
+        return [
+            {'product': po.product, 'quantity': po.quantity}
+            for po in self.object.products.select_related('product', 'product__product_type')
+        ]
+
+    def form_valid(self, formset):
+        self.object.products.all().delete()
+        for form in formset.forms:
+            cd = form.cleaned_data
+            if cd.get('quantity'):
+                ProductOrder.objects.create(order=self.object, product=cd['product'], quantity=cd['quantity'])
+        return redirect(self.object.get_absolute_url())
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self.object.shopify_id:
+            _, order_data = get_shopify_order(self.object.shopify_id)
+            ctx['order_data'] = order_data['order']
+        ctx['formset'] = ctx.pop('form')
+        if self.object.products.exists():
+            del ctx['formset'].forms[-1]
+        return ctx
+
+
+update_packed_product = OrderUpdatePackedProduct.as_view()

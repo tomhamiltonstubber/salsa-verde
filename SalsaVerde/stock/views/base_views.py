@@ -140,7 +140,11 @@ class QuerySetMixin:
         return self.model.objects.none()
 
 
-class BasicView(QuerySetMixin, DisplayHelpers, TemplateView):
+class BasicView(DisplayHelpers, TemplateView):
+    pass
+
+
+class ModelBasicView(QuerySetMixin, BasicView):
     pass
 
 
@@ -148,7 +152,7 @@ def display_dt(dt):
     return dt.strftime(settings.DT_FORMAT)
 
 
-class ListView(BasicView):
+class ListView(ModelBasicView):
     template_name = 'list_view.jinja'
     model = None
 
@@ -203,7 +207,7 @@ class UpdateModelView(QuerySetMixin, SVModelFormView, UpdateView, ObjMixin):
         return self.title or 'Edit %s' % self.object
 
 
-class ExtraContentView(BasicView):
+class ExtraContentView(ModelBasicView):
     template_name = 'details_view.jinja'
 
     def extra_display_items(self):

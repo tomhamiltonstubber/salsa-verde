@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from SalsaVerde.stock.forms.containers import YieldContainersForm, YieldContainersFormSet
 from SalsaVerde.stock.forms.products import (
@@ -210,6 +211,14 @@ class ProductEdit(UpdateModelView):
 product_edit = ProductEdit.as_view()
 
 
+@require_POST
+def change_product_status(request, pk):
+    obj = get_object_or_404(Product.objects.request_qs(request), pk=pk)
+    obj.finished = not obj.finished
+    obj.save(update_fields=['finished'])
+    return redirect('product-details', pk=pk)
+
+
 class ProductDetails(DetailView):
     model = Product
 
@@ -238,6 +247,11 @@ class ProductDetails(DetailView):
         if self.object.status == Product.STATUS_INFUSED:
             btns = [btn for btn in btns if btn['name'] != 'Edit']
             btns.insert(1, {'name': 'Record bottling', 'rurl': 'products-bottle'})
+        if self.object.finished:
+            label = 'Mark as In stock'
+        else:
+            label = 'Mark as Finished'
+        btns.append({'name': label, 'url': reverse('product-status', kwargs={'pk': self.object.pk}), 'method': 'POST'})
         return btns
 
     def extra_display_items(self):

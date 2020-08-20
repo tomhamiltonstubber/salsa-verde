@@ -6,7 +6,7 @@
   {% if order_data %}
     {{ order_details(order_data) }}
   {% endif %}
-  {% if products %}
+  {% if view.object and view.object.products.exists() %}
     <div class="panel panel-default" id="extra-details">
       <div class="panel-heading">
         <h4>Products Used</h4>
@@ -21,11 +21,11 @@
             </tr>
           </thead>
           <tbody>
-            {% for product, count in products.items() %}
+            {% for product_order in view.object.products.all() %}
               <tr>
-                <td>{{ product.product_type }}</td>
-                <td>{{ count }}</td>
-                <td>{{ product.batch_code }}</td>
+                <td><a href="{{ product_order.product.get_absolute_url() }}">{{ product_order.product.product_type }}</a></td>
+                <td>{{ product_order.quantity }}</td>
+                <td>{{ product_order.product.batch_code }}</td>
               </tr>
             {% endfor %}
           </tbody>
