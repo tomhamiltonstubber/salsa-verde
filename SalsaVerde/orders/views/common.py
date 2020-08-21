@@ -71,7 +71,6 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
         except CreateShipmentError:
             return super().form_invalid(form)
         else:
-            pass
             if self.shopify_order_id:
                 success, r = shopify_fulfill_order(order)
                 if success:
@@ -142,7 +141,7 @@ class OrderDetails(ShopifyHelperMixin, DetailView):
         if self.object.tracking_url:
             yield {'name': 'Tracking', 'url': self.object.tracking_url, 'newtab': True}
         for i, label in enumerate(self.object.labels.all()):
-            yield {'name': f'Shipping Label {i + 1}', 'url': label.url, 'newtab': True}
+            yield {'name': f'Shipping Label {i + 1}', 'url': label.file.url, 'newtab': True}
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

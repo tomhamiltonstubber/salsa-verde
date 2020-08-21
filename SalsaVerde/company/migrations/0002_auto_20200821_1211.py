@@ -5,6 +5,10 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def set_country_blank(apps, schema):
+    apps.get_model('company', 'user').objects.update(country=None)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,6 +16,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(set_country_blank),
         migrations.CreateModel(
             name='Country',
             fields=[
