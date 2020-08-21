@@ -7,9 +7,9 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
 
+from SalsaVerde.common.views import SVFormView
 from SalsaVerde.orders.forms.dhl import DHLLabelForm
 from SalsaVerde.orders.views.shopify import shopify_fulfill_order, shopify_request
-from SalsaVerde.stock.views.base_views import SVFormView
 
 session = requests.Session()
 logger = logging.getLogger('salsa-verde.orders')

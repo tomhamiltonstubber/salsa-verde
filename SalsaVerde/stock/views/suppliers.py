@@ -3,7 +3,7 @@ from django.urls import reverse
 from SalsaVerde.stock.forms.suppliers import UpdateSupplierForm
 from SalsaVerde.stock.models import Supplier
 
-from .base_views import AddModelView, DetailView, ListView, UpdateModelView
+from ...common.views import AddModelView, DetailView, ListView, UpdateModelView
 
 
 class SupplierList(ListView):

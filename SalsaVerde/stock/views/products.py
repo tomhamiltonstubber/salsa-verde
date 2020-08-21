@@ -20,7 +20,7 @@ from SalsaVerde.stock.forms.products import (
 )
 from SalsaVerde.stock.models import Product, ProductIngredient, ProductType, ProductTypeSize, YieldContainer
 
-from .base_views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class ProductTypeList(ListView):

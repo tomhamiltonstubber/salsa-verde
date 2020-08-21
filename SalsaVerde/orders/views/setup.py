@@ -1,6 +1,6 @@
+from SalsaVerde.common.views import AddModelView, UpdateModelView
 from SalsaVerde.orders.forms.setup import UpdatePackageTemplateForm
 from SalsaVerde.orders.models import PackageTemplate
-from SalsaVerde.stock.views.base_views import AddModelView, UpdateModelView
 
 
 class PackageTemplateAdd(AddModelView):

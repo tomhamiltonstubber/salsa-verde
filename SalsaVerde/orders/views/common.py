@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
 
+from SalsaVerde.common.views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
 from SalsaVerde.orders.models import Order, ProductOrder
 from SalsaVerde.orders.views.shopify import (
@@ -15,7 +16,6 @@ from SalsaVerde.orders.views.shopify import (
     get_shopify_orders,
     shopify_fulfill_order,
 )
-from SalsaVerde.stock.views.base_views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 
 
 class CreateShipmentError(Exception):

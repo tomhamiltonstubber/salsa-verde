@@ -6,7 +6,7 @@ from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.stock.forms.containers import ContainersFormSet, UpdateContainerForm, UpdateContainerTypeForm
 from SalsaVerde.stock.models import Container, ContainerType, Product
 
-from .base_views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class ContainerTypeList(ListView):
