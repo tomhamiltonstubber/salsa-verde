@@ -1,0 +1,44 @@
+{% extends 'form_view.jinja' %}
+
+{% from 'macros.jinja' import order_details, display_formset with context %}
+
+{% block content %}
+  {{ order_details(view.order_data.order, show_amounts=False) }}
+  <form method="post" enctype="multipart/form-data" class="formsets-form custom-form">
+    {% csrf_token %}
+    {{ form.shopify_order }}
+    <div class="form-panel">
+      <div class="panel-heading">
+        <h3 class="panel-title">Customer</h3>
+      </div>
+      <div class="row">
+        <div class="col-md-6">{{ form.name | bootstrap }}</div>
+        <div class="col-md-6">{{ form.phone | bootstrap }}</div>
+      </div>
+    </div>
+    <div class="form-panel">
+      <div class="panel-heading">
+        <h3 class="panel-title">Delivery Address</h3>
+      </div>
+      <div class="row">
+        <div class="col-md-4">{{ form.first_line | bootstrap }}</div>
+        <div class="col-md-4">{{ form.second_line | bootstrap }}</div>
+        <div class="col-md-4">{{ form.town | bootstrap }}</div>
+        <div class="col-md-4">{{ form.county | bootstrap }}</div>
+        <div class="col-md-4">{{ form.postcode | bootstrap }}</div>
+        <div class="col-md-4">{{ form.country | bootstrap }}</div>
+      </div>
+    </div>
+    <div class="form-panel">
+      <div class="panel-heading">
+        <h3 class="panel-title">Packages sending</h3>
+      </div>
+      <div class="row">
+        <div class="col-md-6">{{ form.service_code | bootstrap }}</div>
+        <div class="col-md-6">{{ form.dispatch_date | bootstrap }}</div>
+        {{ display_formset(package_formset) }}
+      </div>
+    </div>
+    <input type="submit" value="Fulfill order" class="btn btn-default">
+  </form>
+{% endblock %}

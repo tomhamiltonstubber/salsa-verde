@@ -6,6 +6,7 @@ from itertools import groupby
 from pathlib import Path
 
 import click
+import requests
 from django.db import connection
 from django.db.transaction import commit, set_autocommit
 
@@ -17,6 +18,7 @@ import django
 django.setup()
 
 from SalsaVerde.stock.models import ProductType, ProductTypeSize
+from SalsaVerde.company.models import Country
 
 commands = []
 
@@ -107,6 +109,15 @@ user_fields = [
 def delete_all_migrations(**kwargs):
     with connection.cursor() as cursor:
         cursor.execute('DELETE FROM django_migrations')
+
+
+@command
+def create_countries(**kwargs):
+    r = requests.get('https://restcountries.eu/rest/v2/all?fields=name;alpha2Code;alpha3Code')
+    r.raise_for_status()
+    countries = [Country(name=c['name'], iso_2=c['alpha2Code'], iso_3=c['alpha3Code']) for c in r.json()]
+    created = Country.objects.bulk_create(countries)
+    print(f'Created {len(created)} countries')
 
 
 @click.command()

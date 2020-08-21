@@ -72,7 +72,6 @@ class ExpressFreightLabelForm(SVForm):
             elif address['zip'].lower().startswith('bt'):
                 self.fields['region'].initial = 'NORTH IRELAND'
             self.fields['shopify_order'].initial = order_id
-        # self.fields['dispatch_date'].widget.attrs = {'daysOfWeekDisabled': [0, 6], 'format': 'LT'}
 
     def clean_phone(self):
         if phone := self.cleaned_data.get('phone'):

@@ -11,4 +11,3 @@ class OrderFactory(factory.django.DjangoModelFactory):
     shipping_id = 'test_123'
     tracking_url = 'https://example.com/tracking'
     company = factory.SubFactory(CompanyFactory)
-    label_urls = ['https://example.com/label_1']

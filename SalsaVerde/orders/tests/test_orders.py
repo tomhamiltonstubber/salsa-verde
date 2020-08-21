@@ -5,12 +5,114 @@ from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 
+from SalsaVerde.company.models import User
 from SalsaVerde.orders.factories.orders import OrderFactory
 from SalsaVerde.orders.models import Order
-from SalsaVerde.orders.tests.mock_objs import fake_ef, fake_shopify
+from SalsaVerde.orders.tests.mock_objs import fake_dhl, fake_ef, fake_shopify
 from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.product import ProductFactory
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
+
+
+class DHLOrderTestCase(TestCase):
+    def setUp(self):
+        self.company = CompanyFactory(dhl_account_code='123abc')
+        self.client = AuthenticatedClient(company=self.company)
+        self.orders_url = reverse('orders-list')
+
+    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
+    @mock.patch('SalsaVerde.orders.views.dhl.session.request')
+    def test_dhl_form_submit(self, mock_dhl, mock_shopify):
+        mock_shopify.side_effect = fake_shopify()
+        mock_dhl.side_effect = fake_dhl()
+        r = self.client.get(reverse('fulfill-order-dhl') + '?shopify_order=123')
+        self.assertContains(r, 'Brain Johnston')
+        u = User.objects.get()
+        u.town = 'Here'
+        u.phone = '897987'
+        u.email = 't@a.com'
+        u.save()
+        form_data = {
+            'name': 'Brain Johnston',
+            'first_line': '123 Fake Street.',
+            'town': 'Bel fast',
+            'county': 'Down',
+            'phone': '+123789',
+            'shopify_order': '123',
+            'country': self.company.country.id,
+            'service_code': 'N',
+            'postcode': '12345',
+            'dispatch_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'form-0-height': 5,
+            'form-0-weight': 6,
+            'form-0-length': 7,
+            'form-0-width': 10,
+            **empty_formset('form'),
+        }
+        r = self.client.post(reverse('fulfill-order-dhl') + '?shopify_order=123', follow=True, data=form_data)
+        self.assertRedirects(r, self.orders_url)
+        self.assertContains(r, 'Order created')
+        order = Order.objects.get()
+        assert order.shopify_id == '123'
+        assert order.shipping_id == 'DHL_123'
+        assert order.tracking_url == 'https://foobar.com/DHL_123'
+        assert order.labels.count() == 2
+        assert order.company == self.company
+        call_args = mock_dhl.mock_calls[0][2]
+        assert call_args == {
+            'auth': ('demo-key', 'demo-secret',),
+            'json': {
+                'plannedShippingDateAndTime': '2018-02-02T00:00:00+00:00',
+                'pickup': {'isRequested': False},
+                'productCode': 'N',
+                'accounts': [{'number': '123abc', 'typeCode': 'shipper'}],
+                'customerDetails': {
+                    'shipperDetails': {
+                        'postalAddress': {
+                            'cityName': 'Portafake',
+                            'countryCode': 'GB',
+                            'postalCode': '123abc',
+                            'addressLine1': '123 Fake Street',
+                        },
+                        'contactInformation': {
+                            'phone': '998877',
+                            'companyName': 'company 0',
+                            'fullName': 'Tom Owner',
+                            'email': 't@a.com',
+                        },
+                    },
+                    'receiverDetails': {
+                        'postalAddress': {
+                            'cityName': 'Bel fast',
+                            'countryCode': 'GB',
+                            'postalCode': '12345',
+                            'addressLine1': '123 Fake Street.',
+                            'addressLine2': '',
+                            'addressLine3': 'Down',
+                        },
+                        'contactInformation': {
+                            'phone': '+123789',
+                            'companyName': 'Brain Johnston',
+                            'fullName': 'Brain Johnston',
+                        },
+                    },
+                },
+                'content': {
+                    'unitOfMeasurement': 'metric',
+                    'isCustomsDeclarable': False,
+                    'incoterm': 'DAP',
+                    'description': 'Order from company 0',
+                    'packages': [
+                        {
+                            'customerReferences': [{'value': 'Order from company 0', 'typeCode': 'CU'}],
+                            'weight': 6.0,
+                            'description': '',
+                            'dimensions': {'length': 7.0, 'width': 10.0, 'height': 5.0},
+                        },
+                    ],
+                },
+            },
+        }
 
 
 class ExpressFreightOrderTestCase(TestCase):
@@ -21,7 +123,7 @@ class ExpressFreightOrderTestCase(TestCase):
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     @mock.patch('SalsaVerde.orders.views.express_freight.session.request')
-    def test_form_submit(self, mock_ef, mock_shopify):
+    def test_ef_form_submit(self, mock_ef, mock_shopify):
         mock_shopify.side_effect = fake_shopify()
         mock_ef.side_effect = fake_ef()
         r = self.client.get(reverse('fulfill-order-ef') + '?shopify_order=123')
@@ -49,7 +151,7 @@ class ExpressFreightOrderTestCase(TestCase):
         assert order.shopify_id == '123'
         assert order.shipping_id == 'EF_123'
         assert order.tracking_url == 'https://foobar.com/EF_123'
-        assert order.label_urls == ['https://foobar.com/EF_123_L1', 'https://foobar.com/EF_123_L2']
+        assert order.labels.count() == 2
         assert order.company == self.company
         call_args = mock_ef.mock_calls[1][2]
         assert call_args == {
@@ -71,7 +173,7 @@ class ExpressFreightOrderTestCase(TestCase):
                 'serviceType': 'STANDARD',
                 'consigneeRegion': 'NORTH IRELAND',
                 'dispatchDate': '2018-02-02',
-                'labelsLink': True,
+                'labelsLink': False,
                 'items': [
                     {
                         'itemType': 'OTHER',

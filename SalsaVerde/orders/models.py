@@ -1,4 +1,4 @@
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
@@ -8,18 +8,21 @@ from SalsaVerde.stock.models import Product
 
 
 class Order(models.Model):
+    DHL_CARRIER = 'dhl'
+    EF_CARRIER = 'expressfreight'
+    CARRIER_CHOICES = (
+        (DHL_CARRIER, 'DHL'),
+        (DHL_CARRIER, 'ExpressFreight'),
+    )
     objects = CompanyQueryset.as_manager()
 
     shipping_id = models.CharField(max_length=255)
     shopify_id = models.CharField(max_length=255, null=True, blank=True)
     tracking_url = models.CharField(max_length=255)
-    label_urls = ArrayField(models.CharField(max_length=255))
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     fulfilled = models.BooleanField(default=False)
-
-    @property
-    def order_info(self):
-        return {'tracking_url': self.tracking_url, 'label_urls': self.label_urls}
+    shipment_details = JSONField(blank=True, null=True)
+    carrier = models.CharField(choices=CARRIER_CHOICES, max_length=20)
 
     def get_absolute_url(self):
         return reverse('order-details', kwargs={'pk': self.id})
@@ -29,9 +32,10 @@ class Order(models.Model):
 
 
 class PackageTemplate(CompanyNameBaseModel):
-    width = models.DecimalField(verbose_name='Width (mm)', decimal_places=2, max_digits=6)
-    length = models.DecimalField(verbose_name='Length (mm)', decimal_places=2, max_digits=6)
-    height = models.DecimalField(verbose_name='Height (mm)', decimal_places=2, max_digits=6)
+    width = models.DecimalField(verbose_name='Width (cm)', decimal_places=2, max_digits=6)
+    length = models.DecimalField(verbose_name='Length (cm)', decimal_places=2, max_digits=6)
+    height = models.DecimalField(verbose_name='Height (cm)', decimal_places=2, max_digits=6)
+    weight = models.DecimalField(verbose_name='Weight (kg)', decimal_places=2, max_digits=6, null=True, blank=True)
 
     class Meta:
         ordering = ('name',)

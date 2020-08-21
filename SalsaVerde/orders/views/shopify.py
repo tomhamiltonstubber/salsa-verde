@@ -11,7 +11,7 @@ from SalsaVerde.common.views import display_dt
 from SalsaVerde.orders.models import Order
 
 session = requests.Session()
-logger = logging.getLogger('salsa-verde.orders')
+logger = logging.getLogger('salsa.orders')
 
 
 def shopify_request(url, method='GET', data=None):

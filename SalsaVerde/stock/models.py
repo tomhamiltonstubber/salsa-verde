@@ -412,6 +412,7 @@ class Document(BaseModel):
     )
     type = models.CharField('Salsa Form Type', max_length=6, blank=True, null=True, choices=FORM_TYPES)
     file = models.FileField(storage=PrivateMediaStorage(), blank=True, null=False, max_length=256)
+    order = models.ForeignKey('orders.Order', related_name='labels', null=True, blank=True, on_delete=models.SET_NULL)
     focus = models.ForeignKey(
         User,
         verbose_name='Associated with',
