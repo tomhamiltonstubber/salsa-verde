@@ -1,6 +1,6 @@
 black==19.10b0
 coverage==5.2.1
-codecov==2.1.8
+codecov==2.1.9
 devtools==0.5.1
 factory-boy==3.0.1
 isort==5.4.2
