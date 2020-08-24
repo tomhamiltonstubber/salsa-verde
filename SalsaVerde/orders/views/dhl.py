@@ -1,18 +1,18 @@
+import base64
 import logging
 
 import requests
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import redirect
-from django.urls import reverse
-from django.views.generic import TemplateView
+from django.core.files.base import ContentFile
 
 from SalsaVerde.orders.forms.dhl import DHLLabelForm
-from SalsaVerde.orders.views.shopify import shopify_fulfill_order, shopify_request
-from SalsaVerde.stock.views.base_views import SVFormView
+from SalsaVerde.orders.models import Order
+from SalsaVerde.orders.views.common import CreateOrderView, CreateShipmentError
+from SalsaVerde.stock.models import Document
 
 session = requests.Session()
-logger = logging.getLogger('salsa-verde.orders')
+logger = logging.getLogger('salsa.orders')
 
 
 def dhl_request(url, data=None, method='GET'):
@@ -31,31 +31,87 @@ def dhl_request(url, data=None, method='GET'):
     return True, r.json()
 
 
-class DHLLabelCreate(SVFormView, TemplateView):
+class DHLCreateOrder(CreateOrderView):
     template_name = 'dhl_order_form.jinja'
     form_class = DHLLabelForm
-    title = 'Create shipping order'
 
-    def get(self, request, *args, **kwargs):
-        _, self.order_data = shopify_request(f'orders/{self.order_id}.json')
-        return super().get(request, *args, **kwargs)
+    def create_shipment(self, form, package_form):
+        cd = form.cleaned_data
+        company = self.request.user.company
+        contact = company.get_main_contact()
+        data = {
+            'plannedShippingDateAndTime': cd['dispatch_date'].isoformat(),
+            'pickup': {'isRequested': False},
+            'productCode': cd['service_code'],
+            'accounts': [{'number': company.dhl_account_code, 'typeCode': 'shipper'}],
+            'customerDetails': {
+                'shipperDetails': {
+                    'postalAddress': {
+                        'cityName': company.town,
+                        'countryCode': company.country.iso_2,
+                        'postalCode': company.postcode,
+                        'addressLine1': company.street,
+                    },
+                    'contactInformation': {
+                        'phone': company.phone,
+                        'companyName': company.name,
+                        'fullName': contact.get_full_name(),
+                        'email': contact.email,
+                    },
+                },
+                'receiverDetails': {
+                    'postalAddress': {
+                        'cityName': cd['town'],
+                        'countryCode': cd['country'].iso_2,
+                        'postalCode': cd['postcode'],
+                        'addressLine1': cd['first_line'],
+                        'addressLine2': cd['second_line'],
+                        'addressLine3': cd['county'],
+                    },
+                    'contactInformation': {'phone': cd['phone'], 'companyName': cd['name'], 'fullName': cd['name']},
+                },
+            },
+            'content': {
+                'unitOfMeasurement': 'metric',
+                'isCustomsDeclarable': False,
+                'incoterm': 'DAP',
+                'description': f'Order from {company.name}',
+                'packages': [
+                    {
+                        'customerReferences': [
+                            {'value': cd.get('shopify_id', f'Order from {company.name}'), 'typeCode': 'CU'}
+                        ],
+                        'weight': float(package['weight']),
+                        'description': package['description'],
+                        'dimensions': {
+                            'length': float(package['length']),
+                            'width': float(package['width']),
+                            'height': float(package['height']),
+                        },
+                    }
+                    for package in package_form.cleaned_data
+                ],
+            },
+        }
 
-    def dispatch(self, request, *args, **kwargs):
-        self.order_id = kwargs['order_id']
-        return super().dispatch(request, *args, **kwargs)
+        success, dhl_data = dhl_request('shipments', data=data, method='POST')
+        if success:
+            messages.success(self.request, 'Order created')
+        else:
+            messages.error(self.request, 'Error creating shipment: %r' % dhl_data)
+            raise CreateShipmentError
+        labels = dhl_data['documents']
+        order = Order.objects.create(
+            shopify_id=self.shopify_order_id,
+            shipping_id=dhl_data['shipmentTrackingNumber'],
+            tracking_url=dhl_data['trackingUrl'],
+            company=self.request.user.company,
+        )
+        for label in labels:
+            doc = Document(order=order, author=self.request.user)
+            doc.file.save('shipping_label.pdf', ContentFile(base64.b64decode(label['content'])), save=False)
+            doc.save()
+        return order
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['order_id'] = self.order_id
-        if not self.request.POST:
-            kwargs.update(shopify_data=self.order_data['order'])
-        return kwargs
 
-    def form_valid(self, form):
-        form.ef_form_data()
-        messages.success(self.request, 'Order created')
-        shopify_fulfill_order(self.order_id)
-        return redirect(reverse('orders-list'))
-
-
-dhl_label_create = DHLLabelCreate.as_view()
+dhl_order_create = DHLCreateOrder.as_view()

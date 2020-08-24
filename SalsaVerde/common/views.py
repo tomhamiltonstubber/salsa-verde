@@ -2,30 +2,28 @@ import datetime
 from functools import partial
 
 from django.conf import settings
+from django.contrib.auth import user_logged_in
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView
+from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views import View
 from django.views.generic import CreateView, FormView, TemplateView, UpdateView
 
 
-def get_nav_menu():
-    return [
-        ('Orders', reverse('orders-list')),
-        ('Products', reverse('products')),
-        ('Suppliers', reverse('suppliers')),
-        ('Containers', reverse('containers')),
-        ('Ingredients', reverse('ingredients')),
-        ('Documents', reverse('documents')),
-        ('Users', reverse('users')),
-        ('Setup', reverse('setup')),
-        ('Logout', reverse('logout')),
-    ]
+class QuerySetMixin:
+    order_by = None
 
-
-class FieldInfo:
-    field = None
-    verbose_name = None
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            qs = self.model.objects.request_qs(self.request)
+            if self.order_by:
+                qs = qs.order_by(self.order_by)
+            return qs
+        return self.model.objects.none()
 
 
 VIEW_FUNC = 'func|'
@@ -128,24 +126,61 @@ class DisplayHelpers:
         return [self._display_label(item, obj) for item in (display_items or [])]
 
 
-class QuerySetMixin:
-    order_by = None
-
-    def get_queryset(self):
-        if self.request.user.is_authenticated:
-            qs = self.model.objects.request_qs(self.request)
-            if self.order_by:
-                qs = qs.order_by(self.order_by)
-            return qs
-        return self.model.objects.none()
-
-
 class BasicView(DisplayHelpers, TemplateView):
     pass
 
 
 class ModelBasicView(QuerySetMixin, BasicView):
     pass
+
+
+class Index(ModelBasicView):
+    template_name = 'auth.jinja'
+    title = 'Dashboard'
+
+
+dashboard = Index.as_view()
+
+
+class Login(LoginView):
+    template_name = 'login.jinja'
+    title = 'Login'
+    form_class = AuthenticationForm
+    redirect_authenticated_user = True
+
+    def get_redirect_url(self):
+        return reverse('index')
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(title=self.title, **kwargs)
+
+
+login = Login.as_view()
+
+
+@receiver(user_logged_in)
+def update_user_history(sender, user, **kwargs):
+    user.last_logged_in = timezone.now()
+    user.save(update_fields=['last_logged_in'])
+
+
+def get_nav_menu():
+    return [
+        ('Orders', reverse('orders-list')),
+        ('Products', reverse('products')),
+        ('Suppliers', reverse('suppliers')),
+        ('Containers', reverse('containers')),
+        ('Ingredients', reverse('ingredients')),
+        ('Documents', reverse('documents')),
+        ('Users', reverse('users')),
+        ('Setup', reverse('setup')),
+        ('Logout', reverse('logout')),
+    ]
+
+
+class FieldInfo:
+    field = None
+    verbose_name = None
 
 
 def display_dt(dt):

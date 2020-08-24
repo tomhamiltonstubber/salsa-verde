@@ -7,11 +7,11 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.utils.timezone import now
 
+from SalsaVerde.common.views import display_dt
 from SalsaVerde.orders.models import Order
-from SalsaVerde.stock.views.base_views import display_dt
 
 session = requests.Session()
-logger = logging.getLogger('salsa-verde.orders')
+logger = logging.getLogger('salsa.orders')
 
 
 def shopify_request(url, method='GET', data=None):

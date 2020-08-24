@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
 
+from SalsaVerde.common.views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
 from SalsaVerde.orders.models import Order, ProductOrder
 from SalsaVerde.orders.views.shopify import (
@@ -15,7 +16,6 @@ from SalsaVerde.orders.views.shopify import (
     get_shopify_orders,
     shopify_fulfill_order,
 )
-from SalsaVerde.stock.views.base_views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 
 
 class CreateShipmentError(Exception):
@@ -140,8 +140,8 @@ class OrderDetails(ShopifyHelperMixin, DetailView):
             }
         if self.object.tracking_url:
             yield {'name': 'Tracking', 'url': self.object.tracking_url, 'newtab': True}
-        for i, label in enumerate(self.object.label_urls):
-            yield {'name': f'Shipping Label {i + 1}', 'url': label, 'newtab': True}
+        for i, label in enumerate(self.object.labels.all()):
+            yield {'name': f'Shipping Label {i + 1}', 'url': label.file.url, 'newtab': True}
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -170,6 +170,11 @@ class ShopifyOrderView(ShopifyHelperMixin, BasicView):
             yield {
                 'name': 'Fulfill with ExpressFreight',
                 'url': reverse('fulfill-order-ef') + f'?shopify_order={self.shopify_id}',
+                'icon': 'fa-truck',
+            }
+            yield {
+                'name': 'Fulfill with DHL',
+                'url': reverse('fulfill-order-dhl') + f'?shopify_order={self.shopify_id}',
                 'icon': 'fa-truck',
             }
 

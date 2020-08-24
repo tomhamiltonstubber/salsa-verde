@@ -20,7 +20,7 @@ from SalsaVerde.stock.forms.products import (
 )
 from SalsaVerde.stock.models import Product, ProductIngredient, ProductType, ProductTypeSize, YieldContainer
 
-from .base_views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class ProductTypeList(ListView):
@@ -139,13 +139,19 @@ class ProductList(ListView):
     order_by = '-date_of_bottling'
     paginate_by = 50
 
+    def dispatch(self, request, *args, **kwargs):
+        self.view_finished = bool(self.request.GET.get('finished'))
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
-        return super().get_queryset().select_related('product_type')
+        return super().get_queryset().select_related('product_type').filter(finished=self.view_finished)
 
     def get_button_menu(self):
-        return [
-            {'name': 'Record new product infusion', 'url': reverse('products-add')},
-        ]
+        yield {'name': 'Record new product infusion', 'url': reverse('products-add')}
+        if self.view_finished:
+            yield {'name': 'View Current Products', 'url': reverse('products')}
+        else:
+            yield {'name': 'View Finished Products', 'url': reverse('products') + '?finished=true'}
 
 
 product_list = ProductList.as_view()

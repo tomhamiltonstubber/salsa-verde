@@ -7,9 +7,40 @@ from django.db.models import QuerySet
 from django.urls import reverse
 
 
+class CountryQueryset(QuerySet):
+    def request_qs(self, request):
+        return Country.objects.all()
+
+
+class Country(models.Model):
+    objects = CountryQueryset.as_manager()
+
+    name = models.CharField('Name', max_length=255)
+    iso_2 = models.CharField('2 Letter ISO', max_length=2)
+    iso_3 = models.CharField('3 Letter ISO', max_length=3)
+
+    def __str__(self):
+        return self.name
+
+
 class Company(models.Model):
     name = models.CharField('Name', max_length=255)
     website = models.CharField(max_length=255, blank=True)
+    dhl_account_code = models.CharField(max_length=255, blank=True)
+    main_contact = models.ForeignKey(
+        'company.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_company'
+    )
+    street = models.TextField('Street Address', null=True, blank=True)
+    town = models.CharField('Town', max_length=50, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
+    postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
+    phone = models.CharField('Phone', max_length=255, null=True, blank=True)
+
+    def get_main_contact(self):
+        if not self.main_contact:
+            self.main_contact = self.users.first()
+            self.save()
+        return self.main_contact
 
     def __str__(self):
         return self.name
@@ -63,7 +94,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     objects = UserManager.from_queryset(CompanyQueryset)()
 
-    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE, related_name='users')
 
     username = None
     email = models.EmailField('Email Address', unique=True)
@@ -72,7 +103,7 @@ class User(AbstractUser):
     last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1, tzinfo=timezone.utc))
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
-    country = models.CharField('Country', max_length=50, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
 

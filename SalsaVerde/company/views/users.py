@@ -1,9 +1,8 @@
 from django.urls import reverse
 
+from SalsaVerde.common.views import AddModelView, DetailView, ListView, UpdateModelView
 from SalsaVerde.stock.forms.users import UpdateUserForm
 from SalsaVerde.stock.models import Document, User
-
-from .base_views import AddModelView, DetailView, ListView, UpdateModelView
 
 
 class UserList(ListView):

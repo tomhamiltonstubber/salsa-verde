@@ -17,7 +17,6 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     street = factory.LazyAttribute(lambda u: '%s House, Any Street' % u.last_name)
     town = factory.LazyAttribute(lambda u: '%sville' % u.last_name)
-    country = factory.LazyAttribute(lambda u: '%sland' % u.last_name)
     postcode = 'PO37 50DE'
 
     @factory.LazyAttribute

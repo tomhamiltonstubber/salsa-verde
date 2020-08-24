@@ -6,7 +6,7 @@ from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.stock.forms.ingredients import IngredientsFormSet, UpdateIngredientsForm, UpdateIngredientTypeForm
 from SalsaVerde.stock.models import Ingredient, IngredientType, Product
 
-from .base_views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
 
 
 class IngredientTypeList(ListView):
