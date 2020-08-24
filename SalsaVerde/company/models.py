@@ -117,7 +117,7 @@ class User(AbstractUser):
         return str(self)
 
     def display_address(self):
-        address = [a for a in [self.street, self.town, self.postcode, self.country] if a]
+        address = [a for a in [self.street, self.town, self.postcode] if a]
         return ', '.join(address) or '–'
 
     def get_absolute_url(self):
