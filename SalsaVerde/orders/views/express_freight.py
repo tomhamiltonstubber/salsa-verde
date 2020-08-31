@@ -44,7 +44,7 @@ def expressfreight_request(url, data=None, method='GET'):
     try:
         r.raise_for_status()
     except requests.HTTPError:
-        logger.warning('Request to EF failed: %r', r.content.decode())
+        logger.error('Request to EF failed: %r', r.content.decode(), extra=data or {})
         return False, r.content.decode()
     return True, r.json()
 
