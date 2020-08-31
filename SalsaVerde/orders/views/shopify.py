@@ -78,7 +78,7 @@ def shopify_fulfill_order(order: Order):
         'fulfillment': {
             'location_id': 5032451,
             'tracking_number': order.shipping_id,
-            'tracking_urls': order.tracking_url,
+            'tracking_urls': [order.tracking_url],
             'notify_customer': True,
         }
     }

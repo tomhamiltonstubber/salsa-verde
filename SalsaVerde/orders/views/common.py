@@ -72,13 +72,13 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
             return super().form_invalid(form)
         else:
             if self.shopify_order_id:
-                success, r = shopify_fulfill_order(order)
+                success, content = shopify_fulfill_order(order)
                 if success:
                     messages.success(self.request, 'Order fulfilled')
                     order.fulfilled = True
                     order.save()
                 else:
-                    messages.error(self.request, 'Error fulfilling Shopify order: %s' % r.content.decode())
+                    messages.error(self.request, 'Error fulfilling Shopify order: %s' % content)
                     return super().form_invalid(form)
         return redirect(reverse('orders-list'))
 
