@@ -105,9 +105,7 @@ function init_ef_form() {
   const $county = $('#id_county')
   const $region = $('#id_region')
   const check_county_choices = v => {
-    if (v === 'DUBLIN') {
-      reset_choices($county, window.dublin_counties)
-    } else if (v === 'NORTH IRELAND') {
+    if (v === 'NORTH IRELAND') {
       reset_choices($county, window.ni_counties)
     } else {
       reset_choices($county, window.ie_counties)

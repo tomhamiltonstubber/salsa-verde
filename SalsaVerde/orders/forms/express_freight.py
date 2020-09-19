@@ -6,7 +6,6 @@ from django.utils.timezone import now
 
 from SalsaVerde.stock.forms.base_forms import SVForm
 
-DUBLIN_COUNTIES = [(f'DUBLIN {i}', f'Dublin {i}') for i in range(1, 24)]
 NI_COUNTIES = [
     ('CO. ANTRIM', 'Antrim'),
     ('CO. ARMAGH', 'Armagh'),
@@ -21,6 +20,7 @@ IE_COUNTIES = [
     ('CO. CLARE', 'Clare'),
     ('CO. CORK', 'Cork'),
     ('CO. DONEGAL', 'Donegal'),
+    ('CO. DUBLIN', 'Dublin'),
     ('CO. GALWAY', 'Galway'),
     ('CO. KERRY', 'Kerry'),
     ('CO. KILDARE', 'Kildare'),
@@ -50,8 +50,8 @@ class ExpressFreightLabelForm(SVForm):
     first_line = forms.CharField()
     second_line = forms.CharField(required=False)
     town = forms.CharField(help_text='Note that anything other than letters will be removed from this.')
-    region = forms.ChoiceField(choices=[('REST OF IRELAND', 'ROI'), ('NORTH IRELAND', 'NI'), ('DUBLIN', 'Dublin')])
-    county = forms.ChoiceField(choices=sorted(DUBLIN_COUNTIES + IE_COUNTIES + NI_COUNTIES))
+    region = forms.ChoiceField(choices=[('REST OF IRELAND', 'ROI'), ('NORTH IRELAND', 'NI')])
+    county = forms.ChoiceField(choices=[(None, '---------')] + IE_COUNTIES + NI_COUNTIES)
     postcode = forms.CharField(required=False)
     phone = forms.CharField()
     dispatch_date = forms.DateTimeField(initial=now())
@@ -67,10 +67,6 @@ class ExpressFreightLabelForm(SVForm):
             self.fields['county'].initial = address['province']
             self.fields['postcode'].initial = address['zip']
             self.fields['phone'].initial = address['phone']
-            if any('dublin' in c.lower() for c in {address['city'], address['province']} if c):
-                self.fields['region'].initial = 'DUBLIN'
-            elif address['zip'].lower().startswith('bt'):
-                self.fields['region'].initial = 'NORTH IRELAND'
             self.fields['shopify_order'].initial = order_id
 
     def clean_phone(self):
@@ -82,11 +78,6 @@ class ExpressFreightLabelForm(SVForm):
             if v := self.cleaned_data.get(field):
                 self.cleaned_data[field] = re.sub('[^A-Za-z0-9 ]+', '', v)
         return self.cleaned_data
-
-    def clean_county(self):
-        if self.cleaned_data.get('region', '') == 'DUBLIN' and not self.cleaned_data.get('county').startswith('DUBLIN'):
-            raise ValidationError('If the customer is in Dublin, you have to choose a Dublin county.')
-        return self.cleaned_data.get('county')
 
     def clean_dispatch_date(self):
         if dt := self.cleaned_data.get('dispatch_date'):

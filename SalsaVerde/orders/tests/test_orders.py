@@ -128,7 +128,6 @@ class ExpressFreightOrderTestCase(TestCase):
         mock_ef.side_effect = fake_ef()
         r = self.client.get(reverse('fulfill-order-ef') + '?shopify_order=123')
         self.assertContains(r, 'Brain Johnston')
-        self.assertContains(r, '<option value="NORTH IRELAND" selected>NI</option>')
         form_data = {
             'name': 'Brain Johnston',
             'first_line': '123 Fake Street.',
@@ -187,6 +186,30 @@ class ExpressFreightOrderTestCase(TestCase):
                 ],
             },
         }
+
+    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
+    @mock.patch('SalsaVerde.orders.views.express_freight.session.request')
+    def test_ef_form_submit_no_county(self, mock_ef, mock_shopify):
+        mock_shopify.side_effect = fake_shopify()
+        mock_ef.side_effect = fake_ef()
+        r = self.client.get(reverse('fulfill-order-ef') + '?shopify_order=123')
+        self.assertContains(r, 'Brain Johnston')
+        form_data = {
+            'name': 'Brain Johnston',
+            'first_line': '123 Fake Street.',
+            'town': 'Bel fast',
+            'region': 'NORTH IRELAND',
+            'phone': '+123789',
+            'shopify_order': '123',
+            'dispatch_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'form-0-height': 5,
+            'form-0-weight': 6,
+            'form-0-length': 7,
+            'form-0-width': 10,
+            **empty_formset('form'),
+        }
+        r = self.client.post(reverse('fulfill-order-ef') + '?shopify_order=123', follow=True, data=form_data)
+        assert r.status_code == 200
 
 
 class OrderTestCase(TestCase):

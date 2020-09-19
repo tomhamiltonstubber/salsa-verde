@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.base import ContentFile
 
-from SalsaVerde.orders.forms.express_freight import DUBLIN_COUNTIES, IE_COUNTIES, NI_COUNTIES, ExpressFreightLabelForm
+from SalsaVerde.orders.forms.express_freight import IE_COUNTIES, NI_COUNTIES, ExpressFreightLabelForm
 from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.views.common import CreateOrderView, CreateShipmentError
 from SalsaVerde.stock.models import Document
@@ -109,7 +109,7 @@ class ExpressFreightCreateOrder(CreateOrderView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx.update(
-            dublin_counties=dict(DUBLIN_COUNTIES), ie_counties=dict(IE_COUNTIES), ni_counties=dict(NI_COUNTIES),
+            ie_counties={None: '-------', **dict(IE_COUNTIES)}, ni_counties={None: '------', **dict(NI_COUNTIES)}
         )
         return ctx
 
