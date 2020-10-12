@@ -40,7 +40,11 @@ class AuthenticatedClient(Client):
         super().__init__()
         company = company or CompanyFactory()
         self.user = User.objects.create_user(
-            first_name='Tom', last_name='Owner', email='owner@salsaverde.com', password='testing', company=company,
+            first_name='Tom',
+            last_name='Owner',
+            email='owner@salsaverde.com',
+            password='testing',
+            company=company,
         )
         logged_in = self.login(username=self.user.email, password='testing')
         if not logged_in:  # pragma: no cover

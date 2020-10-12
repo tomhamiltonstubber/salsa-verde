@@ -58,7 +58,10 @@ class Command(BaseCommand):
             intake_date=timezone.now(), date_created=timezone.now(), intake_user=user
         )
         bottle_200 = Container.objects.create(
-            container_type=bottle_type_200, batch_code='123bot', goods_intake=containers_intake, quantity=1500,
+            container_type=bottle_type_200,
+            batch_code='123bot',
+            goods_intake=containers_intake,
+            quantity=1500,
         )
         bottle_100 = Container.objects.create(
             container_type=bottle_type_100, batch_code='456bot', goods_intake=containers_intake, quantity=1200
