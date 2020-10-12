@@ -32,7 +32,10 @@ class Migration(migrations.Migration):
                 ('quantity', models.DecimalField(decimal_places=3, max_digits=25, verbose_name='Quantity')),
                 ('finished', models.BooleanField(default=False, verbose_name='Finished')),
             ],
-            options={'verbose_name': 'Container', 'verbose_name_plural': 'Containers',},
+            options={
+                'verbose_name': 'Container',
+                'verbose_name_plural': 'Containers',
+            },
         ),
         migrations.CreateModel(
             name='GoodsIntake',
@@ -49,7 +52,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='Ingredient',
@@ -152,7 +157,10 @@ class Migration(migrations.Migration):
                     models.BooleanField(default=False, verbose_name='Quality check successful'),
                 ),
             ],
-            options={'verbose_name': 'Product', 'verbose_name_plural': 'Products',},
+            options={
+                'verbose_name': 'Product',
+                'verbose_name_plural': 'Products',
+            },
         ),
         migrations.CreateModel(
             name='ProductType',
@@ -178,7 +186,11 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'verbose_name': 'Product Type', 'verbose_name_plural': 'Product Types', 'ordering': ('name',),},
+            options={
+                'verbose_name': 'Product Type',
+                'verbose_name_plural': 'Product Types',
+                'ordering': ('name',),
+            },
         ),
         migrations.CreateModel(
             name='YieldContainer',
@@ -203,7 +215,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='Supplier',
@@ -234,7 +248,11 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'verbose_name': 'Supplier', 'verbose_name_plural': 'Suppliers', 'ordering': ('name',),},
+            options={
+                'verbose_name': 'Supplier',
+                'verbose_name_plural': 'Suppliers',
+                'ordering': ('name',),
+            },
         ),
         migrations.CreateModel(
             name='ProductTypeSize',
@@ -270,7 +288,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
         ),
         migrations.AddField(
             model_name='product',
@@ -387,7 +407,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'verbose_name': 'Document', 'verbose_name_plural': 'Documents',},
+            options={
+                'verbose_name': 'Document',
+                'verbose_name_plural': 'Documents',
+            },
         ),
         migrations.CreateModel(
             name='ContainerType',
@@ -414,7 +437,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'verbose_name': 'Container Type', 'verbose_name_plural': 'Container Types',},
+            options={
+                'verbose_name': 'Container Type',
+                'verbose_name_plural': 'Container Types',
+            },
         ),
         migrations.AddField(
             model_name='container',
@@ -459,7 +485,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='PlasterReport',
@@ -491,7 +519,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
             bases=('stock.document',),
         ),
         migrations.CreateModel(
@@ -517,7 +547,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
             bases=('stock.document',),
         ),
         migrations.CreateModel(
@@ -544,7 +576,9 @@ class Migration(migrations.Migration):
                 ),
                 ('container', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stock.Container')),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
             bases=('stock.document',),
         ),
         migrations.CreateModel(
@@ -594,7 +628,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'abstract': False,},
+            options={
+                'abstract': False,
+            },
             bases=('stock.document',),
         ),
     ]

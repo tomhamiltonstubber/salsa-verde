@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='product', name='finished', field=models.BooleanField(default=False, verbose_name='Finished'),
+            model_name='product',
+            name='finished',
+            field=models.BooleanField(default=False, verbose_name='Finished'),
         ),
     ]
