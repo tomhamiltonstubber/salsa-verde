@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 
 from SalsaVerde.common.views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
-from SalsaVerde.orders.models import Order, ProductOrder
+from SalsaVerde.orders.models import Order, PackageTemplate, ProductOrder
 from SalsaVerde.orders.views.shopify import (
     ShopifyHelperMixin,
     get_shopify_order,
@@ -52,7 +52,13 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
             package_formset = PackageFormSet(self.request.POST)
         else:
             package_formset = PackageFormSet()
-        ctx['package_formset'] = package_formset
+        ctx.update(
+            package_formset=package_formset,
+            pack_temp_lu={
+                str(p.id): {k: float(getattr(p, k, 0)) for k in ['width', 'height', 'length', 'weight']}
+                for p in PackageTemplate.objects.request_qs(self.request)
+            },
+        )
         if self.shopify_order_id:
             _, order_data = get_shopify_order(self.shopify_order_id)
             ctx['order_data'] = order_data
@@ -99,7 +105,7 @@ class OrdersList(ShopifyHelperMixin, DisplayHelpers, TemplateView):
             _, data = get_shopify_orders('shipped')
         else:
             _, data = get_shopify_orders('unfulfilled')
-        order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=False)}
+        order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=True)}
         for order in data['orders']:
             order['order_obj'] = order_lu.get(str(order['id']))
         ctx['orders'] = sorted(data['orders'], key=itemgetter('created_at'), reverse=True)

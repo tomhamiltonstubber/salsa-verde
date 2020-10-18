@@ -178,7 +178,7 @@ class ExpressFreightOrderTestCase(TestCase):
                 'labelsLink': False,
                 'items': [
                     {
-                        'itemType': 'OTHER',
+                        'itemType': 'CARTON',
                         'itemWeight': 6,
                         'itemHeight': 5,
                         'itemWidth': 10,

@@ -34,7 +34,7 @@ class Setup(ExtraContentView):
                 'title': 'Package Templates',
                 'qs': PackageTemplate.objects.request_qs(self.request),
                 'fields': ['name', 'length', 'width', 'height'],
-                'add_url': reverse('package-temp-add'),
+                'add_url': reverse('package-temps-add'),
             },
         ]
 

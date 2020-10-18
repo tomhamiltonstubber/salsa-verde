@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
@@ -21,7 +20,7 @@ class Order(models.Model):
     tracking_url = models.CharField(max_length=255)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     fulfilled = models.BooleanField(default=False)
-    shipment_details = JSONField(blank=True, null=True)
+    shipment_details = models.JSONField(blank=True, null=True)
     carrier = models.CharField(choices=CARRIER_CHOICES, max_length=20)
 
     def get_absolute_url(self):
@@ -36,6 +35,13 @@ class PackageTemplate(CompanyNameBaseModel):
     length = models.DecimalField(verbose_name='Length (cm)', decimal_places=2, max_digits=6)
     height = models.DecimalField(verbose_name='Height (cm)', decimal_places=2, max_digits=6)
     weight = models.DecimalField(verbose_name='Weight (kg)', decimal_places=2, max_digits=6, null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('package-temps-details', kwargs={'pk': self.pk})
+
+    @classmethod
+    def prefix(cls):
+        return 'package-temps'
 
     class Meta:
         ordering = ('name',)

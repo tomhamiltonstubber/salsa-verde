@@ -26,6 +26,23 @@ $(document).ready(() => {
   }
   init_select2()
   init_formsets()
+  const package_formsets = $('.formset-packages-sending')
+  if (package_formsets.length > 0) {
+    const id_regex = /\d/g;
+    package_formsets.each((i, el) => {
+      let package_type = $(el).find('select[data-field-id="package-type"]')[0]
+      $(package_type).change(function () {
+        const pu_deets = window.pack_temp_lu[$(this).val()]
+        if (pu_deets) {
+          let form_index = package_type.id.match(id_regex)[0]
+          $(`#id_form-${form_index}-length`).val(pu_deets['length'])
+          $(`#id_form-${form_index}-width`).val(pu_deets['width'])
+          $(`#id_form-${form_index}-height`).val(pu_deets['height'])
+          $(`#id_form-${form_index}-weight`).val(pu_deets['weight'])
+        }
+      })
+    })
+  }
 })
 
 function init_select2 () {
