@@ -225,18 +225,31 @@ class OrderTestCase(TestCase):
         mock_shopify.side_effect = fake_shopify()
         r = self.client.get(reverse('orders-list'))
         self.assertContains(r, '#123')
-        self.assertNotContains(r, '#456')
         self.assertContains(r, reverse('order-details-shopify', args=[123]))
+        self.assertNotContains(r, '#456')
+        self.assertNotContains(r, reverse('order-details-shopify', args=[456]))
+
+        r = self.client.get(reverse('orders-list') + '?fulfilled=true')
+        self.assertNotContains(r, '#123')
+        self.assertNotContains(r, reverse('order-details-shopify', args=[123]))
+        self.assertContains(r, '#456')
+        self.assertContains(r, reverse('order-details-shopify', args=[456]))
+
+        order_unfulfilled = OrderFactory(company=self.company, shopify_id=123, fulfilled=False)
+        order_fulfilled = OrderFactory(company=self.company, shopify_id=456, fulfilled=True)
+
+        r = self.client.get(reverse('orders-list'))
+        self.assertContains(r, '#123')
+        self.assertNotContains(r, reverse('order-details-shopify', args=[123]))
+        self.assertContains(r, reverse('order-details', args=[order_unfulfilled.id]))
+        self.assertNotContains(r, reverse('order-details', args=[order_fulfilled.id]))
 
         r = self.client.get(reverse('orders-list') + '?fulfilled=true')
         self.assertNotContains(r, '#123')
         self.assertContains(r, '#456')
-        self.assertContains(r, reverse('order-details-shopify', args=[456]))
-
-        order = OrderFactory(company=self.company, shopify_id=456)
-        r = self.client.get(reverse('orders-list') + '?fulfilled=true')
-        self.assertContains(r, reverse('order-details', args=[order.id]))
         self.assertNotContains(r, reverse('order-details-shopify', args=[456]))
+        self.assertContains(r, reverse('order-details', args=[order_fulfilled.id]))
+        self.assertNotContains(r, reverse('order-details', args=[order_unfulfilled.id]))
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     def test_detail_view(self, mock_shopify):

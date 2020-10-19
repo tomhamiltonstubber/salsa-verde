@@ -103,9 +103,10 @@ class OrdersList(ShopifyHelperMixin, DisplayHelpers, TemplateView):
         ctx = super().get_context_data(**kwargs)
         if self.request.GET.get('fulfilled'):
             _, data = get_shopify_orders('shipped')
+            order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=True)}
         else:
             _, data = get_shopify_orders('unfulfilled')
-        order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=True)}
+            order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=False)}
         for order in data['orders']:
             order['order_obj'] = order_lu.get(str(order['id']))
         ctx['orders'] = sorted(data['orders'], key=itemgetter('created_at'), reverse=True)
