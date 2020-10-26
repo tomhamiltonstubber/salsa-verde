@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 from urllib.parse import urlparse
 
+
+def env_true(var_name, alt='FALSE'):
+    return os.getenv(var_name, alt).upper() in {'1', 'TRUE'}
+
+
 DJ_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(DJ_DIR)
 
@@ -228,7 +233,8 @@ CACHES = {
     }
 }
 
-ASYNC_RQ = os.getenv('ASYNC_RQ', True)
+
+ASYNC_RQ = env_true('ASYNC_RQ', 'TRUE')
 
 RQ_QUEUES = {
     'default': {'USE_REDIS_CACHE': 'default', 'ASYNC': ASYNC_RQ},

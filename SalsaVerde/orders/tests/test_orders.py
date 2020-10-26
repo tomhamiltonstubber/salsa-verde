@@ -2,7 +2,8 @@ from datetime import datetime
 from unittest import mock
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.core.cache import cache
+from django.test import TestCase
 from django.urls import reverse
 
 from SalsaVerde.company.models import User
@@ -14,7 +15,6 @@ from SalsaVerde.stock.factories.product import ProductFactory
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
 
 
-@override_settings(ASYNC_RQ=False)
 class DHLOrderTestCase(TestCase):
     def setUp(self):
         self.company = CompanyFactory(dhl_account_code='123abc')
@@ -119,9 +119,9 @@ class DHLOrderTestCase(TestCase):
         }
 
 
-@override_settings(ASYNC_RQ=False)
 class ExpressFreightOrderTestCase(TestCase):
     def setUp(self):
+        cache.clear()
         self.company = CompanyFactory()
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
@@ -217,7 +217,6 @@ class ExpressFreightOrderTestCase(TestCase):
         assert r.status_code == 200
 
 
-@override_settings(ASYNC_RQ=False)
 class OrderTestCase(TestCase):
     def setUp(self):
         self.company = CompanyFactory()
