@@ -30,6 +30,11 @@ class Company(models.Model):
     main_contact = models.ForeignKey(
         'company.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_company'
     )
+    shopify_domain = models.CharField(null=True, blank=True, max_length=255)
+    shopify_webhook_key = models.CharField(null=True, blank=True, max_length=255)
+    shopify_api_key = models.CharField(null=True, blank=True, max_length=255)
+    shopify_password = models.CharField(null=True, blank=True, max_length=255)
+
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)

@@ -2,10 +2,12 @@ from django.urls import path
 
 from SalsaVerde.common.views import DeleteObjectView
 from SalsaVerde.orders.models import PackageTemplate
-from SalsaVerde.orders.views.common import order_details, orders_list, shopify_order_details, update_packed_product
+from SalsaVerde.orders.views import shopify
+from SalsaVerde.orders.views.common import order_details, orders_list, update_packed_product
 from SalsaVerde.orders.views.dhl import dhl_order_create
 from SalsaVerde.orders.views.express_freight import ef_order_create
 from SalsaVerde.orders.views.setup import package_temp_add, package_temp_details, package_temp_edit, package_temp_list
+from SalsaVerde.orders.views.shopify import shopify_order_details
 
 urlpatterns = [
     path('', orders_list, name='orders-list'),
@@ -23,4 +25,5 @@ urlpatterns = [
     ),
     path('fulfill/express/', ef_order_create, name='fulfill-order-ef'),
     path('fulfill/dhl/', dhl_order_create, name='fulfill-order-dhl'),
+    path('shopify/callback', shopify.callback, name='shopify-callback'),
 ]

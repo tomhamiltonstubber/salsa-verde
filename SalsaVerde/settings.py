@@ -250,6 +250,7 @@ SHOPIFY_API_VERSION = os.getenv('SHOPIFY_API_VERSION', '2020-07')
 SHOPIFY_BASE_URL = os.getenv(
     'SHOPIFY_BASE_URL', f'https://burren-balsamics.myshopify.com/admin/api/{SHOPIFY_API_VERSION}'
 )
+SHOPIFY_WEBHOOK_KEY = os.getenv('SHOPIFY_WEBHOOK_KEY')
 
 # =======================================
 # ExpressFreight
