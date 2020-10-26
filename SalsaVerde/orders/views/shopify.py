@@ -46,6 +46,7 @@ ORDER_FIELDS = [
     'total_price',
     'created_at',
     'fulfillment_status',
+    'shipping_lines',
 ]
 
 
