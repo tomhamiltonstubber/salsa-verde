@@ -100,6 +100,7 @@ class ExpressFreightCreateOrder(CreateOrderView):
             shipment_details=data,
             carrier=Order.EF_CARRIER,
         )
+        logger.info('Creating order with EF, data=%r', ef_data)
         for label in ef_data['labels']:
             doc = Document(order=order, author=self.request.user)
             doc.file.save('shipping_label.pdf', ContentFile(base64.b64decode(label)), save=False)

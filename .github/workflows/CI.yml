@@ -20,6 +20,11 @@ jobs:
           POSTGRES_PASSWORD: waffle
         ports:
         - 5432:5432
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
 
     steps:
     - uses: actions/checkout@v2

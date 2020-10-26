@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest import mock
 
 from django.conf import settings
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
@@ -120,6 +121,7 @@ class DHLOrderTestCase(TestCase):
 
 class ExpressFreightOrderTestCase(TestCase):
     def setUp(self):
+        cache.clear()
         self.company = CompanyFactory()
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')

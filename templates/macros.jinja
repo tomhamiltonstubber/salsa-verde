@@ -86,7 +86,7 @@
                 <td>{{ item.name }}</td>
                 {% if show_amounts %}<td>£{{ item.price }}</td>{% endif %}
                 <td>{{ item.quantity }}</td>
-                {% if show_amounts %}<td>£{{ (item.price | int) * (item.quantity | int) }}</td>{% endif %}
+                {% if show_amounts %}<td>£{{ item.price | float * item.quantity | float }}</td>{% endif %}
               </tr>
             {% endfor %}
             {% if show_amounts %}
@@ -94,6 +94,11 @@
                 <td colspan="2"></td>
                 <td><b>Subtotal</b></td>
                 <td>£{{ order_data.total_line_items_price }}</td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+                <td><b>Shipping</b></td>
+                <td>£{{ order_data.shipping_lines[0].price if order_data.shipping_lines else '0.00' }}</td>
               </tr>
               <tr>
                 <td colspan="2"></td>

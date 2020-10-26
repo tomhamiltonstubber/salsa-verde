@@ -6,6 +6,7 @@ import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.utils.timezone import now
+from django_rq import job
 
 from SalsaVerde.common.views import display_dt
 from SalsaVerde.orders.models import Order
@@ -45,6 +46,7 @@ ORDER_FIELDS = [
     'total_price',
     'created_at',
     'fulfillment_status',
+    'shipping_lines',
 ]
 
 
@@ -71,6 +73,7 @@ class ShopifyHelperMixin:
         return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
 
 
+@job
 def shopify_fulfill_order(order: Order):
     # Location is hard coded here as it doesn't change
     assert order.shopify_id
@@ -82,4 +85,9 @@ def shopify_fulfill_order(order: Order):
             'notify_customer': True,
         }
     }
-    return shopify_request(f'orders/{order.shopify_id}/fulfillments.json', method='POST', data=data)
+    success, content = shopify_request(f'orders/{order.shopify_id}/fulfillments.json', method='POST', data=data)
+    if success:
+        order.fulfilled = True
+        order.save()
+    else:
+        logger.error('Error fulfilling Shopify order: %s', content)

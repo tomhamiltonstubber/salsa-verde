@@ -43,8 +43,9 @@
 {% endblock %}
 
 {% block extra_js %}
-  <script id="order-list">
+  <script id="ef-form">
     window.ni_counties = {{ ni_counties | safe }}
     window.ie_counties = {{ ie_counties | safe }}
+    window.pack_temp_lu = {{ pack_temp_lu | tojson }}
   </script>
 {% endblock %}
