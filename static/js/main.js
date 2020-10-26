@@ -21,7 +21,7 @@ $(document).ready(() => {
     })
   })
   init_confirm_follow()
-  if ($('#order-list').length) {
+  if ($('#ef-form').length) {
     init_ef_form()
   }
   init_select2()

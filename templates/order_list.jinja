@@ -22,7 +22,7 @@
             {% endif %}
           </td>
           <td>{{ view.created_at(shopify_order.created_at) }}</td>
-          <td>{{ shopify_order.billing_address.name }}</td>
+          <td>{{ shopify_order.billing_address.name if shopify_order.billing_address else 'No billing details' }}</td>
           <td>£{{ shopify_order.total_price }}</td>
           <td>{{ view.get_location(shopify_order) }}</td>
         </tr>

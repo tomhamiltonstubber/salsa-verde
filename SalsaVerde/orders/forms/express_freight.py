@@ -58,14 +58,14 @@ class ExpressFreightLabelForm(SVForm):
     def __init__(self, order_id=None, shopify_data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if shopify_data:
-            address = shopify_data.get('shipping_address')
-            self.fields['name'].initial = address['name']
-            self.fields['first_line'].initial = address['address1']
-            self.fields['second_line'].initial = address['address2']
-            self.fields['town'].initial = address['city']
-            self.fields['county'].initial = address['province']
-            self.fields['postcode'].initial = address['zip']
-            self.fields['phone'].initial = address['phone']
+            address = shopify_data.get('shipping_address', {})
+            self.fields['name'].initial = address.get('name')
+            self.fields['first_line'].initial = address.get('address1')
+            self.fields['second_line'].initial = address.get('address2')
+            self.fields['town'].initial = address.get('city')
+            self.fields['county'].initial = address.get('province')
+            self.fields['postcode'].initial = address.get('zip')
+            self.fields['phone'].initial = address.get('phone')
             self.fields['shopify_order'].initial = order_id
 
     def clean_phone(self):

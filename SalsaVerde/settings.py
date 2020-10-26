@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+from urllib.parse import urlparse
 
 DJ_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(DJ_DIR)
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'bootstrap3_datetime',
     'debug_toolbar',
     'raven.contrib.django.raven_compat',
+    'django_rq',
     'SalsaVerde.company',
     'SalsaVerde.stock',
     'SalsaVerde.orders',
@@ -178,10 +180,15 @@ LOGGING = {
             'format': '%(name)16s ⬢ %(message)s' if ON_HEROKU else '[%(asctime)s] %(name)-16s %(message)s',
             'datefmt': '%d/%b/%Y %H:%M:%S',
         },
+        'rq_console': {
+            'format': '%(message).300s' if ON_HEROKU else '%(asctime)s %(message).300s',
+            'datefmt': '%H:%M:%S',
+        },
         'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s'},
         'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
     },
     'handlers': {
+        'rq_console': {'level': 'INFO', 'formatter': 'rq_console', 'class': 'SalsaVerde.rq.RQHandler'},
         'debug_console': {'level': 'DEBUG', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler'},
         'null': {'class': 'logging.NullHandler'},
         'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
@@ -199,9 +206,33 @@ LOGGING = {
         'django.security': {'handlers': ['sentry', 'debug_console'], 'level': 'ERROR', 'propagate': False},
         'django.security.DisallowedHost': {'handlers': ['null'], 'propagate': False},
         'sentry.errors': {'level': 'WARNING', 'handlers': ['debug_console'], 'propagate': False},
+        'rq.worker': {'handlers': ['rq_console'], 'level': 'INFO'},
     },
 }
 
+# =======================================
+# django-rq
+# =======================================
+redis_url = urlparse(os.getenv('REDISCLOUD_URL', 'redis://localhost:6379'))
+redis_db = os.getenv('REDIS_DB', '0')
+redis_connections = int(os.getenv('REDIS_CONNECTIONS', '50'))
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{redis_url.hostname}:{redis_url.port}/{redis_db}',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'PASSWORD': redis_url.password,
+            'CONNECTION_POOL_KWARGS': {'max_connections': redis_connections},
+        },
+    }
+}
+
+ASYNC_RQ = os.getenv('ASYNC_RQ', True)
+
+RQ_QUEUES = {
+    'default': {'USE_REDIS_CACHE': 'default', 'ASYNC': ASYNC_RQ},
+}
 
 # =======================================
 # Shopify

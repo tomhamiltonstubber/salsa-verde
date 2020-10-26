@@ -78,14 +78,8 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
             return super().form_invalid(form)
         else:
             if self.shopify_order_id:
-                success, content = shopify_fulfill_order(order)
-                if success:
-                    messages.success(self.request, 'Order fulfilled')
-                    order.fulfilled = True
-                    order.save()
-                else:
-                    messages.error(self.request, 'Error fulfilling Shopify order: %s' % content)
-                    return super().form_invalid(form)
+                shopify_fulfill_order.delay(order)
+                messages.success(self.request, 'Fulfilling order')
         return redirect(reverse('orders-list'))
 
 
@@ -113,8 +107,9 @@ class OrdersList(ShopifyHelperMixin, DisplayHelpers, TemplateView):
         return ctx
 
     def get_location(self, order):
-        shipping_address = order['shipping_address']
-        return f"{shipping_address['city']}, {shipping_address['country_code']}"
+        if shipping_address := order.get('shipping_address'):
+            return f"{shipping_address['city']}, {shipping_address['country_code']}"
+        return 'No shipping address added'
 
     def created_at(self, dt):
         return datetime.fromisoformat(dt).strftime(settings.DATE_FORMAT)
