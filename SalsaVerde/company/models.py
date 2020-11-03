@@ -111,6 +111,7 @@ class User(AbstractUser):
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
+    administrator = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
 
-from SalsaVerde.company.models import Company, CompanyNameBaseModel, CompanyQueryset
+from SalsaVerde.company.models import Company, CompanyNameBaseModel, CompanyQueryset, User
 from SalsaVerde.stock.models import Product
 
 
@@ -33,6 +33,7 @@ class Order(models.Model):
     shipment_details = models.JSONField(blank=True, null=True)
     carrier = models.CharField(choices=CARRIER_CHOICES, max_length=20, null=True, blank=True)
     extra_data = models.JSONField(blank=True, null=True, default=dict)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     @classmethod
     def prefix(cls):
@@ -42,7 +43,7 @@ class Order(models.Model):
         return reverse('order-details', kwargs={'pk': self.id})
 
     def __str__(self):
-        return 'Order ' + self.shopify_id
+        return f'Order {self.shopify_id or self.id}'
 
     class Meta:
         ordering = ('-created',)

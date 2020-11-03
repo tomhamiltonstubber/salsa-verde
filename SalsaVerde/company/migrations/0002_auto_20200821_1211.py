@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name='company',
-            name='dhl_account_code',
-            field=models.CharField(blank=True, max_length=255),
+            model_name='company', name='dhl_account_code', field=models.CharField(blank=True, max_length=255),
         ),
         migrations.AddField(
             model_name='company',

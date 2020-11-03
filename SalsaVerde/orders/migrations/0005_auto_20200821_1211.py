@@ -11,10 +11,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='order',
-            name='label_urls',
-        ),
+        migrations.RemoveField(model_name='order', name='label_urls',),
         migrations.AddField(
             model_name='order',
             name='carrier',

@@ -12,14 +12,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         args = {
-            'created_at_max': now().date() - relativedelta(weeks=4),
             'limit': 250,
             'status': 'any',
             'fields': 'id,app_id',
             'fulfillment_status': 'all',
         }
-        for company in Company.objects.filter(shopify_password__isnull=False):
-            success, orders = shopify_request('orders.json?', data=args, company=company)
-            assert success
-            for order in orders['orders']:
-                process_order_event('orders/create', order, company=company)
+        n = now().date()
+        for i in range(5):
+            url_kwargs = {
+                'created_at_max': n - relativedelta(weeks=5 - i),
+                'created_at_min': n - relativedelta(weeks=6 - i),
+                **args,
+            }
+            for company in Company.objects.filter(shopify_password__isnull=False):
+                success, orders = shopify_request('orders.json?', data=url_kwargs, company=company)
+                assert success
+                for order in orders['orders']:
+                    process_order_event('orders/create', order, company=company)

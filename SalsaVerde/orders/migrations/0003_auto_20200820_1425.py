@@ -18,8 +18,6 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(blank=True, related_name='products', to='stock.Product'),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='shopify_id',
-            field=models.CharField(blank=True, max_length=255, null=True),
+            model_name='order', name='shopify_id', field=models.CharField(blank=True, max_length=255, null=True),
         ),
     ]

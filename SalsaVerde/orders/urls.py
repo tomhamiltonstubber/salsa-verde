@@ -7,13 +7,11 @@ from SalsaVerde.orders.views.common import order_details, orders_list, update_pa
 from SalsaVerde.orders.views.dhl import dhl_order_create
 from SalsaVerde.orders.views.express_freight import ef_order_create
 from SalsaVerde.orders.views.setup import package_temp_add, package_temp_details, package_temp_edit, package_temp_list
-from SalsaVerde.orders.views.shopify import shopify_order_details
 
 urlpatterns = [
     path('', orders_list, name='orders-list'),
     path('<int:pk>/', order_details, name='order-details'),
     path('<int:pk>/update-product', update_packed_product, name='order-packed-product'),
-    path('shopify/<int:id>/', shopify_order_details, name='order-details-shopify'),
     path('setup/package-temp/', package_temp_list, name='package-temps'),
     path('setup/package-temp/add/', package_temp_add, name='package-temps-add'),
     path('setup/package-temp/<int:pk>/', package_temp_details, name='package-temps-details'),

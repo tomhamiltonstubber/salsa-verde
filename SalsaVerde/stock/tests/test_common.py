@@ -45,6 +45,7 @@ class AuthenticatedClient(Client):
             email='owner@salsaverde.com',
             password='testing',
             company=company,
+            administrator=True,
         )
         logged_in = self.login(username=self.user.email, password='testing')
         if not logged_in:  # pragma: no cover

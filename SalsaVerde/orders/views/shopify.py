@@ -9,10 +9,9 @@ import requests
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.urls import reverse
 from requests import Request
 
-from SalsaVerde.common.views import BasicView, display_dt
+from SalsaVerde.common.views import display_dt
 from SalsaVerde.company.models import Company
 
 session = requests.Session()
@@ -49,6 +48,7 @@ ORDER_FIELDS = [
     'line_items',
     'quantity',
     'price',
+    'customer',
     'total_line_items_price',
     'total_discounts',
     'total_price',
@@ -68,43 +68,6 @@ class ShopifyHelperMixin:
 
     def dt_format(self, v):
         return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
-
-
-class ShopifyOrderView(ShopifyHelperMixin, BasicView):
-    template_name = 'order_view.jinja'
-    title = 'Order'
-
-    def get_button_menu(self):
-        yield {'name': 'Back', 'url': reverse('orders-list')}
-        yield {
-            'name': 'View in Shopify',
-            'url': self.get_shopify_url(self.shopify_id),
-            'newtab': True,
-            'icon': 'fa-shopping-basket',
-        }
-        if not self.order_data['fulfillment_status']:
-            yield {
-                'name': 'Fulfill with ExpressFreight',
-                'url': reverse('fulfill-order-ef') + f'?shopify_order={self.shopify_id}',
-                'icon': 'fa-truck',
-            }
-            yield {
-                'name': 'Fulfill with DHL',
-                'url': reverse('fulfill-order-dhl') + f'?shopify_order={self.shopify_id}',
-                'icon': 'fa-truck',
-            }
-
-    def dispatch(self, request, *args, **kwargs):
-        self.shopify_id = kwargs['id']
-        _, order_data = get_shopify_order(self.shopify_id, request.user.company)
-        self.order_data = order_data['order']
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(order_data=self.order_data)
-
-
-shopify_order_details = ShopifyOrderView.as_view()
 
 
 def callback(request: Request):

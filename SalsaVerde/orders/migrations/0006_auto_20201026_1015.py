@@ -11,8 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='order',
-            name='shipment_details',
-            field=models.JSONField(blank=True, null=True),
+            model_name='order', name='shipment_details', field=models.JSONField(blank=True, null=True),
         ),
     ]
