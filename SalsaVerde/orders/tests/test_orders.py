@@ -70,7 +70,10 @@ class DHLOrderTestCase(TestCase):
         assert order.company == self.company
         call_args = mock_dhl.mock_calls[0][2]
         assert call_args == {
-            'auth': ('demo-key', 'demo-secret',),
+            'auth': (
+                'demo-key',
+                'demo-secret',
+            ),
             'json': {
                 'plannedShippingDateAndTime': '2018-02-02T00:00:00+00:00',
                 'pickup': {'isRequested': False},

@@ -203,7 +203,8 @@ class ListView(ModelBasicView):
 
     def get_context_data(self, **kwargs):
         kwargs.update(
-            field_names=self.get_display_labels(self.get_display_items()), field_data=self.get_field_data(),
+            field_names=self.get_display_labels(self.get_display_items()),
+            field_data=self.get_field_data(),
         )
         return super().get_context_data(**kwargs)
 

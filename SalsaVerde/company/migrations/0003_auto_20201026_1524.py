@@ -11,10 +11,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='company', name='shopify_api_key', field=models.CharField(blank=True, max_length=255, null=True),
+            model_name='company',
+            name='shopify_api_key',
+            field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='company', name='shopify_domain', field=models.CharField(blank=True, max_length=255, null=True),
+            model_name='company',
+            name='shopify_domain',
+            field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
             model_name='company',

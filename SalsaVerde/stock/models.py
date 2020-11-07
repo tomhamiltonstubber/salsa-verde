@@ -90,7 +90,10 @@ class Ingredient(BaseModel):
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
     goods_intake = models.ForeignKey(
-        'stock.GoodsIntake', related_name='ingredients', verbose_name='Goods Intake', on_delete=models.CASCADE,
+        'stock.GoodsIntake',
+        related_name='ingredients',
+        verbose_name='Goods Intake',
+        on_delete=models.CASCADE,
     )
     finished = models.BooleanField('Finished', default=False)
     objects = IngredientQuerySet.as_manager()

@@ -44,15 +44,27 @@ class Migration(migrations.Migration):
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='order', name='shipping_id', field=models.CharField(blank=True, max_length=255, null=True),
+            model_name='order',
+            name='shipping_id',
+            field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AlterField(
-            model_name='order', name='tracking_url', field=models.CharField(blank=True, max_length=255, null=True),
+            model_name='order',
+            name='tracking_url',
+            field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.RunPython(add_status),
-        migrations.RemoveField(model_name='order', name='fulfilled',),
-        migrations.AddField(
-            model_name='order', name='extra_data', field=models.JSONField(blank=True, null=True, default=dict),
+        migrations.RemoveField(
+            model_name='order',
+            name='fulfilled',
         ),
-        migrations.AlterModelOptions(name='order', options={'ordering': ('-created',)},),
+        migrations.AddField(
+            model_name='order',
+            name='extra_data',
+            field=models.JSONField(blank=True, null=True, default=dict),
+        ),
+        migrations.AlterModelOptions(
+            name='order',
+            options={'ordering': ('-created',)},
+        ),
     ]

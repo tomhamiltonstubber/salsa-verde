@@ -37,7 +37,9 @@ def get_or_create_user(order_data: dict, company: Company):
         user = User.objects.filter(company=company, email__iexact=email, administrator=False).first()
     if not user:
         user = User.objects.filter(
-            company=company, last_name__iexact=user_details['last_name'], first_name__iexact=user_details['first_name'],
+            company=company,
+            last_name__iexact=user_details['last_name'],
+            first_name__iexact=user_details['first_name'],
         ).first()
     inactive_email_ending = f"{user_details['last_name']}@inactive.{company.website}"
     if not user:
