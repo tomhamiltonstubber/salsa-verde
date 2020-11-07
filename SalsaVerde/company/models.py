@@ -23,6 +23,11 @@ class Country(models.Model):
         return self.name
 
 
+class ThisCompanyQueryset(QuerySet):
+    def request_qs(self, request):
+        return Company.objects.filter(id=request.user.company_id)
+
+
 class Company(models.Model):
     name = models.CharField('Name', max_length=255)
     website = models.CharField(max_length=255, blank=True)
@@ -40,6 +45,9 @@ class Company(models.Model):
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)
     postcode = models.CharField('Postcode', max_length=20, null=True, blank=True)
     phone = models.CharField('Phone', max_length=255, null=True, blank=True)
+
+    def address_str(self):
+        return ', '.join([str(getattr(self, f)) for f in ['street', 'town', 'country'] if getattr(self, f)])
 
     def get_main_contact(self):
         if not self.main_contact:

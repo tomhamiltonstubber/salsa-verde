@@ -25,10 +25,10 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
             success, self.order_data = get_shopify_order(self.shopify_order_id, company=request.user.company)
             if not success:
                 messages.error(request, 'Error getting data from shopify: %s' % self.order_data)
-                return reverse('orders-list')
+                return redirect('orders-list')
             elif self.order_data.get('fulfillment_status') == 'fulfilled':
                 messages.error(request, 'Order already fulfilled: %s' % self.order_data)
-                return reverse('orders-list')
+                return redirect('orders-list')
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):

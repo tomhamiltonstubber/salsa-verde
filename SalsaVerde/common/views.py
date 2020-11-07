@@ -88,7 +88,7 @@ class DisplayHelpers:
                 return mark_safe(f'<a href="{related_obj.get_absolute_url()}">{related_obj}</a>')
             return '–'
         attr = self._get_attr(obj, field)
-        if isinstance(attr, partial):
+        if isinstance(attr, partial) or callable(attr):
             v = attr()
         else:
             v = attr

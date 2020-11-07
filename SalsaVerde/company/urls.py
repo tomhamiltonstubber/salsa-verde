@@ -11,4 +11,5 @@ urlpatterns = [
     path('users/<int:pk>/edit/', users.user_edit, name='users-edit'),
     path('users/<int:pk>/delete/', DeleteObjectView.as_view(model=User), name='users-delete'),
     path('setup/', setup.setup, name='setup'),
+    path('setup/company/', setup.edit_company, name='setup-company'),
 ]

@@ -20,7 +20,13 @@ from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formse
 
 class DHLOrderTestCase(TestCase):
     def setUp(self):
-        self.company = CompanyFactory(dhl_account_code='123abc')
+        self.company = CompanyFactory(
+            dhl_account_code='123abc',
+            shopify_domain='https://company.shopify.com',
+            shopify_webhook_key='foo',
+            shopify_api_key='bar',
+            shopify_password='pass',
+        )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
 
@@ -122,7 +128,13 @@ class DHLOrderTestCase(TestCase):
 class ExpressFreightOrderTestCase(TestCase):
     def setUp(self):
         cache.clear()
-        self.company = CompanyFactory()
+        self.company = CompanyFactory(
+            dhl_account_code='123abc',
+            shopify_domain='https://company.shopify.com',
+            shopify_webhook_key='foo',
+            shopify_api_key='bar',
+            shopify_password='pass',
+        )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
 
