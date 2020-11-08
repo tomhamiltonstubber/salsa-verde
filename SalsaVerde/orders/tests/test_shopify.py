@@ -27,11 +27,21 @@ class ShopifyWebhookTestCase(TestCase):
         self.callback_url = reverse('shopify-callback')
 
     def test_callback_wrong_sig(self):
+        sig = hmac.new(
+            self.company.shopify_webhook_key.encode(), json.dumps({'a': '2'}).encode(), hashlib.sha256
+        ).digest()
         r = Client().post(
             self.callback_url,
             data={'foo': 'bar'},
             HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
-            HTTP_X_SHOPIFY_HMAC_SHA256='FooSig',
+            HTTP_X_SHOPIFY_HMAC_SHA256=sig,
+        )
+        assert r.status_code == 403
+        r = Client().post(
+            self.callback_url,
+            data={'foo': 'bar'},
+            HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
+            HTTP_X_SHOPIFY_HMAC_SHA256='FOOBAR',
         )
         assert r.status_code == 403
 
@@ -73,11 +83,11 @@ class ShopifyWebhookTestCase(TestCase):
         assert user.get_full_name() == 'Brain Johnston'
         assert not user.administrator
         assert user.email == 'brain_johnston@fakemail.com'
-        mock_logger.assert_called_with('Shopify event status %s:%s', 210, 'Order updated')
+        mock_logger.assert_called_with('Shopify event status %s:%s', 210, 'Order created')
         assert not user.has_usable_password()
         assert order.user == user
         assert order.status == Order.STATUS_UNFULFILLED
-        order.extra_data['created'] = None
+        order.extra_data.pop('created_at')
         assert order.extra_data == {
             'id': '123',
             'name': '#123',

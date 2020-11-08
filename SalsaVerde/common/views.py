@@ -3,7 +3,6 @@ from functools import partial
 
 from django.conf import settings
 from django.contrib.auth import user_logged_in
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
@@ -12,6 +11,8 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views import View
 from django.views.generic import CreateView, FormView, TemplateView, UpdateView
+
+from SalsaVerde.common.forms import AuthForm
 
 
 class QuerySetMixin:
@@ -145,7 +146,7 @@ dashboard = Index.as_view()
 class Login(LoginView):
     template_name = 'login.jinja'
     title = 'Login'
-    form_class = AuthenticationForm
+    form_class = AuthForm
     redirect_authenticated_user = True
 
     def get_redirect_url(self):

@@ -18,7 +18,11 @@ class UserTestCase(TestCase):
 
     def test_login(self):
         user = User.objects.create(
-            first_name='Brain', last_name='Johnson', email='testing@salsaverde.com', company=self.user.company
+            first_name='Brain',
+            last_name='Johnson',
+            email='testing@salsaverde.com',
+            company=self.user.company,
+            administrator=True,
         )
         user.set_password('testing1')
         user.save()
@@ -32,6 +36,25 @@ class UserTestCase(TestCase):
         self.assertRedirects(r, '/')
         self.assertNotContains(r, 'Login')
         assert refresh(user).last_logged_in.date() == timezone.now().date()
+
+    def test_login_non_admin(self):
+        user = User.objects.create(
+            first_name='Brain',
+            last_name='Johnson',
+            email='testing@salsaverde.com',
+            company=self.user.company,
+            administrator=False,
+        )
+        user.set_password('testing1')
+        user.save()
+        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=timezone.utc)
+        client = Client()
+        r = client.get(reverse('suppliers'))
+        self.assertRedirects(r, reverse('login'))
+        r = client.post(
+            reverse('login'), data={'username': 'testing@salsaverde.com', 'password': 'testing1'}, follow=True
+        )
+        assert r.status_code == 200
 
     def test_logout(self):
         r = self.client.post(reverse('logout'))

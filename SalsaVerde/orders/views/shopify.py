@@ -81,8 +81,10 @@ def callback(request: WSGIRequest):
     ).first()
     if company and (key := company.shopify_webhook_key):
         data = request.POST
-        sig = hmac.new(key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
-        if not secrets.compare_digest(sig, request.headers.get('X-Shopify-Hmac-Sha256', '')):
+        sig = request.headers.get('X-Shopify-Hmac-Sha256', '')
+        sig = sig.encode() if isinstance(sig, str) else sig
+        m = hmac.new(key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
+        if not secrets.compare_digest(m, sig):
             raise PermissionDenied('Invalid signature')
         topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
         msg, status = process_shopify_event(topic, data, company=company)
