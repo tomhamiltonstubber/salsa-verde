@@ -144,6 +144,8 @@ def fake_shopify(error=False):
         def __init__(self, method, url, auth, json=None):
             self.url = url
             self.method = method
+            self.status_code = 400 if error else 200
+            self.content = b'foobar'
 
         def raise_for_status(self):
             if error:
