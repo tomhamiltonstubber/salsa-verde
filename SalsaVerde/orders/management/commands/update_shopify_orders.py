@@ -17,15 +17,9 @@ class Command(BaseCommand):
             'fields': 'id,app_id',
             'fulfillment_status': 'all',
         }
-        n = now().date()
-        for i in range(26):
-            url_kwargs = {
-                'created_at_max': n - relativedelta(weeks=25 - i),
-                'created_at_min': n - relativedelta(weeks=26 - i),
-                **args,
-            }
-            for company in Company.objects.filter(shopify_password__isnull=False):
-                success, orders = shopify_request('orders.json?', data=url_kwargs, company=company)
-                assert success, orders
-                for order in orders['orders']:
-                    process_shopify_event('orders/create', order, company=company)
+        url_kwargs = {'created_at_min': now().date() - relativedelta(weeks=1), **args}
+        for company in Company.objects.filter(shopify_password__isnull=False):
+            success, orders = shopify_request('orders.json?', data=url_kwargs, company=company)
+            assert success, orders
+            for order in orders['orders']:
+                process_shopify_event('orders/create', order, company=company)
