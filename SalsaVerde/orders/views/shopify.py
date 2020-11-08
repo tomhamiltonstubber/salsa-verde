@@ -35,14 +35,12 @@ def shopify_request(url, method='GET', data=None, *, company: Company, retries=0
         r = session.request(method, url, auth=auth)
     else:
         r = session.request(method, url, auth=auth, json=data)
-    try:
-        r.raise_for_status()
-    except requests.HTTPError:
+    if not (str(r.status_code).startswith('2')) or 'errors' in r.content.decode():
         if retries == 5:
-            time.sleep(1)
             logger.warning('Request to Shopify failed after 5 attempts: %r', r.content.decode())
             return False, r.content.decode()
         else:
+            time.sleep(1)
             shopify_request(url, method='GET', data=None, company=company, retries=retries + 1)
     return True, r.json()
 
