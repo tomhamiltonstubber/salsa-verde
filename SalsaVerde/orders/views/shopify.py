@@ -94,8 +94,8 @@ def callback(request: WSGIRequest):
             # raise PermissionDenied('Invalid signature')
         topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
         msg, status = process_shopify_event(topic, data, company=company)
-        logger.info('Shopify event status %s:%s', status, msg)
     else:
         status = 299
         msg = 'Company with key does not exist'
+    logger.info('Shopify event status %s:%s', status, msg)
     return HttpResponse(msg, status=status)
