@@ -198,7 +198,7 @@ LOGGING = {
         'null': {'class': 'logging.NullHandler'},
         'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
         'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server'},
-        'tc_console': {
+        'sv_console': {
             'level': 'DEBUG' if DEBUG else 'INFO',
             'class': 'SalsaVerde.streamhandler.StreamHandler',
             'formatter': 'salsa',
@@ -207,7 +207,7 @@ LOGGING = {
     'loggers': {
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False},
         'django': {'handlers': ['debug_console'], 'level': 'INFO'},
-        'salsa': {'handlers': ['sentry'], 'level': 'DEBUG', 'propagate': False},
+        'salsa': {'handlers': ['sv_console', 'sentry'], 'level': 'DEBUG', 'propagate': False},
         'django.security': {'handlers': ['sentry', 'debug_console'], 'level': 'ERROR', 'propagate': False},
         'django.security.DisallowedHost': {'handlers': ['null'], 'propagate': False},
         'sentry.errors': {'level': 'WARNING', 'handlers': ['debug_console'], 'propagate': False},

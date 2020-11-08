@@ -81,9 +81,8 @@ class ShopifyHelperMixin:
 def callback(request: WSGIRequest):
     from SalsaVerde.orders.shopify import process_shopify_event
 
-    company = Company.objects.filter(
-        shopify_domain=request.headers.get('X-Shopify-Shop-Domain'), shopify_domain__isnull=False
-    ).first()
+    domain = request.headers.get('X-Shopify-Shop-Domain')
+    company = Company.objects.filter(shopify_domain=domain, shopify_domain__isnull=False).first()
     if company and (key := company.shopify_webhook_key):
         data = request.POST
         sig = request.headers.get('X-Shopify-Hmac-Sha256', '')
@@ -96,6 +95,6 @@ def callback(request: WSGIRequest):
         msg, status = process_shopify_event(topic, data, company=company)
     else:
         status = 299
-        msg = 'Company with key does not exist'
+        msg = f'Company with domain {domain} does not exist'
     logger.info('Shopify event status %s:%s', status, msg)
     return HttpResponse(msg, status=status)
