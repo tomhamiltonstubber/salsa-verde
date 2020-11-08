@@ -15,6 +15,15 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='order',
+            name='extra_data',
+            field=models.JSONField(blank=True, null=True, default=dict),
+        ),
+        migrations.AlterModelOptions(
+            name='order',
+            options={'ordering': ('-created',)},
+        ),
+        migrations.AddField(
+            model_name='order',
             name='user',
             field=models.ForeignKey(
                 blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL

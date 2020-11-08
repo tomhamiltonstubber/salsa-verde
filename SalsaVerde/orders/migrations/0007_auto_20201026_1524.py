@@ -54,17 +54,4 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.RunPython(add_status),
-        migrations.RemoveField(
-            model_name='order',
-            name='fulfilled',
-        ),
-        migrations.AddField(
-            model_name='order',
-            name='extra_data',
-            field=models.JSONField(blank=True, null=True, default=dict),
-        ),
-        migrations.AlterModelOptions(
-            name='order',
-            options={'ordering': ('-created',)},
-        ),
     ]
