@@ -18,10 +18,10 @@ class Command(BaseCommand):
             'fulfillment_status': 'all',
         }
         n = now().date()
-        for i in range(5):
+        for i in range(26):
             url_kwargs = {
-                'created_at_max': n - relativedelta(weeks=5 - i),
-                'created_at_min': n - relativedelta(weeks=6 - i),
+                'created_at_max': n - relativedelta(weeks=25 - i),
+                'created_at_min': n - relativedelta(weeks=26 - i),
                 **args,
             }
             for company in Company.objects.filter(shopify_password__isnull=False):
