@@ -5,6 +5,7 @@
 {% block content %}
   <div class="row">
     <div id="display-items">
+      {{ display_items }}
       {% for field_name, v in display_items %}
         <div>
           <label class="text-muted">{{ field_name }}:</label> <span class="display-item">{{ v }}</span>

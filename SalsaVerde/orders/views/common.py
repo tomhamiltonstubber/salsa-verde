@@ -1,21 +1,14 @@
-from datetime import datetime
-from operator import itemgetter
-
-from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView
 
-from SalsaVerde.common.views import BasicView, DetailView, DisplayHelpers, SVFormView, UpdateModelView
+from SalsaVerde.common.views import DetailView, ListView, SVFormView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
 from SalsaVerde.orders.models import Order, PackageTemplate, ProductOrder
-from SalsaVerde.orders.views.shopify import (
-    ShopifyHelperMixin,
-    get_shopify_order,
-    get_shopify_orders,
-    shopify_fulfill_order,
-)
+from SalsaVerde.orders.shopify import shopify_fulfill_order
+from SalsaVerde.orders.views.shopify import ShopifyHelperMixin, get_shopify_order
 
 
 class CreateShipmentError(Exception):
@@ -29,13 +22,13 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
     def dispatch(self, request, *args, **kwargs):
         self.shopify_order_id = request.GET.get('shopify_order')
         if self.shopify_order_id:
-            success, self.order_data = get_shopify_order(self.shopify_order_id)
+            success, self.order_data = get_shopify_order(self.shopify_order_id, company=request.user.company)
             if not success:
                 messages.error(request, 'Error getting data from shopify: %s' % self.order_data)
-                return reverse('orders-list')
+                return redirect('orders-list')
             elif self.order_data.get('fulfillment_status') == 'fulfilled':
                 messages.error(request, 'Order already fulfilled: %s' % self.order_data)
-                return reverse('orders-list')
+                return redirect('orders-list')
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -60,7 +53,7 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
             },
         )
         if self.shopify_order_id:
-            _, order_data = get_shopify_order(self.shopify_order_id)
+            _, order_data = get_shopify_order(self.shopify_order_id, company=self.request.user.company)
             ctx['order_data'] = order_data
         return ctx
 
@@ -83,36 +76,37 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
         return redirect(reverse('orders-list'))
 
 
-class OrdersList(ShopifyHelperMixin, DisplayHelpers, TemplateView):
-    template_name = 'order_list.jinja'
+class OrdersList(ShopifyHelperMixin, ListView):
     title = 'Orders'
+    model = Order
+    display_items = [
+        ('Order', 'func|order_name'),
+        'created',
+        ('Customer', 'func|billing_name'),
+        ('Total', 'func|total'),
+        ('Status', 'get_status_display'),
+        ('Location', 'func|get_location'),
+    ]
 
     def get_button_menu(self):
-        if self.request.GET.get('fulfilled'):
-            yield {'name': 'Back to open orders', 'url': reverse('orders-list')}
-        else:
-            yield {'name': 'View fulfilled orders', 'url': reverse('orders-list') + '?fulfilled=true'}
+        return []
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        if self.request.GET.get('fulfilled'):
-            _, data = get_shopify_orders('shipped')
-            order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=True)}
-        else:
-            _, data = get_shopify_orders('unfulfilled')
-            order_lu = {o.shopify_id: o for o in Order.objects.request_qs(self.request).filter(fulfilled=False)}
-        for order in data['orders']:
-            order['order_obj'] = order_lu.get(str(order['id']))
-        ctx['orders'] = sorted(data['orders'], key=itemgetter('created_at'), reverse=True)
-        return ctx
+    def order_name(self, obj):
+        n = f'Order #{obj.id}'
+        if obj.shopify_id:
+            n += f' ({obj.extra_data.get("name")})'
+        return mark_safe(f'<a href="{obj.get_absolute_url()}">{n}</a>')
 
-    def get_location(self, order):
-        if shipping_address := order.get('shipping_address'):
+    def billing_name(self, obj):
+        return obj.user.get_full_name() if obj.user else '—'
+
+    def total(self, obj):
+        return f'£{obj.extra_data.get("total_price")}'
+
+    def get_location(self, obj):
+        if shipping_address := obj.extra_data.get('shipping_address'):
             return f"{shipping_address['city']}, {shipping_address['country_code']}"
         return 'No shipping address added'
-
-    def created_at(self, dt):
-        return datetime.fromisoformat(dt).strftime(settings.DATE_FORMAT)
 
 
 orders_list = OrdersList.as_view()
@@ -121,18 +115,13 @@ orders_list = OrdersList.as_view()
 class OrderDetails(ShopifyHelperMixin, DetailView):
     template_name = 'order_view.jinja'
     model = Order
-    object: Order
     title = 'Order'
 
     def get_queryset(self):
         return super().get_queryset().select_related('products')
 
     def get_button_menu(self):
-        yield {'name': 'Back', 'url': reverse('orders-list') + '?fulfilled=true'}
-        yield {
-            'name': 'Update Product Batch Codes',
-            'url': reverse('order-packed-product', kwargs={'pk': self.object.pk}),
-        }
+        yield {'name': 'Back', 'url': reverse('orders-list')}
         if self.object.shopify_id:
             yield {
                 'name': 'View in Shopify',
@@ -140,57 +129,36 @@ class OrderDetails(ShopifyHelperMixin, DetailView):
                 'newtab': True,
                 'icon': 'fa-shopping-basket',
             }
-        if self.object.tracking_url:
-            yield {'name': 'Tracking', 'url': self.object.tracking_url, 'newtab': True}
-        for i, label in enumerate(self.object.labels.all()):
-            yield {'name': f'Shipping Label {i + 1}', 'url': label.file.url, 'newtab': True}
+        if self.object.status == Order.STATUS_UNFULFILLED:
+            yield {
+                'name': 'Fulfill with ExpressFreight',
+                'url': reverse('fulfill-order-ef') + f'?shopify_order={self.object.shopify_id}',
+                'icon': 'fa-truck',
+            }
+            yield {
+                'name': 'Fulfill with DHL',
+                'url': reverse('fulfill-order-dhl') + f'?shopify_order={self.object.shopify_id}',
+                'icon': 'fa-truck',
+            }
+        else:
+            yield {
+                'name': 'Update Product Batch Codes',
+                'url': reverse('order-packed-product', kwargs={'pk': self.object.pk}),
+            }
+            if self.object.tracking_url:
+                yield {'name': 'Tracking', 'url': self.object.tracking_url, 'newtab': True}
+            for i, label in enumerate(self.object.labels.all()):
+                yield {'name': f'Shipping Label {i + 1}', 'url': label.file.url, 'newtab': True}
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if shopify_order := self.object.shopify_id:
-            _, order_data = get_shopify_order(shopify_order)
+            _, order_data = get_shopify_order(shopify_order, company=self.request.user.company)
             ctx.update(order_data=order_data['order'])
         return ctx
 
 
 order_details = OrderDetails.as_view()
-
-
-class ShopifyOrderView(ShopifyHelperMixin, BasicView):
-    template_name = 'order_view.jinja'
-    title = 'Order'
-
-    def get_button_menu(self):
-        yield {'name': 'Back', 'url': reverse('orders-list')}
-        yield {
-            'name': 'View in Shopify',
-            'url': self.get_shopify_url(self.shopify_id),
-            'newtab': True,
-            'icon': 'fa-shopping-basket',
-        }
-        if not self.order_data['fulfillment_status']:
-            yield {
-                'name': 'Fulfill with ExpressFreight',
-                'url': reverse('fulfill-order-ef') + f'?shopify_order={self.shopify_id}',
-                'icon': 'fa-truck',
-            }
-            yield {
-                'name': 'Fulfill with DHL',
-                'url': reverse('fulfill-order-dhl') + f'?shopify_order={self.shopify_id}',
-                'icon': 'fa-truck',
-            }
-
-    def dispatch(self, request, *args, **kwargs):
-        self.shopify_id = kwargs['id']
-        _, order_data = get_shopify_order(self.shopify_id)
-        self.order_data = order_data['order']
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(order_data=self.order_data)
-
-
-shopify_order_details = ShopifyOrderView.as_view()
 
 
 class OrderUpdatePackedProduct(ShopifyHelperMixin, UpdateModelView):
@@ -221,7 +189,7 @@ class OrderUpdatePackedProduct(ShopifyHelperMixin, UpdateModelView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if self.object.shopify_id:
-            _, order_data = get_shopify_order(self.object.shopify_id)
+            _, order_data = get_shopify_order(self.object.shopify_id, company=self.request.user.company)
             ctx['order_data'] = order_data['order']
         ctx['formset'] = ctx.pop('form')
         if self.object.products.exists():

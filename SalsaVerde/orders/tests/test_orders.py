@@ -3,6 +3,7 @@ from unittest import mock
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.urls import reverse
 
@@ -12,12 +13,20 @@ from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.tests.mock_objs import fake_dhl, fake_ef, fake_shopify
 from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.product import ProductFactory
+from SalsaVerde.stock.factories.users import UserFactory
+from SalsaVerde.stock.models import Document
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
 
 
 class DHLOrderTestCase(TestCase):
     def setUp(self):
-        self.company = CompanyFactory(dhl_account_code='123abc')
+        self.company = CompanyFactory(
+            dhl_account_code='123abc',
+            shopify_domain='https://company.shopify.com',
+            shopify_webhook_key='foo',
+            shopify_api_key='bar',
+            shopify_password='pass',
+        )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
 
@@ -122,7 +131,13 @@ class DHLOrderTestCase(TestCase):
 class ExpressFreightOrderTestCase(TestCase):
     def setUp(self):
         cache.clear()
-        self.company = CompanyFactory()
+        self.company = CompanyFactory(
+            dhl_account_code='123abc',
+            shopify_domain='https://company.shopify.com',
+            shopify_webhook_key='foo',
+            shopify_api_key='bar',
+            shopify_password='pass',
+        )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
 
@@ -219,52 +234,86 @@ class ExpressFreightOrderTestCase(TestCase):
 
 class OrderTestCase(TestCase):
     def setUp(self):
-        self.company = CompanyFactory()
+        self.company = CompanyFactory(shopify_api_key='Foo', shopify_password='Bar')
         self.client = AuthenticatedClient(company=self.company)
+        self.list_url = reverse('orders-list')
+
+    def test_order_list(self):
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(company=self.company, user=u)
+        r = self.client.get(self.list_url)
+        self.assertContains(r, 'Cus Tomer')
+        self.assertContains(r, f'Order #{order.id}')
+        self.assertContains(r, 'No shipping address added')
+
+    def test_order_list_shopify_details(self):
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(
+            company=self.company,
+            user=u,
+            extra_data={'shipping_address': {'city': 'Portadown', 'country_code': 'GB'}, 'name': 123},
+            shopify_id='123',
+        )
+        r = self.client.get(self.list_url)
+        self.assertContains(r, 'Cus Tomer')
+        self.assertContains(r, f'Order #{order.id} (123)')
+        self.assertContains(r, 'Portadown, GB')
+
+    def test_order_deets_unfulfilled(self):
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(company=self.company, user=u)
+        r = self.client.get(order.get_absolute_url())
+        self.assertContains(r, 'Fulfill with', 2)
+        self.assertNotContains(r, 'Update Product Batch Codes')
+        self.assertNotContains(r, 'View in Shopify')
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
-    def test_order_list_view(self, mock_shopify):
+    def test_order_shopify_deets_unfulfilled(self, mock_shopify):
         mock_shopify.side_effect = fake_shopify()
-        r = self.client.get(reverse('orders-list'))
-        self.assertContains(r, '#123')
-        self.assertContains(r, reverse('order-details-shopify', args=[123]))
-        self.assertNotContains(r, '#456')
-        self.assertNotContains(r, reverse('order-details-shopify', args=[456]))
+        order = OrderFactory(company=self.company, shopify_id=123)
+        r = self.client.get(order.get_absolute_url())
+        self.assertContains(r, 'Fulfill with', 2)
+        self.assertContains(r, 'View in Shopify')
+        self.assertNotContains(r, 'Update Product Batch Codes')
+        self.assertNotContains(r, 'Tracking')
 
-        r = self.client.get(reverse('orders-list') + '?fulfilled=true')
-        self.assertNotContains(r, '#123')
-        self.assertNotContains(r, reverse('order-details-shopify', args=[123]))
-        self.assertContains(r, '#456')
-        self.assertContains(r, reverse('order-details-shopify', args=[456]))
+    def test_order_deets_fulfilled(self):
+        order = OrderFactory(company=self.company, status=Order.STATUS_FULFILLED)
+        r = self.client.get(order.get_absolute_url())
+        self.assertNotContains(r, 'Fulfill with')
+        self.assertContains(r, 'Update Product Batch Codes')
+        self.assertNotContains(r, 'Shipping label')
 
-        order_unfulfilled = OrderFactory(company=self.company, shopify_id=123, fulfilled=False)
-        order_fulfilled = OrderFactory(company=self.company, shopify_id=456, fulfilled=True)
+    def test_order_fulfilled_has_label(self):
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(company=self.company, user=u, status=Order.STATUS_FULFILLED, tracking_url=None)
+        doc = Document.objects.create(order=order, author=self.client.user)
+        doc.file.save('shipping_label.pdf', ContentFile('test'), save=True)
 
-        r = self.client.get(reverse('orders-list'))
-        self.assertContains(r, '#123')
-        self.assertNotContains(r, reverse('order-details-shopify', args=[123]))
-        self.assertContains(r, reverse('order-details', args=[order_unfulfilled.id]))
-        self.assertNotContains(r, reverse('order-details', args=[order_fulfilled.id]))
+        r = self.client.get(order.get_absolute_url())
+        self.assertNotContains(r, 'Fulfill with')
+        self.assertContains(r, 'Update Product Batch Codes')
+        self.assertContains(r, 'Shipping Label')
 
-        r = self.client.get(reverse('orders-list') + '?fulfilled=true')
-        self.assertNotContains(r, '#123')
-        self.assertContains(r, '#456')
-        self.assertNotContains(r, reverse('order-details-shopify', args=[456]))
-        self.assertContains(r, reverse('order-details', args=[order_fulfilled.id]))
-        self.assertNotContains(r, reverse('order-details', args=[order_unfulfilled.id]))
+    def test_order_fulfilled_has_tracking(self):
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(company=self.company, user=u, status=Order.STATUS_FULFILLED, tracking_url='https://g.com')
+
+        r = self.client.get(order.get_absolute_url())
+        self.assertNotContains(r, 'Fulfill with')
+        self.assertContains(r, 'Update Product Batch Codes')
+        self.assertContains(r, 'Tracking')
+        self.assertContains(r, 'https://g.com')
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
-    def test_detail_view(self, mock_shopify):
+    def test_order_shopify_deets_fulfilled(self, mock_shopify):
         mock_shopify.side_effect = fake_shopify()
-        order = OrderFactory(company=self.company, shopify_id=456)
-        r = self.client.get(reverse('order-details', args=[order.id]))
-        self.assertContains(r, 'Bramley apple')
-
-    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
-    def test_detail_view_shopify(self, mock_shopify):
-        mock_shopify.side_effect = fake_shopify()
-        r = self.client.get(reverse('order-details-shopify', args=[123]))
-        self.assertContains(r, 'Bramley apple')
+        u = UserFactory(first_name='Cus', last_name='Tomer', company=self.company)
+        order = OrderFactory(company=self.company, user=u, status=Order.STATUS_FULFILLED, shopify_id=123)
+        r = self.client.get(order.get_absolute_url())
+        self.assertNotContains(r, 'Fulfill with')
+        self.assertContains(r, 'View in Shopify')
+        self.assertContains(r, 'Products ordered')
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     def test_add_product_batch_codes(self, mock_shopify):

@@ -61,79 +61,89 @@ def fake_ef(error=False):
 
 def fake_shopify(error=False):
     class MockShopify:
+        orders = [
+            {
+                'id': '123',
+                'name': '#123',
+                'created_at': '2020-08-19T08:47:12+01:00',
+                'total_price': '40.50',
+                'total_discounts': '4.50',
+                'total_line_items_price': '45.00',
+                'fulfillment_status': None,
+                'line_items': [
+                    {'quantity': 5, 'name': 'Bramley apple infused Balsamic Vinegar - 250ml', 'price': '9.00'},
+                ],
+                'shipping_address': {
+                    'address1': '123 Fake st',
+                    'phone': '07714 123456',
+                    'city': 'Belfast',
+                    'zip': 'BT72 2LL',
+                    'province': None,
+                    'country': 'United Kingdom',
+                    'address2': '',
+                    'name': 'Brain Johnston',
+                    'country_code': 'GB',
+                },
+                'customer': {
+                    'email': 'brain_johnston@fakemail.com',
+                    'last_name': 'Johnston',
+                    'first_name': 'Brain',
+                },
+                'billing_address': {
+                    'address1': '123 Fake st',
+                    'phone': '07714 123456',
+                    'city': 'Belfast',
+                    'zip': 'BT72 2LL',
+                    'province': None,
+                    'country': 'United Kingdom',
+                    'address2': '',
+                    'name': 'Brain Johnston',
+                    'country_code': 'GB',
+                },
+            },
+            {
+                'id': '456',
+                'created_at': '2020-08-19T08:47:12+01:00',
+                'total_price': '40.50',
+                'total_discounts': '4.50',
+                'total_line_items_price': '45.00',
+                'fulfillment_status': 'fulfilled',
+                'name': '#456',
+                'line_items': [
+                    {'quantity': 5, 'name': 'Bramley apple infused Balsamic Vinegar - 250ml', 'price': '9.00'},
+                ],
+                'customer': {
+                    'last_name': 'Jones',
+                    'first_name': 'Tom',
+                },
+                'shipping_address': {
+                    'address1': '123 Fake st',
+                    'phone': '07714 123456',
+                    'city': 'Belfast',
+                    'zip': 'BT72 2LL',
+                    'province': None,
+                    'country': 'United Kingdom',
+                    'address2': '',
+                    'name': 'Brain Fulfilled',
+                    'country_code': 'GB',
+                },
+                'billing_address': {
+                    'address1': '123 Fake st',
+                    'phone': '07714 123456',
+                    'city': 'Belfast',
+                    'zip': 'BT72 2LL',
+                    'province': None,
+                    'country': 'United Kingdom',
+                    'address2': '',
+                    'name': 'Brain Johnston',
+                    'country_code': 'GB',
+                },
+            },
+        ]
+
         def __init__(self, method, url, auth, json=None):
             self.url = url
             self.method = method
-            self.orders = [
-                {
-                    'id': '123',
-                    'name': '#123',
-                    'created_at': '2020-08-19T08:47:12+01:00',
-                    'total_price': '40.50',
-                    'total_discounts': '4.50',
-                    'total_line_items_price': '45.00',
-                    'fulfillment_status': None,
-                    'line_items': [
-                        {'quantity': 5, 'name': 'Bramley apple infused Balsamic Vinegar - 250ml', 'price': '9.00'},
-                    ],
-                    'shipping_address': {
-                        'address1': '123 Fake st',
-                        'phone': '07714 123456',
-                        'city': 'Belfast',
-                        'zip': 'BT72 2LL',
-                        'province': None,
-                        'country': 'United Kingdom',
-                        'address2': '',
-                        'name': 'Brain Johnston',
-                        'country_code': 'GB',
-                    },
-                    'billing_address': {
-                        'address1': '123 Fake st',
-                        'phone': '07714 123456',
-                        'city': 'Belfast',
-                        'zip': 'BT72 2LL',
-                        'province': None,
-                        'country': 'United Kingdom',
-                        'address2': '',
-                        'name': 'Brain Johnston',
-                        'country_code': 'GB',
-                    },
-                },
-                {
-                    'id': '456',
-                    'created_at': '2020-08-19T08:47:12+01:00',
-                    'total_price': '40.50',
-                    'total_discounts': '4.50',
-                    'total_line_items_price': '45.00',
-                    'fulfillment_status': 'fulfilled',
-                    'name': '#456',
-                    'line_items': [
-                        {'quantity': 5, 'name': 'Bramley apple infused Balsamic Vinegar - 250ml', 'price': '9.00'},
-                    ],
-                    'shipping_address': {
-                        'address1': '123 Fake st',
-                        'phone': '07714 123456',
-                        'city': 'Belfast',
-                        'zip': 'BT72 2LL',
-                        'province': None,
-                        'country': 'United Kingdom',
-                        'address2': '',
-                        'name': 'Brain Fulfilled',
-                        'country_code': 'GB',
-                    },
-                    'billing_address': {
-                        'address1': '123 Fake st',
-                        'phone': '07714 123456',
-                        'city': 'Belfast',
-                        'zip': 'BT72 2LL',
-                        'province': None,
-                        'country': 'United Kingdom',
-                        'address2': '',
-                        'name': 'Brain Johnston',
-                        'country_code': 'GB',
-                    },
-                },
-            ]
 
         def raise_for_status(self):
             if error:
@@ -141,8 +151,8 @@ def fake_shopify(error=False):
 
         def json(self):
             if re.match(r'.*orders/\d+\.json', self.url) and self.method == 'GET':
-                id = re.search(r'orders/(\d+)\.json', self.url).group(1)
-                return {'order': next(o for o in self.orders if o['id'] == id)}
+                order_id = re.search(r'orders/(\d+)\.json', self.url).group(1)
+                return {'order': next(o for o in self.orders if o['id'] == order_id)}
             elif re.match(r'.*orders\.json', self.url) and self.method == 'GET':
                 if 'shipped' in self.url:
                     return {'orders': [o for o in self.orders if o['fulfillment_status'] == 'fulfilled']}

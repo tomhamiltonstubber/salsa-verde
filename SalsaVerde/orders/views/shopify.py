@@ -1,30 +1,39 @@
+import hashlib
+import hmac
+import json
 import logging
+import secrets
 from datetime import datetime
 from urllib.parse import urlencode
 
 import requests
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.utils.timezone import now
-from django_rq import job
+from django.core.exceptions import PermissionDenied
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
+from django.views.decorators.http import require_POST
 
 from SalsaVerde.common.views import display_dt
-from SalsaVerde.orders.models import Order
+from SalsaVerde.company.models import Company
 
 session = requests.Session()
-logger = logging.getLogger('salsa.orders')
+logger = logging.getLogger('salsa.shopify')
 
 
-def shopify_request(url, method='GET', data=None):
+def shopify_request(url, method='GET', data=None, *, company: Company):
     logger.info(f'Making request to Shopify {url}')
     url = f'{settings.SHOPIFY_BASE_URL}/{url}'
     data = data or {}
+    if not (company.shopify_api_key and company.shopify_password):
+        return False, 'No API key for company'
+    else:
+        auth = (company.shopify_api_key, company.shopify_password)
     if method == 'GET':
         if data:
             url += f'?{urlencode(data)}'
-        r = session.request(method, url, auth=(settings.SHOPIFY_API_KEY, settings.SHOPIFY_PASSWORD))
+        r = session.request(method, url, auth=auth)
     else:
-        r = session.request(method, url, auth=(settings.SHOPIFY_API_KEY, settings.SHOPIFY_PASSWORD), json=data)
+        r = session.request(method, url, auth=auth, json=data)
     try:
         r.raise_for_status()
     except requests.HTTPError:
@@ -41,6 +50,7 @@ ORDER_FIELDS = [
     'line_items',
     'quantity',
     'price',
+    'customer',
     'total_line_items_price',
     'total_discounts',
     'total_price',
@@ -50,19 +60,8 @@ ORDER_FIELDS = [
 ]
 
 
-def get_shopify_order(id):
-    return shopify_request(f"orders/{id}.json?fields={','.join(ORDER_FIELDS)}")
-
-
-def get_shopify_orders(status: str):
-    args = {
-        'created_at_min': now().date() - relativedelta(weeks=1),
-        'limit': 50,
-        'status': 'any',
-        'fields': ','.join(ORDER_FIELDS),
-        'fulfillment_status': status,
-    }
-    return shopify_request('orders.json?', data=args)
+def get_shopify_order(id, company: Company):
+    return shopify_request(f"orders/{id}.json?fields={','.join(ORDER_FIELDS)}", company=company)
 
 
 class ShopifyHelperMixin:
@@ -73,21 +72,24 @@ class ShopifyHelperMixin:
         return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
 
 
-@job
-def shopify_fulfill_order(order: Order):
-    # Location is hard coded here as it doesn't change
-    assert order.shopify_id
-    data = {
-        'fulfillment': {
-            'location_id': 5032451,
-            'tracking_number': order.shipping_id,
-            'tracking_urls': [order.tracking_url],
-            'notify_customer': True,
-        }
-    }
-    success, content = shopify_request(f'orders/{order.shopify_id}/fulfillments.json', method='POST', data=data)
-    if success:
-        order.fulfilled = True
-        order.save()
+@require_POST
+def callback(request: WSGIRequest):
+    from SalsaVerde.orders.shopify import process_shopify_event
+
+    company = Company.objects.filter(
+        shopify_domain=request.headers.get('X-Shopify-Shop-Domain'), shopify_domain__isnull=False
+    ).first()
+    if company and (key := company.shopify_webhook_key):
+        data = request.POST
+        sig = request.headers.get('X-Shopify-Hmac-Sha256', '')
+        sig = sig.encode() if isinstance(sig, str) else sig
+        m = hmac.new(key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
+        if not secrets.compare_digest(m, sig):
+            raise PermissionDenied('Invalid signature')
+        topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
+        msg, status = process_shopify_event(topic, data, company=company)
+        logger.info('Shopify event status %s:%s', status, msg)
     else:
-        logger.error('Error fulfilling Shopify order: %s', content)
+        status = 299
+        msg = 'Company with key does not exist'
+    return HttpResponse(msg, status=status)
