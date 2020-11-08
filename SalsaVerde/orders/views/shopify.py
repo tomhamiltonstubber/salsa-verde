@@ -12,6 +12,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
+from django.utils.datastructures import MultiValueDictKeyError
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -84,17 +85,17 @@ def callback(request: WSGIRequest):
     domain = request.headers.get('X-Shopify-Shop-Domain')
     company = Company.objects.filter(shopify_domain=domain, shopify_domain__isnull=False).first()
     if company and (key := company.shopify_webhook_key):
-        data = request.POST
+        data = json.loads(request.body)
         sig = request.headers.get('X-Shopify-Hmac-Sha256', '')
         sig = sig.encode() if isinstance(sig, str) else sig
-        m = hmac.new(key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
+        m = hmac.new(key.encode(), request.body, hashlib.sha256).digest()
         if not secrets.compare_digest(m, sig):
             logger.error('Invalid signature for data', extra={'shopify_data': data, 'received_sig': sig, 'sig': m})
             # raise PermissionDenied('Invalid signature')
         topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
         try:
             msg, status = process_shopify_event(topic, data, company=company)
-        except Exception as e:
+        except MultiValueDictKeyError as e:
             logger.error('Error processing data', exc_info=e, extra={'shopify_data': data})
             raise
     else:
