@@ -92,7 +92,11 @@ def callback(request: WSGIRequest):
             logger.error('Invalid signature for data', extra={'shopify_data': data, 'received_sig': sig, 'sig': m})
             # raise PermissionDenied('Invalid signature')
         topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
-        msg, status = process_shopify_event(topic, data, company=company)
+        try:
+            msg, status = process_shopify_event(topic, data, company=company)
+        except Exception as e:
+            logger.error('Error processing data', exc_info=e, extra={'shopify_data': data})
+            raise
     else:
         status = 299
         msg = f'Company with domain {domain} does not exist'
