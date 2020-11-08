@@ -12,6 +12,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from SalsaVerde.common.views import display_dt
@@ -76,6 +77,7 @@ class ShopifyHelperMixin:
 
 
 @require_POST
+@csrf_exempt
 def callback(request: WSGIRequest):
     from SalsaVerde.orders.shopify import process_shopify_event
 
