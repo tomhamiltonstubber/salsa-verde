@@ -26,42 +26,49 @@ class ShopifyWebhookTestCase(TestCase):
         self.admin = UserFactory(company=self.company)
         self.callback_url = reverse('shopify-callback')
 
-    # def test_callback_wrong_sig(self):
-    #     sig = hmac.new(
-    #         self.company.shopify_webhook_key.encode(), json.dumps({'a': '2'}).encode(), hashlib.sha256
-    #     ).digest()
-    #     r = Client().post(
-    #         self.callback_url,
-    #         data={'foo': 'bar'},
-    #         HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
-    #         HTTP_X_SHOPIFY_HMAC_SHA256=sig,
-    #     )
-    #     assert r.status_code == 403
-    #     r = Client().post(
-    #         self.callback_url,
-    #         data={'foo': 'bar'},
-    #         HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
-    #         HTTP_X_SHOPIFY_HMAC_SHA256='FOOBAR',
-    #     )
-    #     assert r.status_code == 403
+    def test_callback_wrong_sig(self):
+        sig = hmac.new(
+            self.company.shopify_webhook_key.encode(), json.dumps({'a': '2'}).encode(), hashlib.sha256
+        ).hexdigest()
+        r = Client().post(
+            self.callback_url,
+            body="{'foo': 'bar'}",
+            HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
+            HTTP_X_SHOPIFY_HMAC_SHA256=sig,
+            content_type='application/json',
+        )
+        # assert r.status_code == 403
+        assert r.status_code == 220
+        r = Client().post(
+            self.callback_url,
+            data={'foo': 'bar'},
+            HTTP_X_SHOPIFY_SHOP_DOMAIN='https://foo.shopify.com',
+            HTTP_X_SHOPIFY_HMAC_SHA256='FOOBAR',
+            content_type='application/json',
+        )
+        # assert r.status_code == 403
+        assert r.status_code == 220
 
     def test_callback_company_doesnt_exist(self):
         r = Client().post(
             self.callback_url,
-            data={'foo': 'bar'},
+            body="{'foo': 'bar'}",
             HTTP_X_SHOPIFY_SHOP_DOMAIN='https://Z.com',
             HTTP_X_SHOPIFY_HMAC_SHA256='FooSig',
+            content_type='application/json',
         )
         assert r.status_code == 299
 
     def callback_request(self, data, event):
-        sig = hmac.new(self.company.shopify_webhook_key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
+        body = json.dumps(data)
+        sig = hmac.new(self.company.shopify_webhook_key.encode(), body.encode(), hashlib.sha256).hexdigest()
         return Client().post(
             self.callback_url,
             data=data,
             HTTP_X_SHOPIFY_SHOP_DOMAIN=self.company.shopify_domain,
             HTTP_X_SHOPIFY_HMAC_SHA256=sig,
             HTTP_X_SHOPIFY_TOPIC=event,
+            content_type='application/json',
         )
 
     @mock.patch('SalsaVerde.orders.views.shopify.logger.info')

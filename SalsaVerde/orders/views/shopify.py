@@ -85,17 +85,17 @@ def callback(request: WSGIRequest):
     domain = request.headers.get('X-Shopify-Shop-Domain')
     company = Company.objects.filter(shopify_domain=domain, shopify_domain__isnull=False).first()
     if company and (key := company.shopify_webhook_key):
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode())
         sig = request.headers.get('X-Shopify-Hmac-Sha256', '')
         sig = sig.encode() if isinstance(sig, str) else sig
-        m = hmac.new(key.encode(), request.body, hashlib.sha256).digest()
-        if not secrets.compare_digest(m, sig):
+        m = hmac.new(key.encode(), request.body, hashlib.sha256).hexdigest()
+        if not secrets.compare_digest(m.encode(), sig):
             logger.error('Invalid signature for data', extra={'shopify_data': data, 'received_sig': sig, 'sig': m})
             # raise PermissionDenied('Invalid signature')
         topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
         try:
             msg, status = process_shopify_event(topic, data, company=company)
-        except MultiValueDictKeyError as e:
+        except Exception as e:
             logger.error('Error processing data', exc_info=e, extra={'shopify_data': data})
             raise
     else:
