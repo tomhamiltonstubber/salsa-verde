@@ -3,7 +3,7 @@ from django.core.management import BaseCommand
 from django.utils.timezone import now
 
 from SalsaVerde.company.models import Company
-from SalsaVerde.orders.shopify import process_order_event
+from SalsaVerde.orders.shopify import process_shopify_event
 from SalsaVerde.orders.views.shopify import shopify_request
 
 
@@ -28,4 +28,4 @@ class Command(BaseCommand):
                 success, orders = shopify_request('orders.json?', data=url_kwargs, company=company)
                 assert success
                 for order in orders['orders']:
-                    process_order_event('orders/create', order, company=company)
+                    process_shopify_event('orders/create', order, company=company)

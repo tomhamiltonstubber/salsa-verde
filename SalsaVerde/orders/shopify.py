@@ -1,10 +1,14 @@
+import logging
 from datetime import datetime
 
+from django.utils.text import slugify
 from django_rq import job
 
 from SalsaVerde.company.models import Company, User
 from SalsaVerde.orders.models import Order
-from SalsaVerde.orders.views.shopify import get_shopify_order, logger, shopify_request
+from SalsaVerde.orders.views.shopify import get_shopify_order, shopify_request
+
+logger = logging.getLogger('salsa.shopify')
 
 
 @job
@@ -33,19 +37,22 @@ def get_or_create_user(order_data: dict, company: Company):
     user = None
     if not (user_details := order_data.get('customer')):
         return
+    user_qs = User.objects.filter(company=company, administrator=False)
     if email := user_details.get('email'):
-        user = User.objects.filter(company=company, email__iexact=email, administrator=False).first()
+        user = user_qs.filter(email__iexact=email, email__isnull=False).first()
     if not user:
-        user = User.objects.filter(
-            company=company,
-            last_name__iexact=user_details['last_name'],
-            first_name__iexact=user_details['first_name'],
+        user = user_qs.filter(
+            last_name__iexact=user_details['last_name'], first_name__iexact=user_details['first_name']
         ).first()
-    inactive_email_ending = f"{user_details['last_name']}@inactive.{company.website}"
+    inactive_email_ending = f"@inactive.{slugify(company.name)}.com"
     if not user:
         email = (email or f"{user_details['first_name']}_{inactive_email_ending}").lower()
         user = User.objects.create(
-            email=email, first_name=user_details['first_name'].title(), last_name=user_details['first_name'].title()
+            email=email,
+            first_name=user_details['first_name'].title(),
+            last_name=user_details['last_name'].title(),
+            company=company,
+            administrator=False,
         )
         user.set_unusable_password()
         user.save()
@@ -74,7 +81,7 @@ def update_order_details(pk, company_id):
         )
 
 
-def process_order_event(topic, event_data, company: Company):
+def process_shopify_event(topic, event_data, company: Company):
     obj, event = topic.split('/')
     msg = f'Unknown event {topic}'
     status = 220
@@ -84,7 +91,7 @@ def process_order_event(topic, event_data, company: Company):
                 order, created = Order.objects.get_or_create(shopify_id=event_data['id'], company=company)
             except Order.MultipleObjectsReturned:
                 order, created = Order.objects.filter(shopify_id=event_data['id'], company=company).first(), True
-            msg = 'Order created' if created else 'Order already exists'
+            msg = 'Order created' if created else 'Order updated'
             status = 210
             update_order_details.delay(order.id, company.id)
         elif event in {'cancelled', 'delete'}:

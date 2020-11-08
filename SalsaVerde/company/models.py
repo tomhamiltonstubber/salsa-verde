@@ -23,11 +23,6 @@ class Country(models.Model):
         return self.name
 
 
-class ThisCompanyQueryset(QuerySet):
-    def request_qs(self, request):
-        return Company.objects.filter(id=request.user.company_id)
-
-
 class Company(models.Model):
     name = models.CharField('Name', max_length=255)
     website = models.CharField(max_length=255, blank=True)

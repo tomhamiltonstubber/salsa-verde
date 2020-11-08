@@ -131,9 +131,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'UTC'
-USE_I18N = True
+USE_I18N = False
 USE_L10N = True
 USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
@@ -243,14 +243,10 @@ RQ_QUEUES = {
 # =======================================
 # Shopify
 # =======================================
-SHOPIFY_API_KEY = os.getenv('SHOPIFY_API_KEY')
-SHOPIFY_PASSWORD = os.getenv('SHOPIFY_PASSWORD')
-SHOPIFY_SHARED_KEY = os.getenv('SHOPIFY_SHARED_KEY')
 SHOPIFY_API_VERSION = os.getenv('SHOPIFY_API_VERSION', '2020-07')
 SHOPIFY_BASE_URL = os.getenv(
     'SHOPIFY_BASE_URL', f'https://burren-balsamics.myshopify.com/admin/api/{SHOPIFY_API_VERSION}'
 )
-SHOPIFY_WEBHOOK_KEY = os.getenv('SHOPIFY_WEBHOOK_KEY')
 
 # =======================================
 # ExpressFreight

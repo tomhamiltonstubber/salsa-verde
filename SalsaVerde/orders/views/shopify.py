@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import json
 import logging
 import secrets
 from datetime import datetime
@@ -8,14 +9,15 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
-from requests import Request
+from django.views.decorators.http import require_POST
 
 from SalsaVerde.common.views import display_dt
 from SalsaVerde.company.models import Company
 
 session = requests.Session()
-logger = logging.getLogger('salsa.orders')
+logger = logging.getLogger('salsa.shopify')
 
 
 def shopify_request(url, method='GET', data=None, *, company: Company):
@@ -70,23 +72,22 @@ class ShopifyHelperMixin:
         return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
 
 
-def callback(request: Request):
-    from SalsaVerde.orders.shopify import process_order_event
+@require_POST
+def callback(request: WSGIRequest):
+    from SalsaVerde.orders.shopify import process_shopify_event
 
-    if not settings.SHOPIFY_WEBHOOK_KEY:
-        return HttpResponse('ok')
-
-    sig = hmac.new(settings.SHOPIFY_WEBHOOK_KEY, request.data, hashlib.sha256).digest()
-    if not secrets.compare_digest(sig, request.headers.get('X-Shopify-Hmac-Sha256')):
-        raise PermissionDenied('Invalid signature')
-
-    topic = request.headers.get('X-Shopify-Topic', '/')
-    company = Company.objects.filter(shopify_domain=request.headers.get('X-Shopify-Shop-Domain')).first()
-    if company:
-        status, msg = process_order_event(topic, request.data, company=company)
+    company = Company.objects.filter(
+        shopify_domain=request.headers.get('X-Shopify-Shop-Domain'), shopify_domain__isnull=False
+    ).first()
+    if company and (key := company.shopify_webhook_key):
+        data = request.POST
+        sig = hmac.new(key.encode(), json.dumps(data).encode(), hashlib.sha256).digest()
+        if not secrets.compare_digest(sig, request.headers.get('X-Shopify-Hmac-Sha256', '')):
+            raise PermissionDenied('Invalid signature')
+        topic = request.headers.get('X-Shopify-Topic', 'No/Topic')
+        msg, status = process_shopify_event(topic, data, company=company)
+        logger.info('Shopify event status %s:%s', status, msg)
     else:
-        status = 221
-        msg = 'Company does not exist'
-
-    logger.info('Shopify event status %s:%s', status, msg)
+        status = 299
+        msg = 'Company with key does not exist'
     return HttpResponse(msg, status=status)

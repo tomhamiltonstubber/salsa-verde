@@ -23,5 +23,5 @@ urlpatterns = [
     ),
     path('fulfill/express/', ef_order_create, name='fulfill-order-ef'),
     path('fulfill/dhl/', dhl_order_create, name='fulfill-order-dhl'),
-    path('shopify/callback', shopify.callback, name='shopify-callback'),
+    path('shopify/callback/', shopify.callback, name='shopify-callback'),
 ]
