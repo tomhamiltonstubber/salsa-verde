@@ -3,6 +3,7 @@ import hmac
 import json
 import logging
 import secrets
+import time
 from datetime import datetime
 from urllib.parse import urlencode
 
@@ -20,7 +21,7 @@ session = requests.Session()
 logger = logging.getLogger('salsa.shopify')
 
 
-def shopify_request(url, method='GET', data=None, *, company: Company):
+def shopify_request(url, method='GET', data=None, *, company: Company, retries=0):
     logger.info(f'Making request to Shopify {url}')
     url = f'{settings.SHOPIFY_BASE_URL}/{url}'
     data = data or {}
@@ -37,8 +38,12 @@ def shopify_request(url, method='GET', data=None, *, company: Company):
     try:
         r.raise_for_status()
     except requests.HTTPError:
-        logger.warning('Request to Shopify failed: %r', r.content.decode())
-        return False, r.content.decode()
+        if retries == 5:
+            time.sleep(1)
+            logger.warning('Request to Shopify failed after 5 attempts: %r', r.content.decode())
+            return False, r.content.decode()
+        else:
+            shopify_request(url, method='GET', data=None, company=company, retries=retries + 1)
     return True, r.json()
 
 

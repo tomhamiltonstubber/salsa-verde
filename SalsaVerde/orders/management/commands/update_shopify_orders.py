@@ -1,5 +1,3 @@
-import time
-
 from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
 from django.utils.timezone import now
@@ -28,6 +26,6 @@ class Command(BaseCommand):
             }
             for company in Company.objects.filter(shopify_password__isnull=False):
                 success, orders = shopify_request('orders.json?', data=url_kwargs, company=company)
+                assert success, orders
                 for order in orders['orders']:
-                    time.sleep(0.5)
                     process_shopify_event('orders/create', order, company=company)
