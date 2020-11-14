@@ -20,6 +20,9 @@ django.setup()
 from SalsaVerde.stock.models import ProductType, ProductTypeSize
 from SalsaVerde.company.models import Country
 
+from SalsaVerde.orders.models import Order
+
+
 commands = []
 
 
@@ -118,6 +121,12 @@ def create_countries(**kwargs):
     countries = [Country(name=c['name'], iso_2=c['alpha2Code'], iso_3=c['alpha3Code']) for c in r.json()]
     created = Country.objects.bulk_create(countries)
     print(f'Created {len(created)} countries')
+
+
+@command
+def delete_wrong_orders(live):
+    fulfilled = Order.objects.filter(status=Order.STATUS_FULFILLED).values_list('shopify_id', flat=True)
+    Order.objects.filter(status=Order.STATUS_UNFULFILLED, shopidy_id__in=fulfilled).delete()
 
 
 @click.command()

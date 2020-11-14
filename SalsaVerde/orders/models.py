@@ -26,7 +26,7 @@ class Order(models.Model):
 
     created = models.DateTimeField('Created', auto_now_add=True, db_index=True)
     shipping_id = models.CharField(max_length=255, null=True, blank=True)
-    shopify_id = models.CharField(max_length=255, null=True, blank=True)
+    shopify_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     tracking_url = models.CharField(max_length=255, null=True, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     status = models.CharField(choices=STATUS_CHOICES, default=STATUS_UNFULFILLED, max_length=120)

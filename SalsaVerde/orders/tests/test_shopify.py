@@ -82,7 +82,7 @@ class ShopifyWebhookTestCase(TestCase):
     def test_order_created_new_user(self, mock_shopify, mock_logger):
         mock_shopify.side_effect = fake_shopify()
         r = self.callback_request({'id': '123'}, 'orders/create')
-        assert r.status_code == 210
+        assert r.status_code == 212
         order = Order.objects.get()
         assert order.shopify_id == '123'
         assert order.company == self.company
@@ -90,7 +90,7 @@ class ShopifyWebhookTestCase(TestCase):
         assert user.get_full_name() == 'Brain Johnston'
         assert not user.administrator
         assert user.email == 'brain_johnston@fakemail.com'
-        mock_logger.assert_called_with('Shopify event status %s:%s', 210, 'Order created')
+        mock_logger.assert_called_with('Shopify event status %s:%s', 212, 'Order 123 created')
         assert not user.has_usable_password()
         assert order.user == user
         assert order.status == Order.STATUS_UNFULFILLED
@@ -143,7 +143,7 @@ class ShopifyWebhookTestCase(TestCase):
     def test_order_created_fulfilled_new_user_no_email(self, mock_shopify, mock_logger):
         mock_shopify.side_effect = fake_shopify()
         r = self.callback_request({'id': '456'}, 'orders/create')
-        assert r.status_code == 210
+        assert r.status_code == 212
         order = Order.objects.get()
         assert order.shopify_id == '456'
         assert order.company == self.company
@@ -164,21 +164,13 @@ class ShopifyWebhookTestCase(TestCase):
         user = UserFactory(company=self.company, administrator=False)
 
         order = Order.objects.create(company=self.company, shopify_id='456', user=user, status=Order.STATUS_UNFULFILLED)
-        r = self.callback_request({'id': '456'}, 'orders/create')
+        r = self.callback_request({'id': '456'}, 'orders/updated')
         assert r.status_code == 210
         order = Order.objects.get(id=order.id)
         assert order.shopify_id == '456'
         assert order.user == user
         assert order.status == Order.STATUS_FULFILLED
-        mock_logger.assert_called_with('Shopify event status %s:%s', 210, 'Order updated')
-
-    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
-    def test_create_order_multiple_orders(self, mock_shopify):
-        mock_shopify.side_effect = fake_shopify()
-        Order.objects.create(company=self.company, shopify_id='456', status=Order.STATUS_UNFULFILLED)
-        Order.objects.create(company=self.company, shopify_id='456', status=Order.STATUS_UNFULFILLED)
-        r = self.callback_request({'id': '456'}, 'orders/updated')
-        assert r.status_code == 210
+        mock_logger.assert_called_with('Shopify event status %s:%s', 210, 'Order 456 updated')
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     def test_order_created_no_user(self, mock_shopify):
@@ -187,12 +179,19 @@ class ShopifyWebhookTestCase(TestCase):
         mock_shopify.side_effect = _fake_shopify
 
         order = Order.objects.create(company=self.company, shopify_id='123', status=Order.STATUS_UNFULFILLED)
-        r = self.callback_request({'id': '123'}, 'orders/create')
+        r = self.callback_request({'id': '123'}, 'orders/updated')
         assert r.status_code == 210
         order = Order.objects.get(id=order.id)
         assert order.shopify_id == '123'
         assert not order.user
         assert not User.objects.filter(administrator=False).exists()
+
+    @mock.patch('SalsaVerde.orders.views.shopify.session.request')
+    def test_order_created_already_exists(self, mock_shopify):
+        mock_shopify.side_effect = fake_shopify()
+        Order.objects.create(company=self.company, shopify_id='123', status=Order.STATUS_UNFULFILLED)
+        r = self.callback_request({'id': '123'}, 'orders/create')
+        assert r.status_code == 213
 
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     def test_order_created_update_user(self, mock_shopify):
@@ -205,7 +204,7 @@ class ShopifyWebhookTestCase(TestCase):
             email=f'foo_bar@inactive.{slugify(self.company.name)}.com',
         )
         order = Order.objects.create(company=self.company, shopify_id='123', status=Order.STATUS_UNFULFILLED)
-        r = self.callback_request({'id': '123'}, 'orders/create')
+        r = self.callback_request({'id': '123'}, 'orders/updated')
         assert r.status_code == 210
         order = Order.objects.get(id=order.id)
         assert order.shopify_id == '123'
@@ -225,4 +224,4 @@ class ShopifyWebhookTestCase(TestCase):
         assert order.shopify_id == '123'
         assert order.user == user
         assert order.status == Order.STATUS_CANCELLED
-        mock_logger.assert_called_with('Shopify event status %s:%s', 211, 'Order deleted')
+        mock_logger.assert_called_with('Shopify event status %s:%s', 211, 'Order 123 deleted')

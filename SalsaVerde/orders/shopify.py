@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from django.db import IntegrityError
 from django.utils.text import slugify
 from django_rq import job
 
@@ -86,16 +87,27 @@ def process_shopify_event(topic, event_data, company: Company):
     msg = f'Unknown event {topic}'
     status = 220
     if obj == 'orders':
-        if event in {'create', 'updated', 'paid', 'fulfilled'}:
+        if event == 'create':
             try:
-                order, created = Order.objects.get_or_create(shopify_id=event_data['id'], company=company)
+                order = Order.objects.create(shopify_id=event_data['id'], company=company)
+            except IntegrityError:
+                # Order already exists
+                msg = f"Order {event_data['id']} already exists"
+                status = 213
+            else:
+                msg = f'Order {order.shopify_id} created'
+                status = 212
+                update_order_details.delay(order.id, company.id)
+        elif event in {'updated', 'paid', 'fulfilled'}:
+            try:
+                order = Order.objects.get(shopify_id=event_data['id'], company=company)
             except Order.MultipleObjectsReturned:
-                order, created = Order.objects.filter(shopify_id=event_data['id'], company=company).first(), True
-            msg = 'Order created' if created else 'Order updated'
+                order = Order.objects.filter(shopify_id=event_data['id'], company=company).first()
+            msg = f'Order {order.shopify_id} updated'
             status = 210
             update_order_details.delay(order.id, company.id)
         elif event in {'cancelled', 'delete'}:
             Order.objects.filter(shopify_id=event_data['id']).update(status=Order.STATUS_CANCELLED)
-            msg = 'Order deleted'
+            msg = f"Order {event_data['id']} deleted"
             status = 211
     return msg, status
