@@ -141,6 +141,7 @@ class ExpressFreightOrderTestCase(TestCase):
             shopify_webhook_key='foo',
             shopify_api_key='bar',
             shopify_password='pass',
+            ef_client_id='ef_api_key',
         )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
@@ -148,9 +149,11 @@ class ExpressFreightOrderTestCase(TestCase):
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     @mock.patch('SalsaVerde.orders.views.express_freight.session.request')
     def test_ef_form_submit(self, mock_ef, mock_shopify):
-        mock_shopify.side_effect = fake_shopify()
+        mock_shop = fake_shopify()
+        mock_shopify.side_effect = mock_shop
         mock_ef.side_effect = fake_ef()
-        r = self.client.get(reverse('fulfill-order-ef') + '?shopify_order=123')
+        order = OrderFactory(company=self.company, shopify_id=123, extra_data=mock_shop.orders[0])
+        r = self.client.get(reverse('fulfill-order-ef', args=[order.id]))
         self.assertContains(r, 'Brain Johnston')
         form_data = {
             'name': 'Brain Johnston',
@@ -167,7 +170,7 @@ class ExpressFreightOrderTestCase(TestCase):
             'form-0-width': 10,
             **empty_formset('form'),
         }
-        r = self.client.post(reverse('fulfill-order-ef') + '?shopify_order=123', follow=True, data=form_data)
+        r = self.client.post(reverse('fulfill-order-ef', args=[order.id]), follow=True, data=form_data)
         self.assertRedirects(r, self.orders_url)
         self.assertContains(r, 'Order created')
         order = Order.objects.get()
@@ -214,9 +217,11 @@ class ExpressFreightOrderTestCase(TestCase):
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     @mock.patch('SalsaVerde.orders.views.express_freight.session.request')
     def test_ef_form_submit_no_county(self, mock_ef, mock_shopify):
-        mock_shopify.side_effect = fake_shopify()
+        mock_shop = fake_shopify()
+        mock_shopify.side_effect = mock_shop
         mock_ef.side_effect = fake_ef()
-        r = self.client.get(reverse('fulfill-order-ef') + '?shopify_order=123')
+        order = OrderFactory(company=self.company, shopify_id=123, extra_data=mock_shop.orders[0])
+        r = self.client.get(reverse('fulfill-order-ef', args=[order.id]))
         self.assertContains(r, 'Brain Johnston')
         form_data = {
             'name': 'Brain Johnston',
@@ -232,7 +237,7 @@ class ExpressFreightOrderTestCase(TestCase):
             'form-0-width': 10,
             **empty_formset('form'),
         }
-        r = self.client.post(reverse('fulfill-order-ef') + '?shopify_order=123', follow=True, data=form_data)
+        r = self.client.post(reverse('fulfill-order-ef', args=[order.id]), follow=True, data=form_data)
         assert r.status_code == 200
 
 

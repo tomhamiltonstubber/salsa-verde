@@ -8,6 +8,7 @@ from django.core.files.base import ContentFile
 
 from SalsaVerde.company.models import Company
 from SalsaVerde.orders.forms.dhl import DHLLabelForm
+from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.views.common import CreateOrderView, CreateShipmentError
 from SalsaVerde.stock.models import Document
 
@@ -121,9 +122,13 @@ class DHLCreateOrder(CreateOrderView):
         else:
             messages.error(self.request, 'Error creating shipment: %r' % dhl_data)
             raise CreateShipmentError
+        Order.objects.filter(id=self.object.id).update(
+            shipping_id=dhl_data['shipmentTrackingNumber'],
+            tracking_url=dhl_data['trackingUrl'],
+        )
         labels = dhl_data['documents']
         for label in labels:
-            doc = Document(order=self.get_object(), author=self.request.user)
+            doc = Document(order=self.object, author=self.request.user)
             doc.file.save('shipping_label.pdf', ContentFile(base64.b64decode(label['content'])), save=False)
             doc.save()
 
