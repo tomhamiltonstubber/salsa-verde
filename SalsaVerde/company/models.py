@@ -26,7 +26,16 @@ class Country(models.Model):
 class Company(models.Model):
     name = models.CharField('Name', max_length=255)
     website = models.CharField(max_length=255, blank=True)
+
     dhl_account_code = models.CharField(max_length=255, blank=True)
+    dhl_api_key = models.CharField(max_length=255, blank=True)
+    dhl_password = models.CharField(max_length=255, blank=True)
+
+    ef_client_id = models.CharField(max_length=255, blank=True)
+    ef_client_secret = models.CharField(max_length=255, blank=True)
+    ef_username = models.CharField(max_length=255, blank=True)
+    ef_password = models.CharField(max_length=255, blank=True)
+
     main_contact = models.ForeignKey(
         'company.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_company'
     )

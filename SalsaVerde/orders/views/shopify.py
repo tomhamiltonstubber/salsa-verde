@@ -72,7 +72,8 @@ class ShopifyHelperMixin:
         return f"{self.request.user.company.website}/admin/orders/{order_id}"
 
     def dt_format(self, v):
-        return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
+        if v:
+            return display_dt(datetime.strptime(v, '%Y-%m-%dT%H:%M:%S%z'))
 
 
 @require_POST

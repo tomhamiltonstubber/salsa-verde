@@ -126,7 +126,11 @@ def create_countries(**kwargs):
 @command
 def delete_wrong_orders(live):
     fulfilled = Order.objects.filter(status=Order.STATUS_FULFILLED).values_list('shopify_id', flat=True)
-    Order.objects.filter(status=Order.STATUS_UNFULFILLED, shopidy_id__in=fulfilled).delete()
+    Order.objects.filter(status=Order.STATUS_UNFULFILLED, shopify_id__in=fulfilled).delete()
+    for order in Order.objects.all():
+        orders = Order.objects.filter(shopify_id=order.shopify_id)
+        if orders.count() > 1:
+            orders.exclude(id=orders[0].id).delete()
 
 
 @click.command()

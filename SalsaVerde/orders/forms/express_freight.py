@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.utils.timezone import now
 
+from SalsaVerde.orders.models import Order
 from SalsaVerde.stock.forms.base_forms import SVForm
 
 NI_COUNTIES = [
@@ -55,10 +56,10 @@ class ExpressFreightLabelForm(SVForm):
     phone = forms.CharField()
     dispatch_date = forms.DateTimeField(initial=now())
 
-    def __init__(self, order_id=None, shopify_data=None, *args, **kwargs):
+    def __init__(self, instance: Order, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if shopify_data:
-            address = shopify_data.get('shipping_address', {})
+        if instance.extra_data:
+            address = instance.extra_data.get('shipping_address', {})
             self.fields['name'].initial = address.get('name')
             self.fields['first_line'].initial = address.get('address1')
             self.fields['second_line'].initial = address.get('address2')
@@ -66,7 +67,7 @@ class ExpressFreightLabelForm(SVForm):
             self.fields['county'].initial = address.get('province')
             self.fields['postcode'].initial = address.get('zip')
             self.fields['phone'].initial = address.get('phone')
-            self.fields['shopify_order'].initial = order_id
+            self.fields['shopify_order'].initial = instance.shopify_id
 
     def clean_phone(self):
         if phone := self.cleaned_data.get('phone'):

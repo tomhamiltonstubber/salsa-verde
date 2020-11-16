@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView
 
-from SalsaVerde.common.views import DetailView, ListView, SVFormView, UpdateModelView
+from SalsaVerde.common.views import DetailView, ListView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
 from SalsaVerde.orders.models import Order, PackageTemplate, ProductOrder
 from SalsaVerde.orders.shopify import shopify_fulfill_order
@@ -15,29 +15,16 @@ class CreateShipmentError(Exception):
     pass
 
 
-class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
+class CreateOrderView(ShopifyHelperMixin, UpdateModelView, TemplateView):
     title = 'Create shipping order'
-    order_data = None
+    model = Order
 
     def dispatch(self, request, *args, **kwargs):
-        self.shopify_order_id = request.GET.get('shopify_order')
-        if self.shopify_order_id:
-            success, self.order_data = get_shopify_order(self.shopify_order_id, company=request.user.company)
-            if not success:
-                messages.error(request, 'Error getting data from shopify: %s' % self.order_data)
-                return redirect('orders-list')
-            elif self.order_data.get('fulfillment_status') == 'fulfilled':
-                messages.error(request, 'Order already fulfilled: %s' % self.order_data)
-                return redirect('orders-list')
+        self.object = self.get_object()
+        if self.object.status == Order.STATUS_FULFILLED:
+            messages.error(request, 'Order already fulfilled')
+            return redirect('orders-list')
         return super().dispatch(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if self.shopify_order_id:
-            kwargs['order_id'] = self.shopify_order_id
-            if not self.request.POST:
-                kwargs.update(shopify_data=self.order_data['order'])
-        return kwargs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -51,10 +38,8 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
                 str(p.id): {k: float(getattr(p, k, 0)) for k in ['width', 'height', 'length', 'weight']}
                 for p in PackageTemplate.objects.request_qs(self.request)
             },
+            order_data=self.object.extra_data,
         )
-        if self.shopify_order_id:
-            _, order_data = get_shopify_order(self.shopify_order_id, company=self.request.user.company)
-            ctx['order_data'] = order_data
         return ctx
 
     def create_shipment(self, form, package_form):
@@ -66,13 +51,13 @@ class CreateOrderView(ShopifyHelperMixin, SVFormView, TemplateView):
         if not formset.is_valid():
             return self.form_invalid(form)
         try:
-            order = self.create_shipment(form, formset)
+            self.create_shipment(form, formset)
         except CreateShipmentError:
             return super().form_invalid(form)
         else:
-            if self.shopify_order_id:
-                shopify_fulfill_order.delay(order)
-                messages.success(self.request, 'Fulfilling order')
+            if self.object.shopify_id:
+                shopify_fulfill_order.delay(self.object.id)
+            messages.success(self.request, 'Fulfilling order')
         return redirect(reverse('orders-list'))
 
 
@@ -132,12 +117,12 @@ class OrderDetails(ShopifyHelperMixin, DetailView):
         if self.object.status == Order.STATUS_UNFULFILLED:
             yield {
                 'name': 'Fulfill with ExpressFreight',
-                'url': reverse('fulfill-order-ef') + f'?shopify_order={self.object.shopify_id}',
+                'rurl': 'fulfill-order-ef',
                 'icon': 'fa-truck',
             }
             yield {
                 'name': 'Fulfill with DHL',
-                'url': reverse('fulfill-order-dhl') + f'?shopify_order={self.object.shopify_id}',
+                'rurl': 'fulfill-order-dhl',
                 'icon': 'fa-truck',
             }
         else:

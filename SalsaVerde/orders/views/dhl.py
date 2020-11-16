@@ -6,8 +6,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.files.base import ContentFile
 
+from SalsaVerde.company.models import Company
 from SalsaVerde.orders.forms.dhl import DHLLabelForm
-from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.views.common import CreateOrderView, CreateShipmentError
 from SalsaVerde.stock.models import Document
 
@@ -15,20 +15,38 @@ session = requests.Session()
 logger = logging.getLogger('salsa.orders')
 
 
-def dhl_request(url, data=None, method='GET'):
+def dhl_request(url, company: Company, data=None, method='GET'):
+    if not company.dhl_api_key:
+        return False, {'error': 'No API key added'}
     logger.info(f'Making request to DHL {url}')
     url = f'{settings.DHL_BASE_URL}/{url}'
     data = data or {}
     if method == 'GET':
-        r = session.request(method, url, auth=(settings.DHL_API_KEY, settings.DHL_PASSWORD))
+        r = session.request(method, url, auth=(company.dhl_api_key, company.dhl_password))
     else:
-        r = session.request(method, url, auth=(settings.DHL_API_KEY, settings.DHL_PASSWORD), json=data)
+        r = session.request(method, url, auth=(company.dhl_api_key, company.dhl_password), json=data)
     try:
         r.raise_for_status()
     except requests.HTTPError:
-        logger.warning('Request to DHL failed: %r', r.content.decode())
+        logger.warning('Request to DHL failed: status=%d response=%r', r.status_code, r.content.decode())
         return False, r.content.decode()
     return True, r.json()
+
+
+def remove_null_vals(data):
+    new_data = {}
+
+    def _remove_null(_data):
+        for k, v in _data.items():
+            if isinstance(v, dict):
+                new_data[k] = remove_null_vals(v)
+            elif isinstance(v, list):
+                new_data[k] = [remove_null_vals(_v) for _v in v]
+            elif v not in {None, ''}:
+                new_data[k] = v
+
+    _remove_null(data)
+    return new_data
 
 
 class DHLCreateOrder(CreateOrderView):
@@ -40,7 +58,9 @@ class DHLCreateOrder(CreateOrderView):
         company = self.request.user.company
         contact = company.get_main_contact()
         data = {
-            'plannedShippingDateAndTime': cd['dispatch_date'].isoformat(),
+            'plannedShippingDateAndTime': cd['dispatch_date'].strftime(
+                '%Y-%m-%dT%H:%M:%S GMT+01:00'  # This is idiotic. We HAVE to use GMT.
+            ),
             'pickup': {'isRequested': False},
             'productCode': cd['service_code'],
             'accounts': [{'number': company.dhl_account_code, 'typeCode': 'shipper'}],
@@ -93,25 +113,19 @@ class DHLCreateOrder(CreateOrderView):
                 ],
             },
         }
-
-        success, dhl_data = dhl_request('shipments', data=data, method='POST')
+        success, dhl_data = dhl_request(
+            'shipments', self.request.user.company, data=remove_null_vals(data), method='POST'
+        )
         if success:
             messages.success(self.request, 'Order created')
         else:
             messages.error(self.request, 'Error creating shipment: %r' % dhl_data)
             raise CreateShipmentError
         labels = dhl_data['documents']
-        order = Order.objects.create(
-            shopify_id=self.shopify_order_id,
-            shipping_id=dhl_data['shipmentTrackingNumber'],
-            tracking_url=dhl_data['trackingUrl'],
-            company=self.request.user.company,
-        )
         for label in labels:
-            doc = Document(order=order, author=self.request.user)
+            doc = Document(order=self.get_object(), author=self.request.user)
             doc.file.save('shipping_label.pdf', ContentFile(base64.b64decode(label['content'])), save=False)
             doc.save()
-        return order
 
 
 dhl_order_create = DHLCreateOrder.as_view()

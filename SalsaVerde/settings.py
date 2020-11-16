@@ -265,7 +265,7 @@ EF_CLIENT_SECRET = os.getenv('EF_CLIENT_SECRET')
 DHL_API_KEY = os.getenv('DHL_API_KEY', 'demo-key')
 DHL_PASSWORD = os.getenv('DHL_PASSWORD', 'demo-secret')
 DHL_API_VERSION = os.getenv('DHL_API_VERSION', '1.1.0')
-DHL_BASE_URL = os.getenv('DHL_BASE_URL', 'https://api-mock.dhl.com/mydhlapi/')
+DHL_BASE_URL = os.getenv('DHL_BASE_URL', 'https://express.api.dhl.com/mydhlapi/test')
 
 try:
     from localsettings import *  # noqa

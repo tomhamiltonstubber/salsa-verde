@@ -8,8 +8,8 @@ from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.base import ContentFile
 
+from SalsaVerde.company.models import Company
 from SalsaVerde.orders.forms.express_freight import IE_COUNTIES, NI_COUNTIES, ExpressFreightLabelForm
-from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.views.common import CreateOrderView, CreateShipmentError
 from SalsaVerde.stock.models import Document
 
@@ -17,12 +17,14 @@ session = requests.Session()
 logger = logging.getLogger('salsa.orders')
 
 
-def get_ef_auth_token():
+def get_ef_auth_token(company: Company):
+    if not company.ef_client_id:
+        return False, {'error': 'No API key added'}
     auth_data = {
-        'ClientID': settings.EF_CLIENT_ID,
-        'ClientSecret': settings.EF_CLIENT_SECRET,
-        'username': settings.EF_USERNAME,
-        'password': settings.EF_PASSWORD,
+        'ClientID': company.ef_client_id,
+        'ClientSecret': company.ef_client_secret,
+        'username': company.ef_username,
+        'password': company.ef_password,
     }
     r = session.get(f'{settings.EF_URL}/Token/GetNewToken?{urlencode(auth_data)}')
     r.raise_for_status()
@@ -31,10 +33,10 @@ def get_ef_auth_token():
     return token
 
 
-def expressfreight_request(url, data=None, method='GET'):
+def expressfreight_request(url, company: Company, data=None, method='GET'):
     logger.info(f'Making request to ExpressFreight {url}')
     if not (token := cache.get('ef_auth_token')):
-        token = get_ef_auth_token()
+        token = get_ef_auth_token(company)
     if method == 'POST':
         r = session.request(
             method, url=f'{settings.EF_URL}/{url}', headers={'Authorization': f'Bearer {token}'}, json=data
@@ -86,26 +88,18 @@ class ExpressFreightCreateOrder(CreateOrderView):
             ],
         }
 
-        success, ef_data = expressfreight_request('Consignment/CreateConsignment', data=data, method='POST')
+        success, ef_data = expressfreight_request(
+            'Consignment/CreateConsignment', self.request.user.company, data=data, method='POST'
+        )
         if success:
             messages.success(self.request, 'Order created')
         else:
             messages.error(self.request, 'Error creating shipment: %r' % ef_data)
             raise CreateShipmentError
-        order = Order.objects.create(
-            shopify_id=self.shopify_order_id,
-            shipping_id=ef_data['consignmentNumber'],
-            tracking_url=ef_data['trackingLink'],
-            company=self.request.user.company,
-            shipment_details=data,
-            carrier=Order.EF_CARRIER,
-        )
-        logger.info('Creating order with EF, data=%r', ef_data)
         for label in ef_data['labels']:
-            doc = Document(order=order, author=self.request.user)
+            doc = Document(order=self.get_object(), author=self.request.user)
             doc.file.save('shipping_label.pdf', ContentFile(base64.b64decode(label)), save=False)
             doc.save()
-        return order
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

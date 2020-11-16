@@ -21,11 +21,13 @@ from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formse
 class DHLOrderTestCase(TestCase):
     def setUp(self):
         self.company = CompanyFactory(
-            dhl_account_code='123abc',
             shopify_domain='https://company.shopify.com',
             shopify_webhook_key='foo',
             shopify_api_key='bar',
             shopify_password='pass',
+            dhl_api_key='foo',
+            dhl_password='bar',
+            dhl_account_code='123abc',
         )
         self.client = AuthenticatedClient(company=self.company)
         self.orders_url = reverse('orders-list')
@@ -33,9 +35,11 @@ class DHLOrderTestCase(TestCase):
     @mock.patch('SalsaVerde.orders.views.shopify.session.request')
     @mock.patch('SalsaVerde.orders.views.dhl.session.request')
     def test_dhl_form_submit(self, mock_dhl, mock_shopify):
-        mock_shopify.side_effect = fake_shopify()
+        shopify = fake_shopify()
+        mock_shopify.side_effect = shopify
         mock_dhl.side_effect = fake_dhl()
-        r = self.client.get(reverse('fulfill-order-dhl') + '?shopify_order=123')
+        order = OrderFactory(company=self.company, shopify_id='123', extra_data=shopify.orders[0])
+        r = self.client.get(reverse('fulfill-order-dhl', args=[order.pk]))
         self.assertContains(r, 'Brain Johnston')
         u = User.objects.get()
         u.town = 'Here'
@@ -59,7 +63,7 @@ class DHLOrderTestCase(TestCase):
             'form-0-width': 10,
             **empty_formset('form'),
         }
-        r = self.client.post(reverse('fulfill-order-dhl') + '?shopify_order=123', follow=True, data=form_data)
+        r = self.client.post(reverse('fulfill-order-dhl', args=[order.pk]), follow=True, data=form_data)
         self.assertRedirects(r, self.orders_url)
         self.assertContains(r, 'Order created')
         order = Order.objects.get()
@@ -354,3 +358,16 @@ class OrderTestCase(TestCase):
         assert order.products.count() == 1
         self.assertNotContains(r, 'Foo')
         self.assertContains(r, 'Bar')
+
+    def test_remove_null_vals(self):
+        from SalsaVerde.orders.views.dhl import remove_null_vals
+
+        data = {
+            '1': None,
+            '2': 'Foo',
+            '3': {'a': None, 'b': 'Bar', 'c': {'i': None, 'ii': 'Foobar', 'iii': [{'x': None, 'y': 'BarFoo'}]}},
+        }
+        assert remove_null_vals(data) == {
+            '2': 'Foo',
+            '3': {'b': 'Bar', 'c': {'ii': 'Foobar', 'iii': [{'y': 'BarFoo'}]}},
+        }

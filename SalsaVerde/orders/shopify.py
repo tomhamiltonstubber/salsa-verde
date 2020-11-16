@@ -13,8 +13,9 @@ logger = logging.getLogger('salsa.shopify')
 
 
 @job
-def shopify_fulfill_order(order: Order):
+def shopify_fulfill_order(order_id: int):
     # Location is hard coded here as it doesn't change
+    order = Order.objects.get(id=order_id)
     assert order.shopify_id
     data = {
         'fulfillment': {

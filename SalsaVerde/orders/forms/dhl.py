@@ -2,6 +2,7 @@ from django import forms
 from django.utils.timezone import now
 
 from SalsaVerde.company.models import Country
+from SalsaVerde.orders.models import Order
 from SalsaVerde.stock.forms.base_forms import SVForm
 
 DHL_SERVICE_CODES = (
@@ -30,10 +31,10 @@ class DHLLabelForm(SVForm):
     country = forms.ModelChoiceField(Country.objects.all())
     dispatch_date = forms.DateTimeField(initial=now())
 
-    def __init__(self, order_id=None, shopify_data=None, *args, **kwargs):
+    def __init__(self, instance: Order, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if shopify_data:
-            address = shopify_data.get('shipping_address')
+        if instance.extra_data:
+            address = instance.extra_data.get('shipping_address')
             self.fields['name'].initial = address['name']
             self.fields['first_line'].initial = address['address1']
             self.fields['second_line'].initial = address['address2']
@@ -41,5 +42,5 @@ class DHLLabelForm(SVForm):
             self.fields['county'].initial = address['province']
             self.fields['postcode'].initial = address['zip']
             self.fields['phone'].initial = address['phone']
-            self.fields['shopify_order'].initial = order_id
+            self.fields['shopify_order'].initial = instance.shopify_id
             self.fields['country'].initial = Country.objects.filter(iso_2=address['country_code']).first()
