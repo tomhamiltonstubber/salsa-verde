@@ -77,7 +77,7 @@ class ExpressFreightCreateOrder(CreateOrderView):
             'labelsLink': False,
             'items': [
                 {
-                    'itemType': 'CARTON',
+                    'itemType': 'OTHER',
                     'itemWeight': float(package['weight']),
                     'itemHeight': float(package['height']),
                     'itemWidth': float(package['width']),
