@@ -7,7 +7,7 @@ isort==5.8.0
 flake8==3.9.1
 pycodestyle==2.7.0
 pyflakes==2.3.1
-pytest==6.1.2
+pytest==6.2.3
 pytest-cov==2.10.1
 pytest-django==4.1.0
 pytest-sugar==0.9.4
