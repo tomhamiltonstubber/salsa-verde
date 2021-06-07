@@ -2,7 +2,7 @@ black==21.5b2
 coverage==5.5
 codecov==2.1.11
 devtools==0.6.1
-factory-boy==3.1.0
+factory-boy==3.2.0
 isort==5.6.4
 flake8==3.8.4
 pycodestyle==2.6.0
