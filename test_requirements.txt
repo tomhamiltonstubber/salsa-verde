@@ -4,7 +4,7 @@ codecov==2.1.12
 devtools==0.8.0
 factory-boy==3.2.1
 isort==5.9.3
-flake8==3.8.4
+flake8==4.0.1
 pycodestyle==2.6.0
 pyflakes==2.2.0
 pytest==6.1.2
