@@ -105,7 +105,7 @@ class Ingredient(BaseModel):
         return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
 
     def __str__(self):
-        return mark_safe(f'{self.name} - {self.batch_code}')
+        return mark_safe(f'{self.name} - {self.batch_code} - {self.goods_intake.intake_date:%d/%m/%Y}')
 
     @property
     def name(self):
@@ -310,7 +310,7 @@ class Product(BaseModel):
     product_type = models.ForeignKey(
         ProductType, verbose_name='Product', related_name='products', on_delete=models.CASCADE
     )
-    date_of_infusion = models.DateTimeField('Date of Infusion/Sous-vide', default=timezone.now)
+    date_of_infusion = models.DateTimeField('Date of Production', default=timezone.now)
     date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now, null=True, blank=True)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now, null=True, blank=True)
 
