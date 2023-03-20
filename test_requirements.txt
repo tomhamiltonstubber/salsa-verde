@@ -10,5 +10,5 @@ pyflakes==3.0.1
 pytest==7.2.2
 pytest-cov==4.0.0
 pytest-django==4.5.2
-pytest-sugar==0.9.4
+pytest-sugar==0.9.6
 pytest-xdist==2.1.0
