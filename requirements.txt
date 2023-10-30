@@ -15,4 +15,4 @@ gunicorn==21.2.0
 whitenoise==6.6.0
 raven==6.10.0
 
-django-debug-toolbar==3.2
+django-debug-toolbar==4.2.0
