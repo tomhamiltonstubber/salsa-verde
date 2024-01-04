@@ -76,7 +76,6 @@ class DHLOrderTestCase(TestCase):
         assert order.labels.count() == 2
         assert order.company == self.company
         call_args = mock_dhl.mock_calls[0][2]
-        debug(call_args)
         assert call_args == {
             'auth': (
                 'demo-key',

@@ -1,5 +1,4 @@
 .DEFAULT_GOAL := install
-black = black -S -l 120 --target-version py38
 
 .PHONY: install
 install:
@@ -8,14 +7,13 @@ install:
 
 .PHONY: format
 format:
-	isort SalsaVerde
-	$(black) SalsaVerde
+	ruff check --fix .
+	ruff format .
 
 .PHONY: lint
 lint:
-	flake8 SalsaVerde
-	isort --check-only SalsaVerde
-	$(black) --check SalsaVerde
+	ruff check .
+	ruff format --check .
 
 .PHONY: test
 test:

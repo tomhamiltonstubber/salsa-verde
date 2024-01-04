@@ -1,0 +1,50 @@
+[tool.ruff]
+    line-length = 120
+    exclude = [
+        '*/migrations/*',
+    ]
+    ignore = ['E402']
+
+[tool.ruff.format]
+    quote-style = 'single'
+
+[tool.ruff.lint]
+    extend-select = ['I']
+
+[tool.ruff.isort]
+    combine-as-imports = true
+
+[tool.pytest]
+    testpaths = ['SalsaVerde']
+    timeout = 60
+
+[tool.pytest.ini_options]
+    DJANGO_SETTINGS_MODULE = 'SalsaVerde.test_settings'
+    addopts = '--cov-append --tb=native'
+
+[tool.coverage.run]
+    source = ['SalsaVerde']
+    branch = true
+    omit = [
+        '*/management/commands/*',
+        '*wsgi.py',
+        '*/migrations/0*.py',
+        '*/migrations/__init__.py',
+        '*tests/*',
+        '*/test_*',
+    ]
+    parallel = true
+    concurrency = 'multiprocessing'
+
+[tool.coverage.report]
+    precision = 2
+    exclude_lines = [
+        'pragma: no cover',
+        'def __repr__',
+        'def __str__',
+        'raise NotImplementedError',
+        'raise NotImplemented',
+        'if response.status_code',
+        'if r.status_code',
+        'print',
+    ]
