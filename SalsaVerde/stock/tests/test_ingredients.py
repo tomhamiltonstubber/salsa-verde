@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from SalsaVerde.stock.factories.raw_materials import IngredientFactory, IngredientTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
+from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.models import Document, GoodsIntake, Ingredient, IngredientType
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset, refresh
 
@@ -103,6 +104,12 @@ class IngredientTestCase(TestCase):
         }
         r = self.client.post(self.intake_url, data=data)
         self.assertContains(r, 'This field is required')
+
+    def test_intake_ingreds_only_admins(self):
+        non_admin = UserFactory(administrator=False, last_name='nonadmin', company=self.user.company)
+        r = self.client.get(self.intake_url)
+        self.assertContains(r, self.user)
+        self.assertNotContains(r, non_admin)
 
     def test_edit_ingredient(self):
         gi = GoodsIntake.objects.create(intake_user=self.user)

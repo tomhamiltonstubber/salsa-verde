@@ -93,6 +93,11 @@ class CompanyNameBaseModel(BaseModel):
         abstract = True
 
 
+class UserQueryset(QuerySet):
+    def request_qs(self, request, only_admins=True):
+        return self.filter(company=request.user.company, administrator=only_admins)
+
+
 class UserManager(BaseUserManager):
     def _create_user(self, email, company, password, is_superuser=False, **extra_fields):
         """Create and save a User with the given email and password."""
@@ -110,7 +115,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    objects = UserManager.from_queryset(CompanyQueryset)()
+    objects = UserManager.from_queryset(UserQueryset)()
 
     company = models.ForeignKey(Company, verbose_name='Company', on_delete=models.CASCADE, related_name='users')
 
