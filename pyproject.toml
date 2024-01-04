@@ -33,8 +33,6 @@
         '*tests/*',
         '*/test_*',
     ]
-    parallel = true
-    concurrency = 'multiprocessing'
 
 [tool.coverage.report]
     precision = 2
