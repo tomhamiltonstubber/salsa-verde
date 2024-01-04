@@ -153,7 +153,7 @@ class IntakeIngredients(SVFormsetForm, AddModelView):
     success_url = reverse_lazy('ingredients')
     formset_class = IngredientsFormSet
     form_class = GoodsIntakeForm
-    template_name = 'formset_form.jinja'
+    template_name = 'ingredients-intake.jinja'
     model = Ingredient
     title = 'Intake Ingredients'
 
@@ -161,6 +161,11 @@ class IntakeIngredients(SVFormsetForm, AddModelView):
         kwargs = super().get_form_kwargs()
         kwargs['document_type'] = self.model.intake_document_type()
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['ingred_units_lu'] = dict(IngredientType.objects.request_qs(self.request).values_list('id', 'unit'))
+        return ctx
 
 
 intake_ingredients = IntakeIngredients.as_view()

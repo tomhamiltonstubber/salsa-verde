@@ -20,7 +20,7 @@ class UpdateIngredientsForm(SVModelForm):
 
     class Meta:
         model = Ingredient
-        fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier', 'intake_quality_check']
+        fields = ['ingredient_type', 'quantity', 'batch_code', 'supplier']
 
 
 IngredientsFormSet = forms.inlineformset_factory(

@@ -1,0 +1,21 @@
+{% extends formset_form.jinja %}
+
+{% block extra_js %}
+  <script>
+    const $ingred_type = $('#id_ingredient_type')
+    const $quantity = $('#id_quantity')
+    $ingred_type.change(() => {
+      const val = $ingred_type.val()
+      const units_lu = {{ ingred_units_lu | tojson | safe }}
+      let units = units_lu[val]
+      if (units !== undefined) {
+        $quantity.attr('placeholder', units)
+      } else {
+        $quantity.attr('placeholder', 'Quantity')
+      }
+    })
+    window.ni_counties = {{ ni_counties | safe }}
+    window.ie_counties = {{ ie_counties | safe }}
+    window.pack_temp_lu = {{ pack_temp_lu | tojson | safe}}
+  </script>
+{% endblock %}
