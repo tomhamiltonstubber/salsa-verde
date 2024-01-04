@@ -40,6 +40,7 @@ class ContainerTypeFactory(factory.django.DjangoModelFactory):
 class ProductTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProductType
+        skip_postgeneration_save = True
 
     company = factory.SubFactory(CompanyFactory)
     name = 'Blackberry and Thyme'

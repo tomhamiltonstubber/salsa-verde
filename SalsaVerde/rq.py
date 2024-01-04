@@ -1,6 +1,6 @@
 import logging
 
-from rq.utils import ColorizingStreamHandler
+from rq.logutils import ColorizingStreamHandler
 
 
 class RQHandler(ColorizingStreamHandler):

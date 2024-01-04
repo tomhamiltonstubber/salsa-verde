@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from pytz import utc
 
 from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.models import User
@@ -26,7 +27,7 @@ class UserTestCase(TestCase):
         )
         user.set_password('testing1')
         user.save()
-        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=timezone.utc)
+        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=utc)
         client = Client()
         r = client.get(reverse('suppliers'))
         self.assertRedirects(r, reverse('login'))
@@ -47,7 +48,7 @@ class UserTestCase(TestCase):
         )
         user.set_password('testing1')
         user.save()
-        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=timezone.utc)
+        assert user.last_logged_in == dt(2018, 1, 1, tzinfo=utc)
         client = Client()
         r = client.get(reverse('suppliers'))
         self.assertRedirects(r, reverse('login'))

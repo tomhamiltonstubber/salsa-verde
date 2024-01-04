@@ -1,15 +1,16 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
+from pytz import utc
 
 
 class CountryQueryset(QuerySet):
     def request_qs(self, request):
-        return Country.objects.all()
+        return self.all()
 
 
 class Country(models.Model):
@@ -117,7 +118,7 @@ class User(AbstractUser):
     email = models.EmailField('Email Address', unique=True)
     first_name = models.CharField('First name', max_length=30, blank=True)
     last_name = models.CharField('Last name', max_length=150, blank=True)
-    last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1, tzinfo=timezone.utc))
+    last_logged_in = models.DateTimeField('Last Logged in', default=datetime(2018, 1, 1, tzinfo=utc))
     street = models.TextField('Street Address', null=True, blank=True)
     town = models.CharField('Town', max_length=50, null=True, blank=True)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, blank=True)

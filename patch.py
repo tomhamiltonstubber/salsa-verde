@@ -17,11 +17,9 @@ import django
 
 django.setup()
 
-from SalsaVerde.stock.models import ProductType, ProductTypeSize
 from SalsaVerde.company.models import Country
-
 from SalsaVerde.orders.models import Order
-
+from SalsaVerde.stock.models import ProductType, ProductTypeSize
 
 commands = []
 
@@ -90,7 +88,7 @@ def rename_stock_app(live):
         cursor.execute("UPDATE django_content_type SET app_label='stock' WHERE app_label='main'")
         # Rename models in app
         for model in stock_models:
-            cursor.execute(f"ALTER TABLE main_{model} RENAME TO stock_{model}")
+            cursor.execute(f'ALTER TABLE main_{model} RENAME TO stock_{model}')
         cursor.execute("UPDATE django_migrations SET app='stock' WHERE app='main'")
 
 

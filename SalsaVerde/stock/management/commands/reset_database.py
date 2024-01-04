@@ -9,7 +9,6 @@ class Command(BaseCommand):
         parser.add_argument('--create-demo-data', action='store_true', dest='create_demo_data', default=False, help='')
 
     def handle(self, *args, **options):
-
         cur = connection.cursor()
         cur.execute('DROP SCHEMA public CASCADE;')
         cur.execute('CREATE SCHEMA public;')

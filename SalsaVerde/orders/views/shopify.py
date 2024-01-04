@@ -69,7 +69,7 @@ def get_shopify_order(id, company: Company):
 
 class ShopifyHelperMixin:
     def get_shopify_url(self, order_id: str):
-        return f"{self.request.user.company.website}/admin/orders/{order_id}"
+        return f'{self.request.user.company.website}/admin/orders/{order_id}'
 
     def dt_format(self, v):
         if v:

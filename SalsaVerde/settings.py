@@ -9,9 +9,14 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
-
+import logging
 import os
 from urllib.parse import urlparse
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.rq import RqIntegration
 
 
 def env_true(var_name, alt='FALSE'):
@@ -45,7 +50,6 @@ INSTALLED_APPS = [
     'storages',
     'bootstrap3_datetime',
     'debug_toolbar',
-    'raven.contrib.django.raven_compat',
     'django_rq',
     'SalsaVerde.company',
     'SalsaVerde.stock',
@@ -95,12 +99,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SalsaVerde.wsgi.application'
 
-if LIVE:
-    RAVEN_CONFIG = {
-        'dsn': 'https://e9dedecf18764f1392e959d1badcfa38:5a57928068164499befd72e7bfb78492@sentry.io/1277127',
-        'release': os.getenv('HEROKU_SLUG_COMMIT', '-'),
-    }
-
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
@@ -134,12 +132,12 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-gb'
 TIME_ZONE = 'UTC'
 USE_I18N = False
-USE_L10N = True
 USE_TZ = True
 DT_FORMAT = '%d/%m/%Y %H:%M'
 DATE_FORMAT = '%d/%m/%Y'
 
 AUTH_USER_MODEL = 'company.User'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Storage
 
@@ -190,13 +188,11 @@ LOGGING = {
             'datefmt': '%H:%M:%S',
         },
         'django.server': {'()': 'django.utils.log.ServerFormatter', 'format': '[%(server_time)s] %(message)s'},
-        'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
     },
     'handlers': {
         'rq_console': {'level': 'INFO', 'formatter': 'rq_console', 'class': 'SalsaVerde.rq.RQHandler'},
         'debug_console': {'level': 'DEBUG', 'filters': ['require_debug_true'], 'class': 'logging.StreamHandler'},
         'null': {'class': 'logging.NullHandler'},
-        'sentry': {'level': 'WARNING', 'class': 'raven.contrib.django.handlers.SentryHandler'},
         'django.server': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'django.server'},
         'sv_console': {
             'level': 'DEBUG' if DEBUG else 'INFO',
@@ -207,13 +203,20 @@ LOGGING = {
     'loggers': {
         'django.server': {'handlers': ['django.server'], 'level': 'INFO', 'propagate': False},
         'django': {'handlers': ['debug_console'], 'level': 'INFO'},
-        'salsa': {'handlers': ['sv_console', 'sentry'], 'level': 'DEBUG', 'propagate': False},
-        'django.security': {'handlers': ['sentry', 'debug_console'], 'level': 'ERROR', 'propagate': False},
+        'salsa': {'handlers': ['sv_console'], 'level': 'DEBUG', 'propagate': False},
+        'django.security': {'handlers': ['debug_console'], 'level': 'ERROR', 'propagate': False},
         'django.security.DisallowedHost': {'handlers': ['null'], 'propagate': False},
         'sentry.errors': {'level': 'WARNING', 'handlers': ['debug_console'], 'propagate': False},
         'rq.worker': {'handlers': ['rq_console'], 'level': 'INFO'},
     },
 }
+
+
+sentry_logging = LoggingIntegration(level=logging.INFO, event_level=logging.WARNING)
+sentry_sdk.init(
+    dsn=os.getenv('SENTRY_DSN'),
+    integrations=[DjangoIntegration(), RqIntegration(), sentry_logging],
+)
 
 # =======================================
 # django-rq
@@ -262,10 +265,9 @@ EF_CLIENT_SECRET = os.getenv('EF_CLIENT_SECRET')
 # DHL
 # =======================================
 
-DHL_API_KEY = os.getenv('DHL_API_KEY', 'demo-key')
-DHL_PASSWORD = os.getenv('DHL_PASSWORD', 'demo-secret')
 DHL_API_VERSION = os.getenv('DHL_API_VERSION', '1.1.0')
 DHL_BASE_URL = os.getenv('DHL_BASE_URL', 'https://express.api.dhl.com/mydhlapi/test')
+
 
 try:
     from localsettings import *  # noqa
