@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.urls import reverse
+from pytz import utc
 
 from SalsaVerde.company.models import User
 from SalsaVerde.orders.factories.orders import OrderFactory
@@ -21,12 +22,13 @@ from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formse
 class DHLOrderTestCase(TestCase):
     def setUp(self):
         self.company = CompanyFactory(
+            name='BB',
             shopify_domain='https://company.shopify.com',
             shopify_webhook_key='foo',
             shopify_api_key='bar',
             shopify_password='pass',
-            dhl_api_key='foo',
-            dhl_password='bar',
+            dhl_api_key='demo-key',
+            dhl_password='demo-secret',
             dhl_account_code='123abc',
         )
         self.client = AuthenticatedClient(company=self.company)
@@ -46,6 +48,7 @@ class DHLOrderTestCase(TestCase):
         u.phone = '897987'
         u.email = 't@a.com'
         u.save()
+        dt = datetime(2018, 2, 2, tzinfo=utc)
         form_data = {
             'name': 'Brain Johnston',
             'first_line': '123 Fake Street.',
@@ -56,7 +59,7 @@ class DHLOrderTestCase(TestCase):
             'country': self.company.country.id,
             'service_code': 'N',
             'postcode': '12345',
-            'dispatch_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'dispatch_date': dt.strftime(settings.DT_FORMAT),
             'form-0-height': 5,
             'form-0-weight': 6,
             'form-0-length': 7,
@@ -73,13 +76,14 @@ class DHLOrderTestCase(TestCase):
         assert order.labels.count() == 2
         assert order.company == self.company
         call_args = mock_dhl.mock_calls[0][2]
+        debug(call_args)
         assert call_args == {
             'auth': (
                 'demo-key',
                 'demo-secret',
             ),
             'json': {
-                'plannedShippingDateAndTime': '2018-02-02T00:00:00+00:00',
+                'plannedShippingDateAndTime': '2018-02-02T00:00:00 GMT+01:00',
                 'pickup': {'isRequested': False},
                 'productCode': 'N',
                 'accounts': [{'number': '123abc', 'typeCode': 'shipper'}],
@@ -93,7 +97,7 @@ class DHLOrderTestCase(TestCase):
                         },
                         'contactInformation': {
                             'phone': '998877',
-                            'companyName': 'company 0',
+                            'companyName': 'BB',
                             'fullName': 'Tom Owner',
                             'email': 't@a.com',
                         },
@@ -104,7 +108,6 @@ class DHLOrderTestCase(TestCase):
                             'countryCode': 'GB',
                             'postalCode': '12345',
                             'addressLine1': '123 Fake Street.',
-                            'addressLine2': '',
                             'addressLine3': 'Down',
                         },
                         'contactInformation': {
@@ -118,12 +121,11 @@ class DHLOrderTestCase(TestCase):
                     'unitOfMeasurement': 'metric',
                     'isCustomsDeclarable': False,
                     'incoterm': 'DAP',
-                    'description': 'Order from company 0',
+                    'description': 'Order from BB',
                     'packages': [
                         {
-                            'customerReferences': [{'value': 'Order from company 0', 'typeCode': 'CU'}],
+                            'customerReferences': [{'value': 'Order from BB', 'typeCode': 'CU'}],
                             'weight': 6.0,
-                            'description': '',
                             'dimensions': {'length': 7.0, 'width': 10.0, 'height': 5.0},
                         },
                     ],

@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := test
+.DEFAULT_GOAL := install
 black = black -S -l 120 --target-version py38
 
 .PHONY: install
@@ -19,7 +19,7 @@ lint:
 
 .PHONY: test
 test:
-	pytest SalsaVerde -n8 --cov=SalsaVerde
+	pytest SalsaVerde --cov=SalsaVerde
 
 .PHONY: reset-db
 reset-db:

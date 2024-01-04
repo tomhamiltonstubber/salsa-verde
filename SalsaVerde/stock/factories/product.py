@@ -26,6 +26,7 @@ class YieldContainerFactory(factory.django.DjangoModelFactory):
 class ProductFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Product
+        skip_postgeneration_save = True
 
     product_type = factory.SubFactory(ProductTypeFactory)
     date_of_infusion = factory.sequence(lambda n: timezone.now() - datetime.timedelta(hours=(n * 48)))
