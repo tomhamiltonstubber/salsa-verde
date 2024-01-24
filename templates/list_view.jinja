@@ -1,5 +1,7 @@
 {% extends 'auth.jinja' %}
 
+{% from 'macros.jinja' import paginator %}
+
 {% block content %}
   <table class="table table-hover">
     <thead>
@@ -23,4 +25,5 @@
       {% endfor %}
     </tbody>
   </table>
+  {{ paginator(page_obj, get_without_page) }}
 {% endblock %}

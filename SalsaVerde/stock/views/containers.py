@@ -6,10 +6,10 @@ from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.stock.forms.containers import ContainersFormSet, UpdateContainerForm, UpdateContainerTypeForm
 from SalsaVerde.stock.models import Container, ContainerType, Product
 
-from ...common.views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DetailView, ModelListView, SVFormsetForm, UpdateModelView
 
 
-class ContainerTypeList(ListView):
+class ContainerTypeList(ModelListView):
     model = ContainerType
     display_items = [
         'name',
@@ -59,7 +59,7 @@ class ContainerTypeEdit(UpdateModelView):
 container_type_edit = ContainerTypeEdit.as_view()
 
 
-class ContainerList(ListView):
+class ContainerList(ModelListView):
     model = Container
     display_items = [
         'container_type',

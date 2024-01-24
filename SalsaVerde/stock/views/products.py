@@ -20,10 +20,10 @@ from SalsaVerde.stock.forms.products import (
 )
 from SalsaVerde.stock.models import Product, ProductIngredient, ProductType, ProductTypeSize, YieldContainer
 
-from ...common.views import AddModelView, DeleteObjectView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DeleteObjectView, DetailView, ModelListView, SVFormsetForm, UpdateModelView
 
 
-class ProductTypeList(ListView):
+class ProductTypeList(ModelListView):
     model = ProductType
     display_items = [
         'name',
@@ -127,7 +127,7 @@ class ProductTypeEdit(UpdateModelView):
 product_type_edit = ProductTypeEdit.as_view()
 
 
-class ProductList(ListView):
+class ProductList(ModelListView):
     model = Product
     display_items = [
         'product_type',

@@ -16,3 +16,4 @@ whitenoise==6.6.0
 sentry-sdk[django]==1.39.1
 django-debug-toolbar==4.2.0
 pytz==2023.3.post1
+psutil==5.9.8

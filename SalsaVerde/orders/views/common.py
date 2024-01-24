@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic import TemplateView
 
-from SalsaVerde.common.views import DetailView, ListView, UpdateModelView
+from SalsaVerde.common.views import DetailView, ModelListView, UpdateModelView
 from SalsaVerde.orders.forms.common import PackageFormSet, PackedProductFormSet
 from SalsaVerde.orders.models import Order, PackageTemplate, ProductOrder
 from SalsaVerde.orders.shopify import shopify_fulfill_order
@@ -61,7 +61,7 @@ class CreateOrderView(ShopifyHelperMixin, UpdateModelView, TemplateView):
         return redirect(reverse('orders-list'))
 
 
-class OrdersList(ShopifyHelperMixin, ListView):
+class OrdersList(ShopifyHelperMixin, ModelListView):
     title = 'Orders'
     model = Order
     display_items = [
