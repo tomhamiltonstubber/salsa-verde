@@ -1,4 +1,4 @@
-from SalsaVerde.common.views import AddModelView, DetailView, ListView, UpdateModelView
+from SalsaVerde.common.views import AddModelView, DetailView, ModelListView, UpdateModelView
 from SalsaVerde.orders.forms.setup import UpdatePackageTemplateForm
 from SalsaVerde.orders.models import PackageTemplate
 
@@ -32,7 +32,7 @@ class PackageTempDetails(DetailView):
 package_temp_details = PackageTempDetails.as_view()
 
 
-class PackageTempList(ListView):
+class PackageTempList(ModelListView):
     model = PackageTemplate
     display_items = [
         'name',

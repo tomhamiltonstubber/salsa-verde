@@ -10,7 +10,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views import View
-from django.views.generic import CreateView, FormView, TemplateView, UpdateView
+from django.views.generic import CreateView, FormView, ListView as DjListView, TemplateView, UpdateView
 
 from SalsaVerde.common.forms import AuthForm
 
@@ -131,7 +131,7 @@ class BasicView(DisplayHelpers, TemplateView):
     pass
 
 
-class ModelBasicView(QuerySetMixin, BasicView):
+class ModelBasicView(BasicView):
     pass
 
 
@@ -188,26 +188,28 @@ def display_dt(dt):
     return dt.strftime(settings.DT_FORMAT)
 
 
-class ListView(ModelBasicView):
+class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
     template_name = 'list_view.jinja'
     model = None
+    paginate_by = 40
 
     def get_button_menu(self):
         return [{'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}]
 
-    def get_field_data(self):
-        for obj in self.get_queryset():
+    def get_field_data(self, object_list: list):
+        for obj in object_list:
             yield obj.get_absolute_url(), self.get_display_values(obj, self.get_display_items())
 
     def get_title(self):
         return self.model._meta.verbose_name_plural
 
     def get_context_data(self, **kwargs):
-        kwargs.update(
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(
             field_names=self.get_display_labels(self.get_display_items()),
-            field_data=self.get_field_data(),
+            field_data=self.get_field_data(ctx['object_list']),
         )
-        return super().get_context_data(**kwargs)
+        return ctx
 
 
 class ObjMixin:

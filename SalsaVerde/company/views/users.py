@@ -1,11 +1,11 @@
 from django.urls import reverse
 
-from SalsaVerde.common.views import AddModelView, DetailView, ListView, UpdateModelView
+from SalsaVerde.common.views import AddModelView, DetailView, ModelListView, UpdateModelView
 from SalsaVerde.stock.forms.users import UpdateUserForm
 from SalsaVerde.stock.models import Document, User
 
 
-class UserList(ListView):
+class UserList(ModelListView):
     model = User
     display_items = [
         'email',

@@ -6,10 +6,10 @@ from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
 from SalsaVerde.stock.forms.ingredients import IngredientsFormSet, UpdateIngredientsForm, UpdateIngredientTypeForm
 from SalsaVerde.stock.models import Ingredient, IngredientType, Product
 
-from ...common.views import AddModelView, DetailView, ListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DetailView, ModelListView, SVFormsetForm, UpdateModelView
 
 
-class IngredientTypeList(ListView):
+class IngredientTypeList(ModelListView):
     model = IngredientType
     display_items = [
         'name',
@@ -57,7 +57,7 @@ class IngredientTypeEdit(UpdateModelView):
 ingredient_type_edit = IngredientTypeEdit.as_view()
 
 
-class IngredientList(ListView):
+class IngredientList(ModelListView):
     model = Ingredient
     display_items = [
         'ingredient_type',

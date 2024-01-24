@@ -1,10 +1,10 @@
 from SalsaVerde.stock.forms.documents import UpdateDocumentForm
 from SalsaVerde.stock.models import Document
 
-from ...common.views import AddModelView, DetailView, ListView, UpdateModelView
+from ...common.views import AddModelView, DetailView, ModelListView, UpdateModelView
 
 
-class DocumentsList(ListView):
+class DocumentsList(ModelListView):
     model = Document
     display_items = [
         'type',
