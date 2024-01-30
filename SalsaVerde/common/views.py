@@ -44,7 +44,10 @@ class DisplayHelpers:
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
-            nav_links=get_nav_menu(), title=self.get_title(), button_menu=self.process_button_menu(), **kwargs
+            nav_links=get_nav_menu(self.request),
+            title=self.get_title(),
+            button_menu=self.process_button_menu(),
+            **kwargs,
         )
 
     def _object_url(self, rurl):
@@ -165,17 +168,17 @@ def update_user_history(sender, user, **kwargs):
     user.save(update_fields=['last_logged_in'])
 
 
-def get_nav_menu():
+def get_nav_menu(request):
+    active_path = request.path.split('/')
     return [
-        ('Orders', reverse('orders-list')),
-        ('Products', reverse('products')),
-        ('Suppliers', reverse('suppliers')),
-        ('Containers', reverse('containers')),
-        ('Ingredients', reverse('ingredients')),
-        ('Documents', reverse('documents')),
-        ('Users', reverse('users')),
-        ('Setup', reverse('setup')),
-        ('Logout', reverse('logout')),
+        ('Orders', 'store', reverse('orders-list'), 'orders' in active_path),
+        ('Products', 'bottle-droplet', reverse('products'), 'products' in active_path),
+        ('Containers', 'jar', reverse('containers'), 'containers' in active_path),
+        ('Suppliers', 'tractor', reverse('suppliers'), 'suppliers' in active_path),
+        ('Ingredients', 'apple-whole', reverse('ingredients'), 'ingredients' in active_path),
+        # ('Documents', 'document', reverse('documents'), 'documents' in active_path),
+        ('Users', 'user', reverse('users'), 'users' in active_path),
+        ('Setup', 'gear', reverse('setup'), 'setup' in active_path),
     ]
 
 

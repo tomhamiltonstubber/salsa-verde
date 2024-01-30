@@ -1,34 +1,26 @@
 {% extends 'base.jinja' %}
 
 {% block nav %}
-<nav class="navbar navbar-default navbar-fixed-top">
-  <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header page-scroll">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <h1 class="navbar-brand">{{ title }}</h1>
-    </div>
-
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav navbar-right">
-        {% for name, link in nav_links %}
-          <li><a href="{{ link }}">{{ name }}</a></li>
-        {% endfor %}
-      </ul>
-    </div>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis" href="/">Salsa Verde</a>
+    <ul class="nav nav-pills">
+      {% for name, icon, link, is_active in nav_links %}
+        <li class="nav-item">
+          <a class="nav-link {% if is_active %}active{% endif %}" href="{{ link }}">
+            <span class="fa-solid fa-{{ icon }}"></span>&nbsp;{{ name }}
+          </a>
+        </li>
+      {% endfor %}
+      <a class="btn btn-outline-primary" href="/logout"><span class="fa fa-sign-out">&nbsp;</span>{{ _("Logout") }}</a>
+    </ul>
   </div>
 </nav>
 {% endblock %}
 
 {% block body %}
   <div id="content">
-    <div class="container main">
+    <div class="main">
       {% for message in messages %}
         {% if 'error' in message.tags %}
           {% set alert_class = 'alert-danger' %}
@@ -54,7 +46,7 @@
       {% if button_menu %}
         <div id="button-menu">
           {% for button in button_menu %}
-            <a class="btn btn-default" href="{{ button.url }}"
+            <a class="btn btn-outline-primary" href="{{ button.url }}"
                 {% if button.newtab %} target="_blank"{% endif %}
                 {% if button.data %}
                   {% for k, v in button['data'].items() %}

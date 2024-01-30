@@ -9,3 +9,5 @@ coverage.xml
 .pytest_cache/
 *.dump
 localsettings.py
+
+/static/libs/
