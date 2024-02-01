@@ -9,6 +9,6 @@
   <form method="post" action="" class="formsets-form" enctype="multipart/form-data">
     {% csrf_token %}
     {{ display_formset(formset) }}
-    <input type="submit" value="Submit" class="btn btn-default" />
+    <input type="submit" value="Submit" class="btn btn-outline-primary" />
   </form>
 {% endblock %}

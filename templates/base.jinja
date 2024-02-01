@@ -15,11 +15,15 @@
   <script src="{{ static('js/libraries.js') }}"></script>
   <script src="{{ static('js/main.js') }}"></script>
   <body id="page-top" class="index">
-    <div id="page-header">{% block nav %}{% endblock %}</div>
-    {% block body %}{% endblock %}
+    <div class="container">
+      <header id="page-header" class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        {% block nav %}{% endblock %}
+      </header>
+      {% block body %}{% endblock %}
+    </div>
+    <footer>
+      {% block extra_js %}{% endblock %}
+      <form id="post-form" method="POST">{% csrf_token %}</form>
+    </footer>
   </body>
-  <footer>
-    {% block extra_js %}{% endblock %}
-    <form id="post-form" method="POST">{% csrf_token %}</form>
-  </footer>
 </html>

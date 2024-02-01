@@ -1,27 +1,16 @@
-$main-colour: #89dfb7;
-$background-colour: #ebf9ef;
-$border-color: #61d39e;
-$button-primary: #0089ff;
-
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 
+@import './variables';
 
 body {
-  background-color: $background-colour;
+  //background-color: $background-colour;
   font-family: 'Roboto', sans-serif;
   color: black;
 }
 
-#page-header {
-  background-color: $main-colour;
-  border-bottom: 1px solid $border-color;
-  .navbar-default {
-    background-color: $main-colour;
-    .navbar-brand {
-      padding: 0;
-      height: auto;
-      margin: 15px 0 0 0;
-    }
+.nav {
+  .nav-link {
+    color: #484848;
   }
 }
 
@@ -40,16 +29,8 @@ body {
   }
 }
 
-.btn-primary {
-  background-color: $button-primary;
-}
-
 #content {
   padding: 50px;
-  margin: 100px 200px;
-  @media (max-width: 1400px) {
-    margin: 100px 50px;
-  }
   border-radius: 4px;
   border: 1px solid $border-color;
   background-color: white;
