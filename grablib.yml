@@ -7,8 +7,8 @@ download:
   'GITHUB/elo80ka/django-dynamic-formset/f57c8ca432ec5c3c028d1e76f9bf2f94e745ed3f/src/jquery.formset.js': 'js/formset.js'
 
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css': 'css/font-awesome.css'
-#  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2': 'fonts/'
-#  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff': 'fonts/'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2': 'webfonts/'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.ttf': 'webfonts/'
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js': 'js/font-awesome.js'
 
   'GITHUB/ivaynberg/select2/3.5.1/select2.js': 'js/select2.js'
@@ -20,8 +20,9 @@ download:
   'GITHUB/t0m/select2-bootstrap-css/fce5f9f984b0cc6c8483ce7225ad2639f3a4dae5/select2-bootstrap.css': 'css/select2-bs.css'
   'CDNJS/jquery/3.3.1/jquery.min.js': 'js/jquery.js'
 
-  'GITHUB/Eonasdan/bootstrap-datetimepicker/4.17.47/build/js/bootstrap-datetimepicker.min.js': 'js/dt-picker.js'
-  'GITHUB/Eonasdan/bootstrap-datetimepicker/4.17.47/build/css/bootstrap-datetimepicker.css': 'css/dt-picker.css'
+  'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js': 'js/popper.min.js'
+  'https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.9.4/dist/js/tempus-dominus.min.js': 'js/dt-picker.js'
+  'https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.9.4/dist/css/tempus-dominus.min.css': 'css/dt-picker.css'
 
   'GITHUB/moment/moment/2.13.0/min/moment.min.js': 'js/moment.js'
   'CDNJS/bootbox.js/4.4.0/bootbox.js': 'js/bootbox.js'
@@ -40,6 +41,7 @@ build:
       - 'DL/js/bootstrap.js'
       - 'DL/js/bootbox.js'
       - 'DL/js/font-awesome.js'
+      - 'DL/js/popper.min.js'
   sass:
     css:
       src: 'static/scss'
@@ -47,3 +49,4 @@ build:
         'libraries\.scss$':
           '(select2(?:\.png|x2\.png|-spinner\.gif))': '/static/css/\1'
           '../images/': '/static/libs/images/'
+          '../webfonts/': '/static/libs/webfonts/'

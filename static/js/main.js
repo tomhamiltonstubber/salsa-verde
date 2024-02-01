@@ -1,31 +1,20 @@
 $(document).ready(() => {
-  const icons = {
-    time: 'fa fa-clock',
-    date: 'fa fa-calendar',
-    up: 'fa fa-chevron-up',
-    down: 'fa fa-chevron-down',
-    previous: 'fa fa-chevron-left',
-    next: 'fa fa-chevron-right',
-    today: 'fa fa-square',
-    clear: 'fa fa-trash',
-    close: 'fa fa-remove'
-  }
   $('.date-time-picker').each((i, el) => {
     const $el = $(el)
     const $input = $el.find('input')
     const $init = $('#initial-' + $input.attr('id'))
-    $el.datetimepicker({
-      icons: icons,
-      format: $input.data('format'),
-      date: $init.val(),
+    new tempusDominus.TempusDominus(el, {
+      defaultDate: new Date(Date.parse($init.val())),
     })
   })
+
   init_confirm_follow()
   if ($('#ef-form').length) {
     init_ef_form()
   }
   init_select2()
   init_formsets()
+
   const package_formsets = $('.formset-packages-sending')
   if (package_formsets.length > 0) {
     const id_regex = /\d/g;
@@ -138,7 +127,7 @@ function init_formsets () {
   $('.formsets-form .formset-form').each((i, el) => {
     $(el).formset({
       formTemplate: '#id_empty_' + el.dataset.formset_id,
-      addCssClass: 'btn btn-default',
+      addCssClass: 'btn btn-outline-primary',
       deleteCssClass: 'btn btn-danger',
       addText: 'Add another',
       deleteText:'Remove',

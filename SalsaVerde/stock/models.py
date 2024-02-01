@@ -78,6 +78,8 @@ class IngredientQuerySet(QuerySet):
 
 
 class Ingredient(BaseModel):
+    objects = IngredientQuerySet.as_manager()
+
     ingredient_type = models.ForeignKey(
         IngredientType, verbose_name='Ingredient Type', related_name='ingredients', on_delete=models.CASCADE
     )
@@ -96,7 +98,7 @@ class Ingredient(BaseModel):
         on_delete=models.CASCADE,
     )
     finished = models.BooleanField('Finished', default=False)
-    objects = IngredientQuerySet.as_manager()
+    intake_notes = models.TextField('Intake Notes', null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})

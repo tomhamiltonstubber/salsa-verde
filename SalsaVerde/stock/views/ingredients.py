@@ -153,7 +153,7 @@ class IntakeIngredients(SVFormsetForm, AddModelView):
     success_url = reverse_lazy('ingredients')
     formset_class = IngredientsFormSet
     form_class = GoodsIntakeForm
-    template_name = 'formset_form.jinja'
+    template_name = 'intake_ingredients.jinja'
     model = Ingredient
     title = 'Intake Ingredients'
 

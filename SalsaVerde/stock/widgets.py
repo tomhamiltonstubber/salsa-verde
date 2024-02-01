@@ -4,8 +4,8 @@ from django.forms import DateTimeField, widgets
 DT_OUTER_PICKER_HTML = """\
 <div class="input-group date date-time-picker">
   {}
-  <span class="input-group-addon">
-    <i class="fa fa-calendar"></i>
+  <span class="input-group-text">
+    <i class="fas fa-calendar"></i>
   </span>
 </div>"""
 

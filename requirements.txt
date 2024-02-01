@@ -3,7 +3,6 @@ grablib[build]==0.8
 boto3==1.34.12
 dj-database-url==2.1.0
 django-extensions==3.2.3
-django-bootstrap3-datetimepicker-2==2.8.3
 django-jinja-bootstrap-form==4.5.0
 django-storages==1.14.2
 django-rq==2.10.1

@@ -11,10 +11,23 @@ class SVFormMixin:
         for field in self.fields:
             if isinstance(self.fields[field].widget, forms.DateTimeInput):
                 self.fields[field].widget = DateTimePicker(self.fields[field])
-            # elif isinstance(self.fields[field].widget, forms.DateInput):
-            #     self.fields[field].widget = DateTimePicker(self.fields[field], dt_type='date')
-            elif isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
+            if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
                 self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
+        if layout := getattr(self.Meta, 'layout', None):
+            organised_fields = []
+            for line in layout:
+                defined_widths = [item[1] for item in line if isinstance(item, tuple)]
+                line = [
+                    (
+                        self.fields[item].get_bound_field(self, item),
+                        int((12 - sum(defined_widths)) / (len(line) - len(defined_widths)))
+                        if isinstance(item, str)
+                        else item[1],
+                    )
+                    for item in line
+                ]
+                organised_fields.append(line)
+            self.layout = organised_fields
 
 
 class SVForm(SVFormMixin, forms.Form):
