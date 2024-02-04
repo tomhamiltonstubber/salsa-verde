@@ -1,12 +1,17 @@
 {% macro extra_content_table(obj) %}
-  <div class="panel panel-default" id="extra-details">
-    <div class="panel-heading">
-      <h4>{{ obj.title }}</h4>
+  <div class="card extra-details">
+    <div class="card-header">
+      <h5 class="card-title">
+        {% if obj.icon %}
+          <span class="fa {{ obj.icon }}"></span>&nbsp;
+        {% endif %}
+        {{ obj.title }}
+      </h5>
       {% if obj.add_url %}
         <a href="{{ obj.add_url }}"><span class="fa fa-plus"></span></a>
       {% endif %}
     </div>
-    <div class="panel-body">
+    <div class="card-body">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -46,7 +51,6 @@
         {% for field, width in line %}
           <div class="col-md-{{ width }}">
             {{ field | bootstrap }}
-            {{ field.errors.as_text() }}
           </div>
         {% endfor %}
       </div>

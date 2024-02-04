@@ -33,13 +33,7 @@ class SupplierDetails(DetailView):
             {
                 'title': 'Supplied Ingredients',
                 'qs': self.object.ingredients.all(),
-                'fields': [
-                    ('Ingredient', 'name'),
-                    'batch_code',
-                    'quantity',
-                    'intake_date',
-                    ('Intake document', 'intake_document'),
-                ],
+                'fields': [('Ingredient', 'name'), 'batch_code', 'quantity', 'intake_date'],
             },
             {
                 'title': 'Supplied Containers',
@@ -48,8 +42,6 @@ class SupplierDetails(DetailView):
                     ('Container', 'name'),
                     'batch_code',
                     'quantity',
-                    'intake_date',
-                    ('Intake document', 'intake_document'),
                 ],
             },
             {

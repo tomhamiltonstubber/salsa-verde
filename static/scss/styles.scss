@@ -50,17 +50,28 @@ body {
 
 /* Forms */
 
-.formset {
-  padding-top: 20px;
-}
-
 textarea.resize-vertical-only {
   resize: vertical;
 }
 
-.form-group .checkbox {
-  padding-top: $font-size-base;
-  margin-top: 0.3rem;
+.form-group {
+  .checkbox {
+    padding-top: $font-size-base;
+    margin-top: 0.3rem;
+  }
+  &.has-error {
+    .form-control, .input-group-text {
+      border-color: $danger;
+      background-color: lighten($danger, 40%);
+    }
+    .error-msg {
+      color: $danger;
+      font-weight: bold;
+    }
+  }
+  .form-control {
+    background-color: white;
+  }
 }
 
 .custom-form {
@@ -80,6 +91,24 @@ textarea.resize-vertical-only {
   }
 }
 
+/* Details page */
+
+.item-details {
+  label {
+    font-weight: bold;
+    min-width: 20%;
+  }
+}
+
+.extra-details {
+  .card-body {
+    padding: 0;
+    table {
+      margin-bottom: 0;
+    }
+  }
+}
+
 /* Select2 */
 
 .select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection {
@@ -89,7 +118,7 @@ textarea.resize-vertical-only {
 
 .select2-container--bootstrap-5 .select2-selection {
   border-color: $border-color;
-  background-color: $body-bg;
+  //background-color: $body-bg;
 }
 
 /* Login page */
@@ -121,29 +150,6 @@ textarea.resize-vertical-only {
 .dynamic-form {
   .btn-danger {
     margin-top: 25px;
-  }
-}
-
-#display-items {
-  padding-bottom: 40px;
-  label {
-    min-width: 20%;
-    padding-left: 40px;
-  }
-}
-
-.panel-default {
-  .panel-heading {
-    padding: 1px 15px;
-    h4 {
-      display: inline-block;
-    }
-  }
-  .panel-body {
-    padding: 0;
-  }
-  .table {
-    margin-bottom: 0;
   }
 }
 

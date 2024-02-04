@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
@@ -77,6 +79,12 @@ class IngredientQuerySet(QuerySet):
         return self.filter(ingredient_type__company=request.user.company)
 
 
+def _display_dec(v: Decimal):
+    if v == int(v):
+        return int(v)
+    return v
+
+
 class Ingredient(BaseModel):
     objects = IngredientQuerySet.as_manager()
 
@@ -101,7 +109,7 @@ class Ingredient(BaseModel):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def display_quantity(self):
-        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
+        return f'{float(self.quantity):,g} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}s'
 
     def __str__(self):
         return mark_safe(f'{self.name} - {self.batch_code} - {self.intake_date:%d/%m/%Y}')
@@ -109,14 +117,6 @@ class Ingredient(BaseModel):
     @property
     def name(self):
         return self.ingredient_type.name
-
-    @property
-    def intake_document(self):
-        return self.intake_document
-
-    @classmethod
-    def intake_document_type(cls):
-        return Document.FORM_SUP01
 
     @classmethod
     def prefix(cls):
@@ -283,9 +283,7 @@ class Product(BaseModel):
     date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now, null=True, blank=True)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now, null=True, blank=True)
 
-    yield_quantity = models.DecimalField(
-        'Yield Quantity (in litres)', max_digits=25, decimal_places=3, null=True, blank=True
-    )
+    yield_quantity = models.DecimalField('Yield Quantity', max_digits=25, decimal_places=3, null=True, blank=True)
     batch_code = models.CharField('Batch Code', max_length=25, null=True, blank=True)
 
     status = models.CharField('Stage', choices=STATUSES, max_length=25)
@@ -294,6 +292,9 @@ class Product(BaseModel):
     best_before_applied = models.BooleanField('Best before applied', default=False)
     quality_check_successful = models.BooleanField('Quality check successful', default=False)
     finished = models.BooleanField('Finished', default=False)
+
+    def display_yield_quantity(self):
+        return f'{float(self.yield_quantity or 0):,g} litres'
 
     def __str__(self):
         return f'{self.product_type} - {self.batch_code}'

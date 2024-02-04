@@ -1,19 +1,13 @@
 $(document).ready(() => {
-  $('.date-time-picker').each((i, el) => {
-    const $el = $(el)
-    const $input = $el.find('input')
-    const $init = $('#initial-' + $input.attr('id'))
-    new tempusDominus.TempusDominus(el, {
-      defaultDate: new Date(Date.parse($init.val())),
-    })
-  })
 
   init_confirm_follow()
   if ($('#ef-form').length) {
     init_ef_form()
   }
   init_select2()
+  init_dt_pickers()
   init_formsets()
+  init_input_groups()
 
   const package_formsets = $('.formset-packages-sending')
   if (package_formsets.length > 0) {
@@ -33,6 +27,21 @@ $(document).ready(() => {
     })
   }
 })
+
+function init_dt_pickers() {
+  $('.date-time-picker').each((i, el) => {
+    const $el = $(el)
+    const $input = $el.find('input')
+    const $init = $('#initial-' + $input.attr('id'))
+    new tempusDominus.TempusDominus(el, {
+      defaultDate: new Date(Date.parse($init.val())),
+      localization: {
+        format: 'dd/MM/yyyy HH:mm'
+      }
+    })
+    $el.click().click()
+  })
+}
 
 function init_select2 () {
   try {
@@ -151,5 +160,23 @@ function init_formsets () {
       }
     }
     hide_extra_buttons()
+  })
+}
+
+function init_input_groups () {
+  const $inputs = $('input[input-group-label-lu]')
+  $inputs.each((i, el) => {
+    const $el = $(el)
+    // We need to add the 'input-group' class to the parent div and append the span with class input-group text to it
+    const $parent = $el.parent()
+    $parent.addClass('input-group')
+    const $span = $('<span>').addClass('input-group-text').text('Units')
+    $span.appendTo($parent)
+
+    const id_label_lu = JSON.parse($el.attr($el.attr('input-group-label-lu')))
+    const linked_input = $('#' + $el.attr('linked-input-id'))
+    linked_input.change(() => {
+      $span.text(id_label_lu[linked_input.val()] + 's')
+    })
   })
 }

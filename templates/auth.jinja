@@ -48,19 +48,23 @@
       </div>
       {% if button_menu %}
         <div id="button-menu">
-            {% for button in button_menu %}
-              <a class="btn btn-secondary" href="{{ button.url }}"
-                  {% if button.newtab %} target="_blank"{% endif %}
-                  {% if button.data %}
-                    {% for k, v in button['data'].items() %}
-                      data-{{ k }}="{{ v }}"
-                    {% endfor %}
-                  {% endif %}>
-                {% if button.icon %}<span class="fa {{ button.icon }}"></span>&nbsp;{% endif %}
-                {{ button.name }}
-              </a>
-            {% endfor %}
-          </div>
+          {% for button_group in button_menu %}
+            <div class="btn-group">
+              {% for button in button_group %}
+                <a class="btn btn-secondary" href="{{ button.url }}"
+                    {% if button.newtab %} target="_blank"{% endif %}
+                    {% if button.data %}
+                      {% for k, v in button['data'].items() %}
+                        data-{{ k }}="{{ v }}"
+                      {% endfor %}
+                    {% endif %}>
+                  {% if button.icon %}<span class="fa {{ button.icon }}"></span>&nbsp;{% endif %}
+                  {{ button.name }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
       {% block content %}{% endblock %}
     </div>

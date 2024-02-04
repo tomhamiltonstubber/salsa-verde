@@ -10,10 +10,7 @@ from ...common.views import AddModelView, DetailView, ModelListView, UpdateModel
 
 class IngredientTypeList(ModelListView):
     model = IngredientType
-    display_items = [
-        'name',
-        'unit',
-    ]
+    display_items = ['name', 'unit']
     order_by = 'name'
 
 
@@ -22,10 +19,7 @@ ingredient_type_list = IngredientTypeList.as_view()
 
 class IngredientTypeDetails(DetailView):
     model = IngredientType
-    display_items = [
-        'name',
-        'unit',
-    ]
+    display_items = ['name', 'unit']
 
     def extra_display_items(self):
         return [
@@ -92,13 +86,14 @@ class IngredientDetails(DetailView):
     model = Ingredient
     display_items = [
         'obj_url|ingredient_type',
-        'batch_code',
-        'intake_date',
-        'obj_url|supplier',
         'quantity',
-        ('Intake Document', 'obj_url|intake_document'),
+        'batch_code',
+        'obj_url|supplier',
+        'intake_date',
+        'intake_user',
         'intake_quality_check',
         'finished',
+        'intake_notes',
     ]
 
     def extra_display_items(self):
@@ -113,6 +108,7 @@ class IngredientDetails(DetailView):
                 'title': 'Products used in',
                 'qs': products,
                 'fields': ['product_type', 'batch_code', 'date_of_infusion', 'date_of_bottling', 'yield_quantity'],
+                'icon': 'fa-bottle-droplet',
             }
         ]
 
@@ -122,8 +118,13 @@ class IngredientDetails(DetailView):
             label = 'Mark as In stock'
         else:
             label = 'Mark as Finished'
-        btns.append(
-            {'name': label, 'url': reverse('ingredient-status', kwargs={'pk': self.object.pk}), 'method': 'POST'}
+        btns[-1].append(
+            {
+                'name': label,
+                'url': reverse('ingredient-status', kwargs={'pk': self.object.pk}),
+                'method': 'POST',
+                'icon': 'fa-check',
+            },
         )
         return btns
 
@@ -135,6 +136,7 @@ class IngredientEdit(UpdateModelView):
     model = Ingredient
     form_class = IngredientForm
     title = 'Edit Ingredient'
+    cancel_rurl = 'ingredients'
 
 
 ingredient_edit = IngredientEdit.as_view()
@@ -145,6 +147,12 @@ class IngredientAdd(AddModelView):
     form_class = IngredientForm
     model = Ingredient
     title = 'Intake Ingredient'
+    cancel_rurl = 'ingredients'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['initial'] = {'intake_user': self.request.user}
+        return kwargs
 
 
 ingredient_add = IngredientAdd.as_view()

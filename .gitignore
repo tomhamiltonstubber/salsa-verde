@@ -11,3 +11,4 @@ coverage.xml
 localsettings.py
 
 /static/libs/
+/static/css/
