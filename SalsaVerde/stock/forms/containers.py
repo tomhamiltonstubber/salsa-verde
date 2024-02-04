@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
-from SalsaVerde.stock.models import Container, ContainerType, GoodsIntake, Product, YieldContainer
+from SalsaVerde.stock.models import Container, ContainerType, YieldContainer, Product
 
 
 class UpdateContainerTypeForm(SVModelForm):
@@ -20,15 +20,12 @@ class UpdateContainerTypeForm(SVModelForm):
         return super().save(commit)
 
 
-class UpdateContainerForm(SVModelForm):
+class ContainerForm(SVModelForm):
     title = 'Containers'
 
     class Meta:
         model = Container
         fields = ['container_type', 'quantity', 'batch_code', 'supplier']
-
-
-ContainersFormSet = forms.inlineformset_factory(GoodsIntake, Container, UpdateContainerForm, extra=1, can_delete=False)
 
 
 class YieldContainersForm(SVModelForm):

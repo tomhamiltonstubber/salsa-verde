@@ -11,7 +11,7 @@
         <div class="col-md-{{ col[0] }} unpad">{{ field|bootstrap }}</div>
       {% endfor -%}
     </div>
-    <div class="row">
+    <div class="formset">
       {% block formset %}{{ display_formset(formset) }}{% endblock %}
     </div>
     <input type="submit" value="Submit" class="btn btn-outline-primary" />

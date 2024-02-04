@@ -20,7 +20,7 @@ from SalsaVerde.stock.models import (
     ProductTypeSize,
     YieldContainer,
 )
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
 class ProductTypeTestCase(TestCase):
@@ -32,7 +32,6 @@ class ProductTypeTestCase(TestCase):
         self.ingred_type_2 = IngredientTypeFactory(company=self.company, name='thyme')
         self.ingred_type_3 = IngredientTypeFactory(company=self.company, name='vinegar')
         self.add_url = reverse('product-types-add')
-        self.management_data = empty_formset('product_type_sizes')
 
     def test_add_product_type(self):
         r = self.client.get(self.add_url)
@@ -42,10 +41,9 @@ class ProductTypeTestCase(TestCase):
             'name': 'BBT',
             'ingredient_types': [self.ingred_type_1.pk, self.ingred_type_2.pk, self.ingred_type_3.pk],
             'code': 'BTT',
-            'product_type_sizes-0-sku_code': 'foo456',
-            'product_type_sizes-0-bar_code': '9878765564',
-            'product_type_sizes-0-size': '0.15',
-            **self.management_data,
+            'sku_code': 'foo456',
+            'bar_code': '9878765564',
+            'size': '0.15',
         }
         r = self.client.post(self.add_url, data=data, follow=True)
         pt = ProductType.objects.get()
@@ -86,15 +84,12 @@ class ProductTestCase(TestCase):
         self.client = AuthenticatedClient()
         self.user = self.client.user
         self.company = self.user.company
-        self.intake_url = reverse('intake-containers')
 
         self.bottle = ContainerFactory(
             container_type__type=ContainerType.TYPE_BOTTLE, container_type__company=self.company
         )
         self.cap = ContainerFactory(container_type__type=ContainerType.TYPE_CAP, container_type__company=self.company)
         self.product_type = ProductTypeFactory(company=self.user.company)
-        self.product_ingred_mngmnt = empty_formset('product_ingredients')
-        self.yield_containers_mngmnt = empty_formset('yield_containers')
         self.url = reverse('products-add')
 
     def test_add_product(self):
@@ -105,9 +100,8 @@ class ProductTestCase(TestCase):
             'product_type': self.product_type.id,
             'batch_code': 'foobar',
             'date_of_infusion': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
-            'product_ingredients-0-ingredient': ingred.pk,
-            'product_ingredients-0-quantity': 8,
-            **empty_formset('product_ingredients'),
+            'ingredient': ingred.pk,
+            'quantity': 8,
         }
         r = self.client.post(self.url, data=data, follow=True)
         product = Product.objects.get()
@@ -138,12 +132,11 @@ class ProductTestCase(TestCase):
         self.assertNotContains(r, 'Batch code')
 
         data = {
-            'yield_containers-0-container': self.bottle.pk,
-            'yield_containers-0-cap': self.cap.pk,
-            'yield_containers-0-quantity': 15,
+            'container': self.bottle.pk,
+            'cap': self.cap.pk,
+            'quantity': 15,
             'date_of_bottling': datetime(2018, 3, 3).strftime(settings.DT_FORMAT),
             'yield_quantity': 25,
-            **empty_formset('yield_containers'),
         }
         r = self.client.post(reverse('products-bottle', args=[product.pk]), data=data, follow=True)
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))

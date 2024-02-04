@@ -2,11 +2,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 
-from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
-from SalsaVerde.stock.forms.ingredients import IngredientsFormSet, UpdateIngredientsForm, UpdateIngredientTypeForm
+from SalsaVerde.stock.forms.ingredients import UpdateIngredientTypeForm, IngredientForm
 from SalsaVerde.stock.models import Ingredient, IngredientType, Product
 
-from ...common.views import AddModelView, DetailView, ModelListView, SVFormsetForm, UpdateModelView
+from ...common.views import AddModelView, DetailView, ModelListView, UpdateModelView
 
 
 class IngredientTypeList(ModelListView):
@@ -32,8 +31,8 @@ class IngredientTypeDetails(DetailView):
         return [
             {
                 'title': 'Ingredients',
-                'qs': self.object.ingredients.select_related('ingredient_type').order_by('-goods_intake__intake_date'),
-                'fields': ['ingredient_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier'],
+                'qs': self.object.ingredients.select_related('ingredient_type').order_by('-intake_date'),
+                'fields': ['ingredient_type', 'batch_code', ('Intake date', 'intake_date'), 'supplier'],
             }
         ]
 
@@ -59,28 +58,19 @@ ingredient_type_edit = IngredientTypeEdit.as_view()
 
 class IngredientList(ModelListView):
     model = Ingredient
-    display_items = [
-        'ingredient_type',
-        'batch_code',
-        ('Intake date', 'goods_intake__intake_date'),
-        'supplier',
-    ]
+    display_items = ['ingredient_type', 'batch_code', 'intake_date', 'supplier']
     order_by = 'ingredient_type__name'
+    icon = 'fa-apple-whole'
 
     def dispatch(self, request, *args, **kwargs):
         self.view_finished = bool(self.request.GET.get('finished'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(finished=self.view_finished)
-            .select_related('ingredient_type', 'goods_intake', 'supplier')
-        )
+        return super().get_queryset().filter(finished=self.view_finished).select_related('ingredient_type', 'supplier')
 
     def get_button_menu(self):
-        yield {'name': 'Record ingredients intake', 'url': reverse('intake-ingredients')}
+        yield {'name': 'Record ingredients intake', 'url': reverse('ingredient-add'), 'icon': 'fa-plus'}
         if self.view_finished:
             yield {'name': 'View Current Ingredients', 'url': reverse('ingredients')}
         else:
@@ -103,7 +93,7 @@ class IngredientDetails(DetailView):
     display_items = [
         'obj_url|ingredient_type',
         'batch_code',
-        ('Intake date', 'goods_intake__intake_date'),
+        'intake_date',
         'obj_url|supplier',
         'quantity',
         ('Intake Document', 'obj_url|intake_document'),
@@ -143,24 +133,18 @@ ingredient_details = IngredientDetails.as_view()
 
 class IngredientEdit(UpdateModelView):
     model = Ingredient
-    form_class = UpdateIngredientsForm
+    form_class = IngredientForm
+    title = 'Edit Ingredient'
 
 
 ingredient_edit = IngredientEdit.as_view()
 
 
-class IntakeIngredients(SVFormsetForm, AddModelView):
+class IngredientAdd(AddModelView):
     success_url = reverse_lazy('ingredients')
-    formset_class = IngredientsFormSet
-    form_class = GoodsIntakeForm
-    template_name = 'intake_ingredients.jinja'
+    form_class = IngredientForm
     model = Ingredient
-    title = 'Intake Ingredients'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['document_type'] = self.model.intake_document_type()
-        return kwargs
+    title = 'Intake Ingredient'
 
 
-intake_ingredients = IntakeIngredients.as_view()
+ingredient_add = IngredientAdd.as_view()

@@ -91,14 +91,11 @@ class Ingredient(BaseModel):
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey(
-        'stock.GoodsIntake',
-        related_name='ingredients',
-        verbose_name='Goods Intake',
-        on_delete=models.CASCADE,
-    )
     finished = models.BooleanField('Finished', default=False)
+
     intake_notes = models.TextField('Intake Notes', null=True, blank=True)
+    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
+    intake_date = models.DateTimeField('Intake date', default=timezone.now)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
@@ -107,7 +104,7 @@ class Ingredient(BaseModel):
         return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
 
     def __str__(self):
-        return mark_safe(f'{self.name} - {self.batch_code} - {self.goods_intake.intake_date:%d/%m/%Y}')
+        return mark_safe(f'{self.name} - {self.batch_code} - {self.intake_date:%d/%m/%Y}')
 
     @property
     def name(self):
@@ -115,7 +112,7 @@ class Ingredient(BaseModel):
 
     @property
     def intake_document(self):
-        return self.goods_intake.intake_document
+        return self.intake_document
 
     @classmethod
     def intake_document_type(cls):
@@ -174,10 +171,11 @@ class Container(BaseModel):
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey(
-        'stock.GoodsIntake', related_name='containers', verbose_name='Goods Intake', on_delete=models.CASCADE
-    )
     finished = models.BooleanField('Finished', default=False)
+
+    intake_notes = models.TextField('Intake Notes', null=True, blank=True)
+    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
+    intake_date = models.DateTimeField('Intake date', default=timezone.now)
 
     @classmethod
     def prefix(cls):
@@ -188,14 +186,6 @@ class Container(BaseModel):
 
     def __str__(self):
         return mark_safe(f'{self.name} - {self.batch_code}')
-
-    @property
-    def intake_document(self):
-        return self.goods_intake.intake_document
-
-    @classmethod
-    def intake_document_type(cls):
-        return Document.FORM_SUP02
 
     @property
     def name(self):
@@ -227,29 +217,6 @@ class YieldContainer(BaseModel):
     def total_volume(self):
         if self.container.container_type.size:
             return self.quantity * self.container.container_type.size
-
-
-class GoodsIntakeQuerySet(QuerySet):
-    def request_qs(self, request):
-        return self.filter(intake_user__company=request.user.company)
-
-
-class GoodsIntake(BaseModel):
-    objects = GoodsIntakeQuerySet.as_manager()
-
-    date_created = models.DateTimeField('Date created', default=timezone.now)
-    intake_date = models.DateTimeField('Intake date', default=timezone.now)
-    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE)
-
-    def display_intake_date(self):
-        return self.intake_date.strftime(settings.DT_FORMAT)
-
-    @property
-    def intake_document(self):
-        try:
-            return Document.objects.get(goods_intake=self)
-        except Document.DoesNotExist:
-            return
 
 
 class ProductType(CompanyNameBaseModel):
@@ -425,14 +392,6 @@ class Document(BaseModel):
         blank=True,
         related_name='focused_documents',
         on_delete=models.SET_NULL,
-    )
-    goods_intake = models.ForeignKey(
-        GoodsIntake,
-        verbose_name='Intake of Goods',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='documents',
     )
     supplier = models.ForeignKey(
         Supplier,

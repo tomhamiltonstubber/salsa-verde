@@ -66,7 +66,6 @@ stock_models = {
     'ContainerType',
     'Container',
     'YieldContainer',
-    'GoodsIntake',
     'ProductType',
     'ProductTypeSize',
     'Product',

@@ -1,6 +1,5 @@
 from django import forms
 
-from SalsaVerde.stock.models import Document, GoodsIntake
 from SalsaVerde.stock.widgets import DateTimePicker
 
 
@@ -14,20 +13,22 @@ class SVFormMixin:
             if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
                 self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
         if layout := getattr(self.Meta, 'layout', None):
-            organised_fields = []
+            organised_lines = []
             for line in layout:
-                defined_widths = [item[1] for item in line if isinstance(item, tuple)]
-                line = [
-                    (
-                        self.fields[item].get_bound_field(self, item),
-                        int((12 - sum(defined_widths)) / (len(line) - len(defined_widths)))
-                        if isinstance(item, str)
-                        else item[1],
-                    )
-                    for item in line
-                ]
-                organised_fields.append(line)
-            self.layout = organised_fields
+                organised_line = []
+                defined_widths = [field_name[1] for field_name in line if isinstance(field_name, tuple)]
+                width_leftover = 12 - sum(defined_widths)
+                width_per_undefined_item = width_leftover / (len(line) - len(defined_widths))
+                for field_name in line:
+                    if isinstance(field_name, str):
+                        field = self.fields[field_name].get_bound_field(self, field_name)
+                        width = width_per_undefined_item
+                    else:
+                        field = self.fields[field_name[0]].get_bound_field(self, field_name[0])
+                        width = field_name[1]
+                    organised_line.append((field, int(width)))
+                organised_lines.append(organised_line)
+            self.layout = organised_lines
 
 
 class SVForm(SVFormMixin, forms.Form):
@@ -36,19 +37,3 @@ class SVForm(SVFormMixin, forms.Form):
 
 class SVModelForm(SVFormMixin, forms.ModelForm):
     full_width = False
-
-
-class GoodsIntakeForm(SVModelForm):
-    class Meta:
-        model = GoodsIntake
-        exclude = {'date_created'}
-
-    def __init__(self, document_type, *args, **kwargs):
-        self.document_type = document_type
-        super().__init__(*args, **kwargs)
-
-    def save(self, commit=True):
-        obj = super().save(commit)
-        if not obj.documents.exists():
-            Document.objects.create(author=self.request.user, type=self.document_type, goods_intake=obj)
-        return obj

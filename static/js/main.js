@@ -36,7 +36,7 @@ $(document).ready(() => {
 
 function init_select2 () {
   try {
-    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
+    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------', theme: 'bootstrap-5'})
   } catch (e) {
     // this seems to happen occasionally when something has gone wrong, ignore it
   }
@@ -104,7 +104,7 @@ function reset_choices ($select, choices) {
   $.each(choices, (k, v) => {
     $select.append($('<option></option>').attr('value', k).text(v))
   })
-  $select.select2()
+  $select.select2({theme: 'bootstrap-5'})
 }
 
 function init_ef_form() {

@@ -6,28 +6,74 @@ body {
 .nav .nav-link {
   color: #484848; }
 
-#login-block {
-  margin-top: 100px; }
-  #login-block > div {
-    width: 30%;
-    background-color: #3d4b65;
-    margin: 0 auto;
-    padding: 20px 0 40px 0;
-    border: 1px solid #3d4b65;
-    border-radius: 4px; }
-    #login-block > div #login-form {
-      display: inline-grid; }
-
 #content {
-  padding: 50px;
+  padding: 15px 15px 30px 15px;
   border-radius: 4px;
-  border: 1px solid #3d4b65;
+  border: 1px solid #28b975;
   background-color: white; }
   #content .container {
     max-width: 100%; }
 
-#button-menu {
-  padding-bottom: 20px; }
+/* Utility classes */
+.text-primary-dark {
+  color: #28b975 !important; }
+
+.bg-primary-dark {
+  background-color: #28b975 !important; }
+
+/* Common items */
+#page-title {
+  border-bottom: 1px solid #28b975; }
+
+.btn-secondary {
+  border-color: #47d794; }
+  .btn-secondary:hover {
+    background-color: #c4edd0;
+    border-color: #47d794; }
+
+/* Forms */
+.formset {
+  padding-top: 20px; }
+
+textarea.resize-vertical-only {
+  resize: vertical; }
+
+.form-group .checkbox {
+  padding-top: 0.9rem;
+  margin-top: 0.3rem; }
+
+.custom-form .form-panel {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px; }
+  .custom-form .form-panel .form-control {
+    margin-bottom: 10px; }
+  .custom-form .form-panel .row {
+    padding: 10px 15px 0 15px; }
+  .custom-form .form-panel .table-title {
+    display: none; }
+
+/* Select2 */
+.select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection {
+  border-color: #28b975;
+  box-shadow: 0 0 0 0.25rem rgba(71, 215, 148, 0.25); }
+
+.select2-container--bootstrap-5 .select2-selection {
+  border-color: #28b975;
+  background-color: #ebf9ef; }
+
+/* Login page */
+#login-block {
+  margin-top: 100px; }
+  #login-block > div {
+    width: 30%;
+    background-color: #47d794;
+    margin: 0 auto;
+    padding: 20px 0 40px 0;
+    border: 1px solid #28b975;
+    border-radius: 4px; }
+    #login-block > div #login-form {
+      display: inline-grid; }
 
 #ingredients_form .control-label {
   display: none; }
@@ -61,16 +107,5 @@ body {
 
 .table .border-top td {
   border-top-width: 2px; }
-
-.custom-form .form-panel {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 20px; }
-  .custom-form .form-panel .form-control {
-    margin-bottom: 10px; }
-  .custom-form .form-panel .row {
-    padding: 10px 15px 0 15px; }
-  .custom-form .form-panel .table-title {
-    display: none; }
 
 /*# sourceMappingURL=styles.css.map */

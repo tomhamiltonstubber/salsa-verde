@@ -1,15 +1,20 @@
-$main-colour: #3d4b65;
-//$secondary: #eef2fb;
-$border-color:              $main-colour;
+$main-color:                #47d794;
+$primary:                   $main-color;
+$secondary:                 #ebf9ef;
+$primary-dark:              darken($main-color, 12%);
 
-$primary:                   $main-colour;
-$body-bg:                   #eef2fb;
+$border-color:              $primary-dark;
+
+$body-bg:                   $secondary;
 $table-bg:                  white;
-$body-secondary-bg:         $main-colour;
-//$body-tertiary-bg:          $main-colour;
+$card-bg:                   white;
+$card-border-color:               $border-color;
+$body-secondary-bg:         $main-color;
 
-$link-decoration:          none;
+$link-decoration:           none;
 $font-size-base:            0.9rem;
+$h3-font-size:              1.5rem;
+$link-color:                #3062bb;
 
 //$link-color:                $main-colour;
 //$color

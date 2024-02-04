@@ -3,12 +3,11 @@ from datetime import datetime
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from SalsaVerde.stock.factories.raw_materials import ContainerFactory, ContainerTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
-from SalsaVerde.stock.models import Container, ContainerType, Document, GoodsIntake
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset, refresh
+from SalsaVerde.stock.models import Container, ContainerType, Document
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient, refresh
 
 
 class ContainerTypeTestCase(TestCase):
@@ -69,41 +68,33 @@ class ContainerTestCase(TestCase):
         self.client = AuthenticatedClient()
         self.user = self.client.user
         self.company = self.user.company
-        self.intake_url = reverse('intake-containers')
+        self.add_url = reverse('container-add')
         self.container_type = ContainerTypeFactory(company=self.company, name='bottle', type=ContainerType.TYPE_BOTTLE)
         self.supplier = SupplierFactory(name='good bottle', company=self.company)
-        self.intake_management_data = empty_formset('containers')
 
     def test_intake_containers(self):
-        r = self.client.get(self.intake_url)
+        r = self.client.get(self.add_url)
         self.assertContains(r, 'bottle')
         self.assertContains(r, 'Intake Recipient')
         self.assertContains(r, self.supplier)
         data = {
             'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
             'intake_user': self.user.pk,
-            'containers-0-container_type': self.container_type.pk,
-            'containers-0-quantity': 10,
-            'containers-0-batch_code': '123abc',
-            'containers-0-supplier': self.supplier.pk,
-            'containers-0-condition': 'Good',
-            **self.intake_management_data,
+            'container_type': self.container_type.pk,
+            'quantity': 10,
+            'batch_code': '123abc',
+            'supplier': self.supplier.pk,
+            'condition': 'Good',
         }
-        r = self.client.post(self.intake_url, data=data)
+        r = self.client.post(self.add_url, data=data)
         self.assertRedirects(r, reverse('containers'))
-        goods_intake = GoodsIntake.objects.get()
-        assert goods_intake.intake_date.date() == datetime(2018, 2, 2).date()
-        assert goods_intake.date_created.date() == timezone.now().date()
-        assert goods_intake.intake_user == self.user
         doc = Document.objects.get()
         assert doc.type == Document.FORM_SUP02
         assert doc.author == self.user
-        assert doc.goods_intake == goods_intake
         container = Container.objects.get()
         assert container.container_type == self.container_type
         assert container.batch_code == '123abc'
         assert container.condition == 'Good'
-        assert container.goods_intake == goods_intake
         assert container.quantity == 10
         assert container.supplier == self.supplier
 

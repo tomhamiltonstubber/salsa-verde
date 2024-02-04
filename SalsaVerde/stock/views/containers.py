@@ -2,8 +2,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 
-from SalsaVerde.stock.forms.base_forms import GoodsIntakeForm
-from SalsaVerde.stock.forms.containers import ContainersFormSet, UpdateContainerForm, UpdateContainerTypeForm
+from SalsaVerde.stock.forms.containers import ContainerForm, UpdateContainerTypeForm
 from SalsaVerde.stock.models import Container, ContainerType, Product
 
 from ...common.views import AddModelView, DetailView, ModelListView, SVFormsetForm, UpdateModelView
@@ -34,8 +33,8 @@ class ContainerTypeDetails(DetailView):
         return [
             {
                 'title': 'Containers',
-                'qs': self.object.containers.select_related('container_type').order_by('-goods_intake__intake_date'),
-                'fields': ['container_type', 'batch_code', ('Intake date', 'goods_intake__intake_date'), 'supplier'],
+                'qs': self.object.containers.select_related('container_type').order_by('-intake_date'),
+                'fields': ['container_type', 'batch_code', ('Intake date', 'intake_date'), 'supplier'],
             }
         ]
 
@@ -61,12 +60,7 @@ container_type_edit = ContainerTypeEdit.as_view()
 
 class ContainerList(ModelListView):
     model = Container
-    display_items = [
-        'container_type',
-        'batch_code',
-        ('Intake date', 'goods_intake__intake_date'),
-        'supplier',
-    ]
+    display_items = ['container_type', 'batch_code', 'intake_date', 'supplier']
     order_by = 'container_type__name'
 
     def dispatch(self, request, *args, **kwargs):
@@ -74,15 +68,10 @@ class ContainerList(ModelListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(finished=self.view_finished)
-            .select_related('container_type', 'goods_intake', 'supplier')
-        )
+        return super().get_queryset().filter(finished=self.view_finished).select_related('container_type', 'supplier')
 
     def get_button_menu(self):
-        yield {'name': 'Record containers intake', 'url': reverse('intake-containers')}
+        yield {'name': 'Record containers intake', 'url': reverse('container-add'), 'icon': 'fa-plus'}
         if self.view_finished:
             yield {'name': 'View Current Containers', 'url': reverse('containers')}
         else:
@@ -105,7 +94,7 @@ class ContainerDetails(DetailView):
     display_items = [
         'container_type',
         'batch_code',
-        ('Intake date', 'goods_intake__intake_date'),
+        'intake_date',
         'obj_url|supplier',
         'quantity',
         ('Intake Document', 'obj_url|intake_document'),
@@ -143,25 +132,20 @@ class ContainerDetails(DetailView):
 containers_details = ContainerDetails.as_view()
 
 
-class IntakeContainers(SVFormsetForm, AddModelView):
+class ContainersAdd(AddModelView):
     model = Container
-    formset_class = ContainersFormSet
-    form_class = GoodsIntakeForm
-    template_name = 'formset_form.jinja'
+    form_class = ContainerForm
     success_url = reverse_lazy('containers')
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['document_type'] = self.model.intake_document_type()
-        return kwargs
+    title = 'Add Containers'
 
 
-intake_containers = IntakeContainers.as_view()
+container_add = ContainersAdd.as_view()
 
 
 class ContainerEdit(UpdateModelView):
     model = Container
-    form_class = UpdateContainerForm
+    form_class = ContainerForm
+    title = 'Edit Containers'
 
 
 containers_edit = ContainerEdit.as_view()

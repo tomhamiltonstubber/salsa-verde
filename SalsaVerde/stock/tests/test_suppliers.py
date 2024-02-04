@@ -78,7 +78,6 @@ class SupplierTestCase(TestCase):
             ingredient_type__name='blackberries',
             supplier=supplier,
             ingredient_type__unit=IngredientType.UNIT_LITRE,
-            goods_intake__intake_date=date,
         )
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
         self.assertContains(r, 'Supplied Ingredients')
@@ -95,4 +94,4 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, 'abc')
         self.assertContains(r, 'foo123')
         self.assertContains(r, '10.000')
-        self.assertContains(r, display_dt(container.goods_intake.date_created))
+        self.assertContains(r, display_dt(container.intake_date))

@@ -23,7 +23,7 @@ supplier_patterns = [
 
 container_patterns = [
     path('', containers.containers_list, name='containers'),
-    path('intake-goods/containers/', containers.intake_containers, name='intake-containers'),
+    path('add/', containers.container_add, name='container-add'),
     path('<int:pk>/', containers.containers_details, name='containers-details'),
     path('<int:pk>/edit/', containers.containers_edit, name='containers-edit'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Container), name='containers-delete'),
@@ -41,7 +41,7 @@ ingredient_patterns = [
     path('<int:pk>/edit/', ingredients.ingredient_edit, name='ingredients-edit'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Ingredient), name='ingredients-delete'),
     path('<int:pk>/status/', ingredients.change_ingredient_status, name='ingredient-status'),
-    path('intake-goods/ingredients/', ingredients.intake_ingredients, name='intake-ingredients'),
+    path('add/', ingredients.ingredient_add, name='ingredient-add'),
     path('types/', ingredients.ingredient_type_list, name='ingredient-types'),
     path('types/add/', ingredients.ingredient_type_add, name='ingredient-types-add'),
     path('types/<int:pk>/', ingredients.ingredient_type_details, name='ingredient-types-details'),

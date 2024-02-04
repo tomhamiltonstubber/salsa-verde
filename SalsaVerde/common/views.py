@@ -241,12 +241,12 @@ class SVFormView(DisplayHelpers, FormView):
 
 class AddModelView(SVModelFormView, CreateView):
     def get_title(self):
-        return self.title or 'Create new %s' % self.model._meta.verbose_name
+        return self.title or f'Create new {self.model._meta.verbose_name}'
 
 
 class UpdateModelView(QuerySetMixin, SVModelFormView, UpdateView, ObjMixin):
     def get_title(self):
-        return self.title or 'Edit %s' % self.object
+        return self.title or f'Edit {self.object}'
 
 
 class ExtraContentView(ModelBasicView):

@@ -39,28 +39,45 @@
   </div>
 {% endmacro %}
 
-{% macro display_formset(formset) %}
-  {{ formset.management_form|safe }}
-  {% set el_id = formset.empty_form.title | replace(' ', '-') | lower %}
-  <table class="table">
-    <h4 class="table-title">{{ formset.empty_form.title }}</h4>
-    {% for form in formset %}
-      <tr class="formset-{{ el_id }} form-row" data-prefix="{{ formset.prefix }}" data-formset-id="{{ el_id }}">
-        {% for field in form.visible_fields() %}
-          <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
+{% macro render_form(form) %}
+  {% if form.layout %}
+    {% for line in form.layout %}
+      <div class="row">
+        {% for field, width in line %}
+          <div class="col-md-{{ width }}">
+            {{ field | bootstrap }}
+            {{ field.errors.as_text() }}
+          </div>
         {% endfor %}
-        <td></td>
-      </tr>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="row">
+      {% for field in form.visible_fields() %}
+        <div class="col-md-{{ field.width or 6 }}">{{ field | bootstrap }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro display_formset(formset) %}
+  <div class="col-12">
+    {{ formset.management_form|safe }}
+    {% set el_id = formset.empty_form.title | replace(' ', '-') | lower %}
+    <h4>{{ formset.empty_form.title }}</h4>
+    {% for form in formset %}
+      <div class="card p-2 formset-form formset-{{ el_id }}" data-prefix="{{ formset.prefix }}" data-formset_id="{{ el_id }}" id="id_empty_{{ el_id }}">
+        {{ render_form(form) }}
+      </div>
     {% endfor %}
     {% with form = formset.empty_form %}
-      <tr class="formset-form formset-{{ el_id }} form-row" data-prefix="{{ formset.prefix }}" data-formset_id="{{ el_id }}" id="id_empty_{{ el_id }}" style="display:none;">
-        {% for field in form.visible_fields() %}
-          <td>{{ field|bootstrap }}</td>{{ field.errors.as_text() }}
+      <div class="formset-form formset-{{ el_id }}" data-prefix="{{ formset.prefix }}" data-formset_id="{{ el_id }}" id="id_empty_{{ el_id }}" style="display:none;">
+        {% for line in form.layout %}
+          {{ render_form(form) }}
         {% endfor %}
-        <td></td>
-      </tr>
+      </div>
     {% endwith %}
-  </table>
+  </div>
 {% endmacro %}
 
 {% macro order_details(order_data, show_amounts=True) %}

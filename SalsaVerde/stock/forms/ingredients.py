@@ -1,7 +1,7 @@
 from django import forms
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
-from SalsaVerde.stock.models import GoodsIntake, Ingredient, IngredientType
+from SalsaVerde.stock.models import Ingredient, IngredientType
 
 
 class UpdateIngredientTypeForm(SVModelForm):
@@ -15,18 +15,16 @@ class UpdateIngredientTypeForm(SVModelForm):
         return super().save(commit)
 
 
-class UpdateIngredientsForm(SVModelForm):
+class IngredientForm(SVModelForm):
     title = 'Ingredients'
+    intake_date = forms.DateTimeField()
+    intake_notes = forms.CharField(widget=forms.Textarea({'rows': 2, 'class': 'resize-vertical-only'}), required=False)
 
     class Meta:
         model = Ingredient
         fields = ['supplier', 'ingredient_type', 'quantity', 'batch_code', 'intake_quality_check', 'intake_notes']
         layout = [
-            ['ingredient_type', 'quantity', 'batch_code', 'supplier'],
-            ['intake_notes', 'intake_quality_check'],
+            ['ingredient_type', 'quantity'],
+            ['supplier', 'batch_code'],
+            [('intake_notes', 9), 'intake_quality_check'],
         ]
-
-
-IngredientsFormSet = forms.inlineformset_factory(
-    GoodsIntake, Ingredient, form=UpdateIngredientsForm, extra=1, can_delete=False
-)
