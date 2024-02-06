@@ -10,5 +10,6 @@ coverage.xml
 *.dump
 localsettings.py
 
-/static/libs/
-/static/css/
+static/libs/
+static/css/
+static/js/libraries.js
