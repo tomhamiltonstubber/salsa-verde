@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
@@ -21,11 +23,39 @@ class UpdateContainerTypeForm(SVModelForm):
 
 
 class ContainerForm(SVModelForm):
-    title = 'Containers'
+    intake_notes = forms.CharField(widget=forms.Textarea({'rows': 2, 'class': 'resize-vertical-only'}), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        container_type_units_lu = dict(ContainerType.objects.request_qs(self.request).values_list('id', 'type'))
+        self.fields['quantity'].widget.attrs.update(
+            {
+                'step': 0.01,
+                'input-group-label-lu': 'cont_type_units',
+                'input-group-text': 'Units',
+                'cont_type_units': json.dumps(container_type_units_lu),
+                'linked-input-id': 'id_container_type',
+            },
+        )
 
     class Meta:
         model = Container
-        fields = ['container_type', 'quantity', 'batch_code', 'supplier']
+        fields = [
+            'supplier',
+            'container_type',
+            'quantity',
+            'batch_code',
+            'intake_quality_check',
+            'intake_notes',
+            'intake_user',
+            'intake_date',
+        ]
+        layout = [
+            ['intake_date', 'intake_user'],
+            ['container_type', 'quantity'],
+            ['supplier', 'batch_code'],
+            [('intake_notes', 9), 'intake_quality_check'],
+        ]
 
 
 class YieldContainersForm(SVModelForm):

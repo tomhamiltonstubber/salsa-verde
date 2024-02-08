@@ -232,7 +232,7 @@ class ObjMixin:
 
 class _SVFormView(DisplayHelpers):
     template_name = 'form_view.jinja'
-    cancel_rurl = NotImplemented
+    cancel_url = NotImplemented
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -240,7 +240,7 @@ class _SVFormView(DisplayHelpers):
         return kwargs
 
     def get_cancel_url(self):
-        return reverse(self.cancel_rurl)
+        return self.cancel_url
 
 
 class SVModelFormView(_SVFormView, DisplayHelpers):
@@ -252,13 +252,26 @@ class SVFormView(_SVFormView, DisplayHelpers, FormView):
 
 
 class AddModelView(SVModelFormView, CreateView):
+    cancel_url = None
+
     def get_title(self):
         return self.title or f'Create new {self.model._meta.verbose_name}'
+
+    def get_cancel_url(self) -> str:
+        if self.cancel_url:
+            return self.cancel_url
+        elif hasattr(self.model, 'prefix'):
+            return reverse(self.model.prefix())
+        else:
+            raise NotImplementedError
 
 
 class UpdateModelView(QuerySetMixin, SVModelFormView, UpdateView, ObjMixin):
     def get_title(self):
         return self.title or f'Edit {self.object}'
+
+    def get_cancel_url(self):
+        return self.object.get_absolute_url()
 
 
 class ExtraContentView(ModelBasicView):

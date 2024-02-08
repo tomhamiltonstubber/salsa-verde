@@ -1,13 +1,13 @@
-from django.test import TestCase
 from django.urls import reverse
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.company.models import Company
 from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
-class CompanySetupTestCase(TestCase):
+class CompanySetupTestCase(SVTestCase):
     def setUp(self):
         self.company = CompanyFactory(name='Burren')
         self.admin = UserFactory(company=self.company, last_name='FooCar')

@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from django.conf import settings
-from django.test import TestCase
 from django.urls import reverse
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.raw_materials import IngredientFactory, IngredientTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.factories.users import UserFactory
@@ -11,7 +11,7 @@ from SalsaVerde.stock.models import Document, Ingredient, IngredientType
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, refresh
 
 
-class IngredientTypeTestCase(TestCase):
+class IngredientTypeTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -47,7 +47,7 @@ class IngredientTypeTestCase(TestCase):
         assert not IngredientType.objects.exists()
 
 
-class IngredientTestCase(TestCase):
+class IngredientTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -63,34 +63,32 @@ class IngredientTestCase(TestCase):
         data = {
             'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
             'intake_user': self.user.pk,
+            'intake_notes': 'Foobar',
             'ingredient_type': self.ingredient_type.pk,
             'quantity': 10,
             'batch_code': '123abc',
             'supplier': self.supplier.pk,
-            'condition': 'Good',
+            'intake_quality_check': True,
         }
         r = self.client.post(self.add_url, data=data)
         self.assertRedirects(r, reverse('ingredients'))
 
-        doc = Document.objects.get()
-        assert doc.type == Document.FORM_SUP01
-        assert doc.author == self.user
         ingred = Ingredient.objects.get()
         assert ingred.ingredient_type == self.ingredient_type
         assert ingred.batch_code == '123abc'
-        assert ingred.condition == 'Good'
         assert ingred.quantity == 10
         assert ingred.supplier == self.supplier
+        assert ingred.intake_notes == 'Foobar'
+        assert ingred.intake_quality_check
 
         r = self.client.get(reverse('ingredients-details', args=[ingred.pk]))
-        self.assertContains(r, f'{reverse("documents-details", args=[doc.pk])}">SUP01')
+        self.assertContains(r, 'Foobar')
 
     def test_intake_ingreds_unfilled_form(self):
         data = {
             'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
             'intake_user': self.user.pk,
             'supplier': self.supplier.pk,
-            'condition': 'Good',
         }
         r = self.client.post(self.add_url, data=data)
         self.assertContains(r, 'This field is required')
@@ -102,24 +100,35 @@ class IngredientTestCase(TestCase):
         self.assertNotContains(r, non_admin)
 
     def test_edit_ingredient(self):
-        ingred = Ingredient.objects.create(
+        ingredient = Ingredient.objects.create(
             ingredient_type=self.ingredient_type,
             batch_code='foo123',
             quantity=10,
             supplier=self.supplier,
+            intake_user=self.user,
         )
-        r = self.client.get(reverse('ingredients-edit', args=[ingred.pk]))
+        r = self.client.get(reverse('ingredients-edit', args=[ingredient.pk]))
         self.assertContains(r, 'foo123')
         data = {
-            'ingredient_type': self.ingredient_type.id,
-            'supplier': self.supplier.id,
+            'intake_date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT),
+            'intake_user': self.user.pk,
+            'intake_notes': 'Foobar',
+            'ingredient_type': self.ingredient_type.pk,
+            'quantity': 10,
             'batch_code': '123abc',
-            'quantity': 5,
-            'condition': 'Good',
+            'supplier': self.supplier.pk,
+            'intake_quality_check': True,
         }
-        r = self.client.post(reverse('ingredients-edit', args=[ingred.pk]), data=data)
-        self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))
-        assert refresh(ingred).batch_code == '123abc'
+        r = self.client.post(reverse('ingredients-edit', args=[ingredient.pk]), data=data)
+        self.assertRedirects(r, reverse('ingredients-details', args=[ingredient.pk]))
+
+        ingredient = Ingredient.objects.get()
+        assert ingredient.ingredient_type == self.ingredient_type
+        assert ingredient.batch_code == '123abc'
+        assert ingredient.quantity == 10
+        assert ingredient.supplier == self.supplier
+        assert ingredient.intake_notes == 'Foobar'
+        assert ingredient.intake_quality_check
 
     def test_delete_ingredient(self):
         ing = IngredientFactory(ingredient_type=self.ingredient_type, supplier=self.supplier)

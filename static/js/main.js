@@ -8,6 +8,7 @@ $(document).ready(() => {
   init_dt_pickers()
   init_formsets()
   init_input_groups()
+  init_product_add_form()
 
   const package_formsets = $('.formset-packages-sending')
   if (package_formsets.length > 0) {
@@ -177,6 +178,61 @@ function init_input_groups () {
     const linked_input = $('#' + $el.attr('linked-input-id'))
     linked_input.change(() => {
       $span.text(id_label_lu[linked_input.val()] + 's')
+    })
+  })
+}
+
+function init_product_add_form() {
+  const $product_type = $('#id_product_type')
+  if ($product_type.length === 0) {
+    return
+  }
+  const $product_ingredients = $('#product-ingredients')
+  $product_type.change(function () {
+    const data_url = $(this).attr('product-ingredient-choices-url-template').replace('999', this.value)
+    $.getJSON(data_url, function (data) {
+      $.each(data, function (i, ingred_data) {
+        const unit_str = ingred_data['unit']
+        const ingred_choices = ingred_data['choices']
+        const name = ingred_data['name']
+
+        const $new_row = $('<div class="row"></div>')
+
+        const $ingredient_wrapper = $('<div></div>').attr('class', 'form-group')
+        const $ingred_label = $('<label></label>').attr('for', `id_ingredient_${i}`).text(name)
+
+        $ingred_label.appendTo($ingredient_wrapper)
+        const $new_ingredient_select = $('<select></select>')
+          .attr('name', `ingredient_${i}`)
+          .attr('class', 'form-control')
+          .attr('id', `id_ingredient_${i}`)
+
+        $new_ingredient_select.appendTo($ingredient_wrapper)
+        $ingredient_wrapper.appendTo($new_row)
+
+        $.each(ingred_choices, function (i, opt) {
+          $new_ingredient_select.append($('<option></option>').attr('value', opt[0]).text(opt[1]))
+        })
+
+        const $new_quantity_wrapper = $('<div></div>').attr('class', 'form-group')
+        const $quantity_label = $('<label></label>').attr('for', `id_quantity_${i}`).text('Quantity')
+        $quantity_label.appendTo($new_quantity_wrapper)
+
+        const $new_quantity_input_wrapper = $('<div></div>').attr('class', 'input-group')
+        const $new_quantity_input = $('<input></input>')
+          .attr('type', 'number')
+          .attr('name', `quantity_${i}`)
+          .attr('class', 'form-control')
+          .attr('id', `id_quantity_${i}`)
+          .attr('placeholder', 'Quantity')
+          .attr('step', '0.01')
+        $new_quantity_input.appendTo($new_quantity_input_wrapper)
+        const $new_quantity_unit = $('<span></span>').attr('class', 'input-group-text').text(unit_str)
+        $new_quantity_unit.appendTo($new_quantity_input_wrapper)
+        $new_quantity_input_wrapper.appendTo($new_row)
+
+        $new_row.appendTo($product_ingredients)
+      })
     })
   })
 }

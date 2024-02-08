@@ -4,10 +4,10 @@ from unittest import mock
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.base import ContentFile
-from django.test import TestCase
 from django.urls import reverse
 from pytz import utc
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.company.models import User
 from SalsaVerde.orders.factories.orders import OrderFactory
 from SalsaVerde.orders.models import Order
@@ -19,7 +19,7 @@ from SalsaVerde.stock.models import Document
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, empty_formset
 
 
-class DHLOrderTestCase(TestCase):
+class DHLOrderTestCase(SVTestCase):
     def setUp(self):
         self.company = CompanyFactory(
             name='BB',
@@ -133,7 +133,7 @@ class DHLOrderTestCase(TestCase):
         }
 
 
-class ExpressFreightOrderTestCase(TestCase):
+class ExpressFreightOrderTestCase(SVTestCase):
     def setUp(self):
         cache.clear()
         self.company = CompanyFactory(
@@ -242,7 +242,7 @@ class ExpressFreightOrderTestCase(TestCase):
         assert r.status_code == 200
 
 
-class OrderTestCase(TestCase):
+class OrderTestCase(SVTestCase):
     def setUp(self):
         self.company = CompanyFactory(shopify_api_key='Foo', shopify_password='Bar')
         self.client = AuthenticatedClient(company=self.company)

@@ -1,7 +1,8 @@
 from django import forms
+from django.urls import reverse
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
-from SalsaVerde.stock.models import Product, ProductIngredient, ProductType, ProductTypeSize
+from SalsaVerde.stock.models import Product, ProductIngredient, ProductType, ProductTypeSize, Ingredient
 
 
 class UpdateProductTypeForm(SVModelForm):
@@ -50,15 +51,17 @@ class ProductIngredientForm(SVModelForm):
         exclude = {'product'}
 
 
-ProductIngredientFormSet = forms.inlineformset_factory(
-    Product, ProductIngredient, form=ProductIngredientForm, extra=1, can_delete=False
-)
-
-
 class AddProductForm(SVModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product_type'].label = 'Product Type'
+        self.fields['product_type'].widget.attrs['product-ingredient-choices-url-template'] = reverse(
+            'product-ingredient-choices', kwargs={'pk': 999}
+        )
+        ingredient_qs = Ingredient.objects.request_qs(self.request).filter(finished=False)
+        for i in range(10):
+            self.fields[f'ingredient_{i}'] = forms.ModelChoiceField(queryset=ingredient_qs, required=False)
+            self.fields[f'ingredient_quantity_{i}'] = forms.DecimalField(required=False)
 
     class Meta:
         model = Product

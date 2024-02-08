@@ -1,7 +1,7 @@
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.common.views import display_dt
 from SalsaVerde.stock.factories.raw_materials import ContainerFactory, IngredientFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
@@ -9,7 +9,7 @@ from SalsaVerde.stock.models import IngredientType, Supplier
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
-class SupplierTestCase(TestCase):
+class SupplierTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user

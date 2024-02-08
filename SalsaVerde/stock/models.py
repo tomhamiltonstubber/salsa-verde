@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
 from django.forms import JSONField
@@ -92,7 +91,6 @@ class Ingredient(BaseModel):
         IngredientType, verbose_name='Ingredient Type', related_name='ingredients', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
-    condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(
         Supplier, verbose_name='Supplier', related_name='ingredients', null=True, on_delete=models.SET_NULL
     )
@@ -164,7 +162,6 @@ class Container(BaseModel):
         ContainerType, verbose_name='Container', related_name='containers', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
-    condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(
         Supplier, verbose_name='Supplier', related_name='containers', null=True, on_delete=models.SET_NULL
     )
@@ -180,6 +177,9 @@ class Container(BaseModel):
     @classmethod
     def prefix(cls):
         return 'containers'
+
+    def display_quantity(self):
+        return f'{float(self.quantity):,g} {dict(ContainerType.TYPE_CONTAINERS)[self.container_type.type]}s'
 
     def get_absolute_url(self):
         return reverse('containers-details', kwargs={'pk': self.pk})

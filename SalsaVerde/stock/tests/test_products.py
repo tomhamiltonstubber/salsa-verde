@@ -2,9 +2,9 @@ import decimal
 from datetime import datetime
 
 from django.conf import settings
-from django.test import TestCase
 from django.urls import reverse
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.product import ProductFactory
 from SalsaVerde.stock.factories.raw_materials import (
     ContainerFactory,
@@ -23,7 +23,7 @@ from SalsaVerde.stock.models import (
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
-class ProductTypeTestCase(TestCase):
+class ProductTypeTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -79,7 +79,7 @@ class ProductTypeTestCase(TestCase):
         assert not ProductType.objects.exists()
 
 
-class ProductTestCase(TestCase):
+class ProductTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -220,7 +220,7 @@ class ProductTestCase(TestCase):
         self.assertContains(r, 'Batch code applied')
 
 
-class ProductTypeSizeTestCase(TestCase):
+class ProductTypeSizeTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.product_type = ProductTypeFactory(company=self.client.user.company)

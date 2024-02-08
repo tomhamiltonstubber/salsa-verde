@@ -11,7 +11,7 @@ class EditCompany(UpdateModelView):
     model = Company
     title = 'Edit company'
     form_class = EditCompanyForm
-    success_url = reverse_lazy('setup')
+    success_url = cancel_url = reverse_lazy('setup')
 
     def get_object(self, *args, **kwargs):
         return self.request.user.company
