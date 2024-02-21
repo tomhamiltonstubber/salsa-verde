@@ -12,7 +12,7 @@ class SVFormMixin:
                 self.fields[field].widget = DateTimePicker(self.fields[field])
             if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
                 self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
-        if layout := getattr(self.Meta, 'layout', None):
+        if hasattr(self, 'Meta') and (layout := getattr(self.Meta, 'layout', None)):
             organised_lines = []
             for line in layout:
                 organised_line = []

@@ -1,22 +1,15 @@
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse_lazy, reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
 
-from SalsaVerde.common.views import SVFormsetForm, AddModelView, UpdateModelView, DeleteObjectView
-from SalsaVerde.stock.forms.products import (
-    UpdateProductTypeForm,
-    ProductTypeSizesFormSet,
-    UpdateProductTypeSizeForm,
-    AddProductTypeSizeForm,
-)
+from SalsaVerde.common.views import AddModelView, DeleteObjectView, UpdateModelView
+from SalsaVerde.stock.forms.products import AddProductTypeSizeForm, UpdateProductTypeForm, UpdateProductTypeSizeForm
 from SalsaVerde.stock.models import ProductType, ProductTypeSize
 
 
-class ProductTypeAdd(SVFormsetForm, AddModelView):
+class ProductTypeAdd(AddModelView):
     model = ProductType
     form_class = UpdateProductTypeForm
-    template_name = 'formset_form.jinja'
     title = 'Add Product Type'
-    formset_class = ProductTypeSizesFormSet
     cancel_url = reverse_lazy('product-types')
 
     def get_success_url(self):
@@ -64,13 +57,13 @@ class ProductTypeSizeAdd(AddModelView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_cancel_url(self):
-        return reverse('product-types-details', kwargs={'pk': self.object.product_type.pk})
+        return reverse('product-types')
 
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.product_type = self.product_type
         obj.save()
-        return redirect('product-types-details', pk=self.object.product_type.pk)
+        return redirect('product-types-details', pk=self.product_type.pk)
 
 
 product_size_type_add = ProductTypeSizeAdd.as_view()

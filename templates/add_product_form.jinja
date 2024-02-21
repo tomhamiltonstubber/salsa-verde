@@ -5,6 +5,9 @@
 {% block content %}
   <div class="row">
     <form method="post" enctype="multipart/form-data">
+      {% for _, errors in form.errors.items() %}
+        <div class="alert alert-danger">{{ errors[0] }}</div>
+      {% endfor %}
       {% csrf_token %}
       <div class="edit-form">
         <div class="row">

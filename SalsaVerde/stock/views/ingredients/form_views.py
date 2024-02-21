@@ -2,9 +2,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 
-from SalsaVerde.common.views import UpdateModelView, AddModelView
+from SalsaVerde.common.views import AddModelView, UpdateModelView
 from SalsaVerde.stock.forms.ingredients import IngredientForm
-
 from SalsaVerde.stock.models import Ingredient
 
 

@@ -24,8 +24,14 @@ class ContainerDetails(DetailView):
             label = 'Mark as In stock'
         else:
             label = 'Mark as Finished'
-        btns[-1].append(
-            {'name': label, 'url': reverse('container-status', kwargs={'pk': self.object.pk}), 'method': 'POST'}
+        btns.append(
+            {
+                'name': label,
+                'url': reverse('container-status', kwargs={'pk': self.object.pk}),
+                'method': 'POST',
+                'icon': 'fa-check',
+                'group': 2,
+            }
         )
         return btns
 

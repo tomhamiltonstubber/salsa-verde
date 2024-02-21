@@ -4,7 +4,6 @@ from django.views.decorators.http import require_POST
 
 from SalsaVerde.common.views import AddModelView, UpdateModelView
 from SalsaVerde.stock.forms.containers import ContainerForm
-
 from SalsaVerde.stock.models import Container
 
 
@@ -19,7 +18,7 @@ def change_container_status(request, pk):
 class ContainersAdd(AddModelView):
     model = Container
     form_class = ContainerForm
-    success_url = reverse_lazy('containers')
+    success_url = cancel_url = reverse_lazy('containers')
     title = 'Add Container'
 
     def get_form_kwargs(self):

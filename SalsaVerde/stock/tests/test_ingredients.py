@@ -7,8 +7,8 @@ from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.raw_materials import IngredientFactory, IngredientTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.factories.users import UserFactory
-from SalsaVerde.stock.models import Document, Ingredient, IngredientType
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, refresh
+from SalsaVerde.stock.models import Ingredient, IngredientType
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
 class IngredientTypeTestCase(SVTestCase):

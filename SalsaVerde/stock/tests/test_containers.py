@@ -6,8 +6,8 @@ from django.urls import reverse
 from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.raw_materials import ContainerFactory, ContainerTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
-from SalsaVerde.stock.models import Container, ContainerType, Document
-from SalsaVerde.stock.tests.test_common import AuthenticatedClient, refresh
+from SalsaVerde.stock.models import Container, ContainerType
+from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
 class ContainerTypeTestCase(SVTestCase):

@@ -31,14 +31,19 @@ class ProductDetails(DetailView):
 
     def get_button_menu(self):
         btns = list(super().get_button_menu())
-        if self.object.status == Product.STATUS_INFUSED:
-            btns = [btn for btn in btns if btn['name'] != 'Edit']
-            btns.insert(1, {'name': 'Record bottling', 'rurl': 'products-bottle'})
         if self.object.finished:
             label = 'Mark as In stock'
         else:
             label = 'Mark as Finished'
-        btns.append({'name': label, 'url': reverse('product-status', kwargs={'pk': self.object.pk}), 'method': 'POST'})
+        btns.append(
+            {
+                'name': label,
+                'url': reverse('product-status', kwargs={'pk': self.object.pk}),
+                'method': 'POST',
+                'group': 2,
+                'icon': 'fa-check',
+            }
+        )
         return btns
 
     def extra_display_items(self):

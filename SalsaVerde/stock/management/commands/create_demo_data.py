@@ -22,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, **kwargs):
         company = Company.objects.create(name='Test Company')
 
-        user = User.objects.create_user(
+        User.objects.create_user(
             email='owner@salsaverde.com', first_name='Bruce', last_name='Banner', password='testing', company=company
         )
         supplier_1 = Supplier.objects.create(
@@ -67,7 +67,6 @@ class Command(BaseCommand):
             name='Black Balsamic', unit=IngredientType.UNIT_LITRE, company=company
         )
 
-        three_days = timezone.now() - timedelta(days=3)
         bb = Ingredient.objects.create(ingredient_type=bb_type, batch_code='bb123', supplier=supplier_1, quantity=20)
         thyme = Ingredient.objects.create(
             ingredient_type=thyme_type,

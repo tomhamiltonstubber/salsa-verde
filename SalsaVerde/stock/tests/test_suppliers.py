@@ -83,7 +83,7 @@ class SupplierTestCase(SVTestCase):
         self.assertContains(r, 'Supplied Ingredients')
         self.assertContains(r, 'blackberries')
         self.assertContains(r, 'foo123')
-        self.assertContains(r, '10.000 litre')
+        self.assertContains(r, '10 litres')
         self.assertContains(r, display_dt(date))
 
     def test_display_containers(self):
@@ -93,5 +93,6 @@ class SupplierTestCase(SVTestCase):
         self.assertContains(r, 'Supplied Containers')
         self.assertContains(r, 'abc')
         self.assertContains(r, 'foo123')
-        self.assertContains(r, '10.000')
+        self.assertContains(r, '10 Bottles')
+        print(r.content.decode())
         self.assertContains(r, display_dt(container.intake_date))

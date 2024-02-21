@@ -1,11 +1,7 @@
-import datetime
-
 import factory
-from django.utils import timezone
 
 from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
-from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.models import (
     Container,
     ContainerType,

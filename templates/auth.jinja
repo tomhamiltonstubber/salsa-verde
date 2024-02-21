@@ -48,7 +48,7 @@
       </div>
       {% if button_menu %}
         <div id="button-menu">
-          {% for button_group in button_menu %}
+          {% for group_id, button_group in button_menu | groupby('group') %}
             <div class="btn-group">
               {% for button in button_group %}
                 <a class="btn btn-secondary" href="{{ button.url }}"

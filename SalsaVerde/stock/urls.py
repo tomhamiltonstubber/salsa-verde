@@ -1,15 +1,5 @@
 from django.urls import include, path
 
-from SalsaVerde.stock.views import (
-    containers,
-    container_types,
-    ingredients,
-    ingredient_types,
-    product_types,
-    products,
-    documents,
-    suppliers,
-)
 from SalsaVerde.common.views import DeleteObjectView
 from SalsaVerde.stock.models import (
     Container,
@@ -20,6 +10,16 @@ from SalsaVerde.stock.models import (
     Product,
     ProductType,
     Supplier,
+)
+from SalsaVerde.stock.views import (
+    container_types,
+    containers,
+    documents,
+    ingredient_types,
+    ingredients,
+    product_types,
+    products,
+    suppliers,
 )
 
 supplier_patterns = [
@@ -69,13 +69,12 @@ document_patterns = [
 product_patterns = [
     path('', products.list.product_list, name='products'),
     path('add/', products.form_views.product_add, name='products-add'),
-    path('<int:pk>/bottle/', products.form_views.product_bottle, name='products-bottle'),
     path('<int:pk>/', products.details.product_details, name='products-details'),
     path('<int:pk>/edit/', products.form_views.product_edit, name='products-edit'),
     path('<int:pk>/status/', products.form_views.change_product_status, name='product-status'),
     path('<int:pk>/delete/', DeleteObjectView.as_view(model=Product), name='products-delete'),
-    path('<int:pk>/ingredients/add/', products.form_views.product_ingredient_add, name='product-ingredient-add'),
-    path('<int:pk>/containers/add/', products.form_views.yield_container_add, name='yield-container-add'),
+    path('<int:pk>/ingredient/add/', products.form_views.product_ingredient_add, name='product-ingredient-add'),
+    path('<int:pk>/container/add/', products.form_views.yield_container_add, name='yield-container-add'),
     path('types/', product_types.list.product_type_list, name='product-types'),
     path('types/add/', product_types.form_views.product_type_add, name='product-types-add'),
     path('types/<int:pk>/', product_types.details.product_type_details, name='product-types-details'),

@@ -1,13 +1,12 @@
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
-from SalsaVerde.common.views import SVFormsetForm, AddModelView, UpdateModelView
-from SalsaVerde.stock.forms.containers import YieldContainersFormSet, YieldContainersForm
-from SalsaVerde.stock.forms.products import AddProductForm, BottleProductForm, UpdateProductForm, ProductIngredientForm
-from SalsaVerde.stock.models import Product, ProductIngredient, YieldContainer, ProductType, Ingredient
+from SalsaVerde.common.views import AddModelView, UpdateModelView
+from SalsaVerde.stock.forms.containers import YieldContainersForm
+from SalsaVerde.stock.forms.products import AddProductForm, ProductIngredientForm, UpdateProductForm
+from SalsaVerde.stock.models import Ingredient, Product, ProductIngredient, ProductType, YieldContainer
 
 
 def get_product_ingredient_choices(request, pk: int):
@@ -36,44 +35,18 @@ class ProductAdd(AddModelView):
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.status = Product.STATUS_INFUSED
-        obj.save(update_fields=['status'])
-        ingred_quantities = form.cleaned_data['ingredient_quantities']
-        for ingred_id, quantity in ingred_quantities.items():
-            ProductIngredient.objects.create(product=obj, ingredient_id=ingred_id, quantity=quantity)
-
+        obj.save()
+        for i in range(10):
+            if ingred := form.cleaned_data[f'ingredient_{i}']:
+                quantity = form.cleaned_data[f'ingredient_quantity_{i}']
+                ProductIngredient.objects.create(product=obj, ingredient=ingred, quantity=quantity)
+            else:
+                break
         messages.success(self.request, 'New product added')
         return redirect(obj.get_absolute_url())
 
 
 product_add = ProductAdd.as_view()
-
-
-class ProductBottle(SVFormsetForm, UpdateModelView):
-    model = Product
-    form_class = BottleProductForm
-    template_name = 'formset_form.jinja'
-    formset_class = YieldContainersFormSet
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.get_object().status != Product.STATUS_INFUSED:
-            raise PermissionDenied('Product must be infused first')
-        return super().dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        formset = self.formset_class(self.request.POST)
-        formset.full_clean()
-        if formset.is_valid():
-            obj = form.save()
-            obj.status = Product.STATUS_BOTTLED
-            obj.save(update_fields=['status'])
-            formset.instance = obj
-            formset.save(commit=True)
-        else:
-            return self.form_invalid(form)
-        return redirect(self.object.get_absolute_url())
-
-
-product_bottle = ProductBottle.as_view()
 
 
 class ProductEdit(UpdateModelView):
@@ -97,6 +70,9 @@ class ProductIngredientAdd(AddModelView):
     title = 'Add another Ingredient'
     form_class = ProductIngredientForm
 
+    def get_cancel_url(self) -> str:
+        return self.product.get_absolute_url()
+
     def dispatch(self, request, *args, **kwargs):
         self.product = get_object_or_404(Product.objects.request_qs(request), pk=kwargs['pk'])
         return super().dispatch(request, *args, **kwargs)
@@ -113,8 +89,13 @@ product_ingredient_add = ProductIngredientAdd.as_view()
 
 class YieldContainerAdd(AddModelView):
     model = YieldContainer
-    title = 'Add another Ingredient'
     form_class = YieldContainersForm
+
+    def get_title(self):
+        return f'Bottle for {self.product}'
+
+    def get_cancel_url(self) -> str:
+        return self.product.get_absolute_url()
 
     def dispatch(self, request, *args, **kwargs):
         self.product = get_object_or_404(Product.objects.request_qs(request), pk=kwargs['pk'])

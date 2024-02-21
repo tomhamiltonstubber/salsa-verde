@@ -209,14 +209,22 @@ class YieldContainer(BaseModel):
     )
     container = models.ForeignKey(Container, related_name='yield_containers', on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+    user = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateTimeField('Date', default=timezone.now)
 
     def get_absolute_url(self):
         return self.container.get_absolute_url()
+
+    def display_quantity(self):
+        return f'{float(self.quantity):,g} {dict(ContainerType.TYPE_CONTAINERS)[self.container.container_type.type]}s'
 
     @property
     def total_volume(self):
         if self.container.container_type.size:
             return self.quantity * self.container.container_type.size
+
+    def display_total_volume(self):
+        return f'{float(self.total_volume):,g} litres'
 
 
 class ProductType(CompanyNameBaseModel):
@@ -330,7 +338,7 @@ class ProductIngredient(BaseModel):
         return self.ingredient.get_absolute_url()
 
     def display_quantity(self):
-        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
+        return f'{float(self.quantity):,g} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
 
 
 class DocumentQuerySet(QuerySet):
@@ -436,6 +444,7 @@ class Document(BaseModel):
     class Meta:
         verbose_name = 'Document'
         verbose_name_plural = 'Documents'
+        ordering = ['-date_created']
 
 
 class Area(CompanyNameBaseModel):

@@ -3,7 +3,7 @@ import json
 from django import forms
 
 from SalsaVerde.stock.forms.base_forms import SVModelForm
-from SalsaVerde.stock.models import Container, ContainerType, YieldContainer, Product
+from SalsaVerde.stock.models import Container, ContainerType, YieldContainer
 
 
 class UpdateContainerTypeForm(SVModelForm):
@@ -59,7 +59,6 @@ class ContainerForm(SVModelForm):
 
 
 class YieldContainersForm(SVModelForm):
-    title = 'Containers'
     container = forms.ModelChoiceField(
         queryset=(Container.objects.filter(finished=False).exclude(container_type__type=ContainerType.TYPE_CAP))
     )
@@ -68,10 +67,9 @@ class YieldContainersForm(SVModelForm):
     )
 
     def clean(self):
-        if self.cleaned_data[
-            'container'
-        ].container_type.type == ContainerType.TYPE_BOTTLE and not self.cleaned_data.get('cap'):
-            raise forms.ValidationError('You must select a cap if you are filling a bottle')
+        container = self.cleaned_data.get('container')
+        if container.container_type.type == ContainerType.TYPE_BOTTLE and not self.cleaned_data.get('cap'):
+            raise forms.ValidationError({'cap': 'You must select a cap if you are filling a bottle'})
         return self.cleaned_data
 
     def save(self, commit=True):
@@ -84,9 +82,5 @@ class YieldContainersForm(SVModelForm):
 
     class Meta:
         model = YieldContainer
-        fields = ['container', 'quantity']
-
-
-YieldContainersFormSet = forms.inlineformset_factory(
-    Product, YieldContainer, YieldContainersForm, extra=1, can_delete=False
-)
+        fields = ['date', 'user', 'container', 'quantity']
+        layout = [['date', 'user'], ['container', 'cap', 'quantity']]

@@ -1,3 +1,3 @@
-from SalsaVerde.stock.views.products import details
-from SalsaVerde.stock.views.products import form_views
-from SalsaVerde.stock.views.products import list
+from SalsaVerde.stock.views.products import details  # noqa
+from SalsaVerde.stock.views.products import form_views  # noqa
+from SalsaVerde.stock.views.products import list  # noqa

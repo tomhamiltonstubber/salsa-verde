@@ -43,13 +43,10 @@ class DisplayHelpers:
         return self.display_items
 
     def get_context_data(self, **kwargs) -> dict:
-        btns = self.process_button_menu(self.get_button_menu())
-        if btns and isinstance(btns[0], dict):
-            btns = [btns]
         return super().get_context_data(
             nav_links=get_nav_menu(self.request),
             title=self.get_title(),
-            button_menu=btns,
+            button_menu=self.process_button_menu(self.get_button_menu()),
             **kwargs,
         )
 
@@ -66,20 +63,18 @@ class DisplayHelpers:
 
     def process_button_menu(self, buttons) -> list:
         btns = []
-        for btn_group in buttons:
-            if isinstance(btn_group, list):
-                btns.append(self.process_button_menu(btn_group))
-            else:
-                button = btn_group
-                data = button.get('data', {})
-                if 'rurl' in button:
-                    button['url'] = self._object_url(button.pop('rurl'))
-                for f in ('confirm', 'method'):
-                    if f in button:
-                        data[f] = button.pop(f)
-                    if data:
-                        button['data'] = data
-                btns.append(button)
+        for button in buttons:
+            data = button.get('data', {})
+            if 'rurl' in button:
+                button['url'] = self._object_url(button.pop('rurl'))
+            for f in ('confirm', 'method'):
+                if f in button:
+                    data[f] = button.pop(f)
+                if data:
+                    button['data'] = data
+            if not button.get('group'):
+                button['group'] = 1
+            btns.append(button)
         return btns
 
     def _get_attr(self, obj, attr_name):
@@ -206,7 +201,7 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
     paginate_by = 40
 
     def get_button_menu(self):
-        return [{'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}]
+        yield {'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}
 
     def get_field_data(self, object_list: list):
         for obj in object_list:
@@ -258,9 +253,7 @@ class AddModelView(SVModelFormView, CreateView):
         return self.title or f'Create new {self.model._meta.verbose_name}'
 
     def get_cancel_url(self) -> str:
-        if self.cancel_url:
-            return self.cancel_url
-        elif hasattr(self.model, 'prefix'):
+        if hasattr(self.model, 'prefix'):
             return reverse(self.model.prefix())
         else:
             raise NotImplementedError
@@ -271,7 +264,7 @@ class UpdateModelView(QuerySetMixin, SVModelFormView, UpdateView, ObjMixin):
         return self.title or f'Edit {self.object}'
 
     def get_cancel_url(self):
-        return self.object.get_absolute_url()
+        return self.cancel_url or self.object.get_absolute_url()
 
 
 class ExtraContentView(ModelBasicView):
@@ -313,62 +306,32 @@ class DetailView(ObjMixin, ExtraContentView):
 
     def get_button_menu(self):
         return [
-            [
-                {
-                    'name': f'Back to all {self.model._meta.verbose_name_plural}',
-                    'url': reverse(self.model.prefix()),
-                    'icon': 'fa-arrow-left',
-                }
-            ],
-            [
-                {
-                    'name': 'Edit',
-                    'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk}),
-                    'icon': 'fa-edit',
-                },
-                {
-                    'name': 'Delete',
-                    'confirm': f'Are you sure you want to delete this {self.model._meta.verbose_name}?',
-                    'rurl': f'{self.model.prefix()}-delete',
-                    'method': 'POST',
-                    'icon': 'fa-trash',
-                },
-            ],
+            {
+                'name': f'Back to all {self.model._meta.verbose_name_plural}',
+                'url': reverse(self.model.prefix()),
+                'icon': 'fa-arrow-left',
+                'group': 1,
+            },
+            {
+                'name': 'Edit',
+                'url': reverse(f'{self.model.prefix()}-edit', kwargs={'pk': self.object.pk}),
+                'icon': 'fa-edit',
+                'group': 2,
+            },
+            {
+                'name': 'Delete',
+                'confirm': f'Are you sure you want to delete this {self.model._meta.verbose_name}?',
+                'rurl': f'{self.model.prefix()}-delete',
+                'method': 'POST',
+                'icon': 'fa-trash',
+                'group': 2,
+            },
         ]
 
     def get_context_data(self, **kwargs):
         display_vals = self.get_display_values(self.object, self.get_display_items())
         display_labels = self.get_display_labels(self.get_display_items())
         return super().get_context_data(display_items=zip(display_labels, display_vals), **kwargs)
-
-
-class SVFormsetForm:
-    formset_class = NotImplemented
-    request = None
-    success_url = NotImplemented
-
-    def get_success_url(self):
-        return self.success_url
-
-    def form_valid(self, form):
-        formset = self.formset_class(self.request.POST)
-        formset.full_clean()
-        if formset.is_valid():
-            self.object = form.save()
-            formset.instance = self.object
-            formset.save()
-        else:
-            return self.form_invalid(form)
-        return redirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        if self.request.POST:
-            formset = self.formset_class(self.request.POST)
-        else:
-            formset = self.formset_class()
-        ctx['formset'] = formset
-        return ctx
 
 
 class DeleteObjectView(View):

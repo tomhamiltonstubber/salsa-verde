@@ -19,7 +19,7 @@ from SalsaVerde.stock.models import (
 
 def create_full_company(company=None):
     company = company or Company.objects.create(name='Test Company')
-    user = User.objects.create_user(
+    User.objects.create_user(
         email='owner@salsaverde.com', first_name='Bruce', last_name='Banner', password='testing', company=company
     )
 
