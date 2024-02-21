@@ -1,14 +1,16 @@
-$main-color:                #47d794;
+$main-color: #558fde;
 $primary:                   $main-color;
-$secondary:                 #ebf9ef;
+$secondary: #f5f8ff;
 $primary-dark:              darken($main-color, 12%);
 
-$border-color:              $primary-dark;
+$border-color:              #ccc;
 
-$body-bg:                   $secondary;
+$body-bg:                   #f9f9f9;
 $table-bg:                  white;
 $card-border-color:         $border-color;
 $body-secondary-bg:         $main-color;
+$body-secondary-bg: #f9f9f9;
+$border-radius:             8px;
 
 $link-decoration:           none;
 $font-size-base:            0.9rem;
@@ -17,7 +19,6 @@ $link-color:                #3062bb;
 
 $card-bg:                   white;
 $card-title-spacer-y:       0;
-
 
 @import 'DL/bootstrap-scss/functions';
 @import 'DL/bootstrap-scss/variables';

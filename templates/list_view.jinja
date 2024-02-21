@@ -16,7 +16,7 @@
         <tr>
           {%- for field in details -%}
             {% if loop.index == 1 %}
-              <td><a href="{{ link }}">{{ field }}</a></td>
+              <td><a class="fw-semibold" href="{{ link }}">{{ field }}</a></td>
             {% else %}
               <td>{{ field }}</td>
             {%- endif -%}
