@@ -17,7 +17,6 @@ from SalsaVerde.stock.models import (
     ProductIngredient,
     ProductType,
     ProductTypeSize,
-    YieldContainer,
 )
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
@@ -108,7 +107,6 @@ class ProductTestCase(SVTestCase):
         assert pi.quantity == 8
 
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
-        self.assertContains(r, 'Record bottling')
         self.assertContains(r, 'New product added')
         r = self.client.get(reverse('products-edit', args=[product.pk]))
         self.assertContains(r, pi.product.product_type.name)
@@ -139,7 +137,6 @@ class ProductTestCase(SVTestCase):
         assert pi.quantity == 8
 
         self.assertRedirects(r, reverse('products-details', args=[product.pk]))
-        self.assertContains(r, 'Record bottling')
         self.assertContains(r, 'New product added')
         r = self.client.get(reverse('products-edit', args=[product.pk]))
         self.assertContains(r, pi.product.product_type.name)
@@ -216,7 +213,11 @@ class ProductTestCase(SVTestCase):
         )
         r = self.client.get(url)
         assert r.status_code == 200
-        r = self.client.post(url, {'container': container.pk, 'quantity': 12}, follow=True)
+        r = self.client.post(
+            url,
+            {'container': container.pk, 'quantity': 12, 'date': datetime(2018, 2, 2).strftime(settings.DT_FORMAT)},
+            follow=True,
+        )
         self.assertRedirects(r, product.get_absolute_url())
         self.assertContains(r, 'foo456')
 

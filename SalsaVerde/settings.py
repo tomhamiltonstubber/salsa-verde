@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'django_extensions',
     'bootstrapform_jinja',
     'storages',
-    'bootstrap3_datetime',
     'debug_toolbar',
     'django_rq',
     'SalsaVerde.company',

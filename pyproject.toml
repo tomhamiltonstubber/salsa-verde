@@ -30,8 +30,10 @@
         '*wsgi.py',
         '*/migrations/0*.py',
         '*/migrations/__init__.py',
-        '*tests/*',
-        '*/test_*',
+        '*/tests/*.py',
+        '*/tests.py',
+        '*/profiling/*',
+        '*/factories/*',
     ]
 
 [tool.coverage.report]
