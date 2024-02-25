@@ -6,7 +6,6 @@ $(document).ready(() => {
   }
   init_select2()
   init_dt_pickers()
-  init_formsets()
   init_input_groups()
   init_product_add_form()
 
@@ -133,37 +132,6 @@ function init_ef_form() {
   check_county_choices($region.val())
 }
 
-function init_formsets () {
-  $('.formsets-form .formset-form').each((i, el) => {
-    $(el).formset({
-      formTemplate: '#id_empty_' + el.dataset.formset_id,
-      addCssClass: 'btn btn-outline-primary',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another',
-      deleteText:'Remove',
-      prefix: el.dataset.prefix,
-      added: () => {
-        init_select2()
-        hide_extra_buttons()
-      },
-    })
-    let hide_buttons_declared = false
-
-    const hide_extra_buttons = () => {
-      if (!hide_buttons_declared) {
-        $('.dynamic-form').each((i, el) => {
-          const $els = $(el).find('.btn-danger')
-          if ($els.length === 2) {
-            $($els[0]).hide()
-          }
-        })
-        hide_buttons_declared = true
-      }
-    }
-    hide_extra_buttons()
-  })
-}
-
 function init_input_groups () {
   const $inputs = $('input[input-group-label-lu]')
   $inputs.each((i, el) => {
@@ -229,7 +197,7 @@ function init_product_add_form() {
         $quantity_label.appendTo($quantity_wrapper)
 
         const $quantity_input_wrapper = $('<div></div>').attr('class', 'input-group')
-        const $quantity_input = $('<input></input>')
+        const $quantity_input = $('<input>')
           .attr('type', 'number')
           .attr('name', `ingredient_quantity_${i}`)
           .attr('class', 'form-control')

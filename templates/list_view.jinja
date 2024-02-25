@@ -12,17 +12,21 @@
       </tr>
     </thead>
     <tbody>
-      {% for link, details in field_data %}
-        <tr>
-          {%- for field in details -%}
-            {% if loop.index == 1 %}
-              <td><a class="fw-semibold" href="{{ link }}">{{ field }}</a></td>
-            {% else %}
-              <td>{{ field }}</td>
-            {%- endif -%}
-          {% endfor %}
-        </tr>
-      {% endfor %}
+      {% if field_data %}
+        {% for link, details in field_data %}
+          <tr>
+            {%- for field in details -%}
+              {% if loop.index == 1 %}
+                <td><a class="fw-semibold" href="{{ link }}">{{ field }}</a></td>
+              {% else %}
+                <td>{{ field }}</td>
+              {%- endif -%}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr colspan="{{ field_names | length }}"><td>No {{ view.get_title() }} found</td></tr>
+      {% endif %}
     </tbody>
   </table>
   {{ paginator(page_obj, get_without_page) }}

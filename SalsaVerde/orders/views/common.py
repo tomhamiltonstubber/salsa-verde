@@ -72,6 +72,7 @@ class OrdersList(ShopifyHelperMixin, ModelListView):
         ('Status', 'get_status_display'),
         ('Location', 'func|get_location'),
     ]
+    icon = 'fa-store'
 
     def get_button_menu(self):
         return []

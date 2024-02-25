@@ -47,6 +47,92 @@ class IngredientTypeTestCase(SVTestCase):
         assert not IngredientType.objects.exists()
 
 
+class IngredientListTestCase(SVTestCase):
+    def setUp(self):
+        self.url = reverse('ingredients')
+        self.client = AuthenticatedClient()
+        self.user = self.client.user
+        self.company = self.user.company
+        self.ingredient_type = IngredientTypeFactory(company=self.company, name='blackberries')
+
+    def test_ingredient_list_empty(self):
+        r = self.client.get(self.url)
+        self.assertContains(r, 'No Ingredients found')
+
+    def test_ingredient_list(self):
+        IngredientFactory(batch_code='foo123', quantity=10, ingredient_type=self.ingredient_type)
+        r = self.client.get(self.url)
+        self.assertContains(r, 'blackberries')
+
+    def test_ingredient_list_filter_finished(self):
+        IngredientFactory(batch_code='Current123', quantity=10, ingredient_type=self.ingredient_type)
+        IngredientFactory(batch_code='Finished123', quantity=10, ingredient_type=self.ingredient_type, finished=True)
+
+        # By default, we shouldn't include finished ingredients
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Current123')
+        self.assertNotContains(r, 'Finished123')
+
+        r = self.client.get(self.url + '?finished=finished')
+        self.assertNotContains(r, 'Current123')
+        self.assertContains(r, 'Finished123')
+
+        r = self.client.get(self.url + '?finished=all')
+        self.assertContains(r, 'Current123')
+        self.assertContains(r, 'Finished123')
+
+        r = self.client.get(self.url + '?finished=foo')
+        self.assertNotContains(r, 'Current123')
+        self.assertNotContains(r, 'Finished123')
+
+    def test_ingredient_list_filter_ingredient_type(self):
+        IngredientFactory(batch_code='Blackberries123', quantity=10, ingredient_type=self.ingredient_type)
+        apples = IngredientTypeFactory(company=self.company, name='apples')
+        IngredientFactory(batch_code='Apples123', quantity=10, ingredient_type=apples)
+
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Blackberries123')
+        self.assertContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?ingredient_type={apples.pk}')
+        self.assertNotContains(r, 'Blackberries123')
+        self.assertContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?ingredient_type={self.ingredient_type.pk}')
+        self.assertContains(r, 'Blackberries123')
+        self.assertNotContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?ingredient_type=11111111')
+        self.assertNotContains(r, 'Blackberries123')
+        self.assertNotContains(r, 'Apples123')
+
+    def test_ingredient_list_filter_supplier(self):
+        supplier_1 = SupplierFactory(company=self.company)
+        supplier_2 = SupplierFactory(company=self.company)
+        IngredientFactory(
+            batch_code='Blackberries123', quantity=10, supplier=supplier_1, ingredient_type=self.ingredient_type
+        )
+        IngredientFactory(
+            batch_code='Apples123', quantity=10, supplier=supplier_2, ingredient_type=self.ingredient_type
+        )
+
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Blackberries123')
+        self.assertContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?supplier={supplier_1.pk}')
+        self.assertContains(r, 'Blackberries123')
+        self.assertNotContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?supplier={supplier_2.pk}')
+        self.assertNotContains(r, 'Blackberries123')
+        self.assertContains(r, 'Apples123')
+
+        r = self.client.get(self.url + f'?supplier=11111111')
+        self.assertNotContains(r, 'Blackberries123')
+        self.assertNotContains(r, 'Apples123')
+
+
 class IngredientTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
