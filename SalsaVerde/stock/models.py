@@ -1,4 +1,5 @@
-from django.conf import settings
+from decimal import Decimal
+
 from django.db import models
 from django.db.models import QuerySet
 from django.forms import JSONField
@@ -77,6 +78,12 @@ class IngredientQuerySet(QuerySet):
         return self.filter(ingredient_type__company=request.user.company)
 
 
+def _display_dec(v: Decimal):
+    if v == int(v):
+        return int(v)
+    return v
+
+
 class Ingredient(BaseModel):
     objects = IngredientQuerySet.as_manager()
 
@@ -84,42 +91,30 @@ class Ingredient(BaseModel):
         IngredientType, verbose_name='Ingredient Type', related_name='ingredients', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
-    condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(
         Supplier, verbose_name='Supplier', related_name='ingredients', null=True, on_delete=models.SET_NULL
     )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey(
-        'stock.GoodsIntake',
-        related_name='ingredients',
-        verbose_name='Goods Intake',
-        on_delete=models.CASCADE,
-    )
     finished = models.BooleanField('Finished', default=False)
+
     intake_notes = models.TextField('Intake Notes', null=True, blank=True)
+    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
+    intake_date = models.DateTimeField('Intake date', default=timezone.now)
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
 
     def display_quantity(self):
-        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}'
+        return f'{float(self.quantity):,g} {dict(IngredientType.UNIT_TYPES)[self.ingredient_type.unit]}s'
 
     def __str__(self):
-        return mark_safe(f'{self.name} - {self.batch_code} - {self.goods_intake.intake_date:%d/%m/%Y}')
+        return mark_safe(f'{self.name} - {self.batch_code} - {self.intake_date:%d/%m/%Y}')
 
     @property
     def name(self):
         return self.ingredient_type.name
-
-    @property
-    def intake_document(self):
-        return self.goods_intake.intake_document
-
-    @classmethod
-    def intake_document_type(cls):
-        return Document.FORM_SUP01
 
     @classmethod
     def prefix(cls):
@@ -167,35 +162,30 @@ class Container(BaseModel):
         ContainerType, verbose_name='Container', related_name='containers', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
-    condition = models.CharField('Condition', max_length=25, default='Good')
     supplier = models.ForeignKey(
         Supplier, verbose_name='Supplier', related_name='containers', null=True, on_delete=models.SET_NULL
     )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    goods_intake = models.ForeignKey(
-        'stock.GoodsIntake', related_name='containers', verbose_name='Goods Intake', on_delete=models.CASCADE
-    )
     finished = models.BooleanField('Finished', default=False)
+
+    intake_notes = models.TextField('Intake Notes', null=True, blank=True)
+    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
+    intake_date = models.DateTimeField('Intake date', default=timezone.now)
 
     @classmethod
     def prefix(cls):
         return 'containers'
+
+    def display_quantity(self):
+        return f'{float(self.quantity):,g} {dict(ContainerType.TYPE_CONTAINERS)[self.container_type.type]}s'
 
     def get_absolute_url(self):
         return reverse('containers-details', kwargs={'pk': self.pk})
 
     def __str__(self):
         return mark_safe(f'{self.name} - {self.batch_code}')
-
-    @property
-    def intake_document(self):
-        return self.goods_intake.intake_document
-
-    @classmethod
-    def intake_document_type(cls):
-        return Document.FORM_SUP02
 
     @property
     def name(self):
@@ -219,37 +209,22 @@ class YieldContainer(BaseModel):
     )
     container = models.ForeignKey(Container, related_name='yield_containers', on_delete=models.CASCADE)
     quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
+    user = models.ForeignKey(User, verbose_name='User', on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateTimeField('Date', default=timezone.now)
 
     def get_absolute_url(self):
         return self.container.get_absolute_url()
+
+    def display_quantity(self):
+        return f'{float(self.quantity):,g} {dict(ContainerType.TYPE_CONTAINERS)[self.container.container_type.type]}s'
 
     @property
     def total_volume(self):
         if self.container.container_type.size:
             return self.quantity * self.container.container_type.size
 
-
-class GoodsIntakeQuerySet(QuerySet):
-    def request_qs(self, request):
-        return self.filter(intake_user__company=request.user.company)
-
-
-class GoodsIntake(BaseModel):
-    objects = GoodsIntakeQuerySet.as_manager()
-
-    date_created = models.DateTimeField('Date created', default=timezone.now)
-    intake_date = models.DateTimeField('Intake date', default=timezone.now)
-    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE)
-
-    def display_intake_date(self):
-        return self.intake_date.strftime(settings.DT_FORMAT)
-
-    @property
-    def intake_document(self):
-        try:
-            return Document.objects.get(goods_intake=self)
-        except Document.DoesNotExist:
-            return
+    def display_total_volume(self):
+        return f'{float(self.total_volume):,g} litres'
 
 
 class ProductType(CompanyNameBaseModel):
@@ -316,9 +291,7 @@ class Product(BaseModel):
     date_of_bottling = models.DateTimeField('Date of Bottling', default=timezone.now, null=True, blank=True)
     date_of_best_before = models.DateTimeField('Date of Best Before', default=timezone.now, null=True, blank=True)
 
-    yield_quantity = models.DecimalField(
-        'Yield Quantity (in litres)', max_digits=25, decimal_places=3, null=True, blank=True
-    )
+    yield_quantity = models.DecimalField('Yield Quantity', max_digits=25, decimal_places=3, null=True, blank=True)
     batch_code = models.CharField('Batch Code', max_length=25, null=True, blank=True)
 
     status = models.CharField('Stage', choices=STATUSES, max_length=25)
@@ -327,6 +300,9 @@ class Product(BaseModel):
     best_before_applied = models.BooleanField('Best before applied', default=False)
     quality_check_successful = models.BooleanField('Quality check successful', default=False)
     finished = models.BooleanField('Finished', default=False)
+
+    def display_yield_quantity(self):
+        return f'{float(self.yield_quantity or 0):,g} litres'
 
     def __str__(self):
         return f'{self.product_type} - {self.batch_code}'
@@ -362,7 +338,7 @@ class ProductIngredient(BaseModel):
         return self.ingredient.get_absolute_url()
 
     def display_quantity(self):
-        return f'{round(self.quantity, 3)} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
+        return f'{float(self.quantity):,g} {dict(IngredientType.UNIT_TYPES)[self.ingredient.ingredient_type.unit]}'
 
 
 class DocumentQuerySet(QuerySet):
@@ -426,14 +402,6 @@ class Document(BaseModel):
         related_name='focused_documents',
         on_delete=models.SET_NULL,
     )
-    goods_intake = models.ForeignKey(
-        GoodsIntake,
-        verbose_name='Intake of Goods',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='documents',
-    )
     supplier = models.ForeignKey(
         Supplier,
         verbose_name='Linked Supplier',
@@ -476,6 +444,7 @@ class Document(BaseModel):
     class Meta:
         verbose_name = 'Document'
         verbose_name_plural = 'Documents'
+        ordering = ['-date_created']
 
 
 class Area(CompanyNameBaseModel):

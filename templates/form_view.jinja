@@ -1,15 +1,20 @@
 {% extends 'auth.jinja' %}
 
+{% from 'macros.jinja' import render_form %}
+
 {% block content %}
   <div class="row">
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="edit-form">
-        {{ form|bootstrap }}
-        {% block submit_buttons %}
-          <button class="btn btn-primary" type="submit">Save</button>
-        {% endblock %}
+        {{ render_form(form) }}
       </div>
+      {% block submit_buttons %}
+        <div class="buttons pt-3">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-secondary" href="{{ view.get_cancel_url() }}">Cancel</a>
+        </div>
+      {% endblock %}
     </form>
   </div>
 {% endblock %}

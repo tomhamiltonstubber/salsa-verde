@@ -1,13 +1,13 @@
-from django.test import TestCase
 from django.urls import reverse
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.models import Document
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
-class DocumentTestCase(TestCase):
+class DocumentTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user

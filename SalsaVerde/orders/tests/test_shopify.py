@@ -3,10 +3,11 @@ import hmac
 import json
 from unittest import mock
 
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 from django.utils.text import slugify
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.company.models import User
 from SalsaVerde.orders.models import Order
 from SalsaVerde.orders.tests.mock_objs import fake_shopify
@@ -14,7 +15,7 @@ from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.users import UserFactory
 
 
-class ShopifyWebhookTestCase(TestCase):
+class ShopifyWebhookTestCase(SVTestCase):
     def setUp(self):
         self.company = CompanyFactory(
             shopify_webhook_key='WEB_TEST',

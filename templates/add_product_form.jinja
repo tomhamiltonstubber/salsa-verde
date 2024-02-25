@@ -1,26 +1,28 @@
 {% extends 'auth.jinja' %}
 
-{% from 'macros.jinja' import display_formset %}
+{% from 'macros.jinja' import spinner %}
 
 {% block content %}
-  <form method="post" action="" classs="formsets-form" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    <div class="row">
-      <div class="col-md-4">{{ form.product_type|bootstrap }}</div>
-      <div class="col-md-4">{{ form.batch_code|bootstrap }}</div>
-      <div class="col-md-4">{{ form.yield_quantity|bootstrap }}</div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">{{ form.date_of_infusion|bootstrap }}</div>
-      <div class="col-md-6">{{ form.date_of_bottling|bootstrap }}</div>
-    </div>
-    <div class="row">
-      {{ display_formset(product_ingredient_formset) }}
-    </div>
-    <div class="row">
-      {{ display_formset(yield_container_formset) }}
-    </div>
-    <input type="submit" value="{{ _('Submit') }}" class="btn btn-success" />
-  </form>
+  <div class="row">
+    <form method="post" enctype="multipart/form-data">
+      {% for _, errors in form.errors.items() %}
+        <div class="alert alert-danger">{{ errors[0] }}</div>
+      {% endfor %}
+      {% csrf_token %}
+      <div class="edit-form">
+        <div class="row">
+          <div class="col">{{ form.product_type | bootstrap }}</div>
+          <div class="col">{{ form.batch_code | bootstrap }}</div>
+          <div class="col">{{ form.date_of_infusion | bootstrap }}</div>
+        </div>
+        <div id="product-ingredients" class="mt-4">
+          {{ spinner() }}
+        </div>
+      </div>
+      <div class="buttons pt-3">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <a class="btn btn-secondary" href="{{ view.get_cancel_url() }}">Cancel</a>
+      </div>
+    </form>
+  </div>
 {% endblock %}

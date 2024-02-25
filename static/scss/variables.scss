@@ -1,18 +1,24 @@
-$main-colour: #3d4b65;
-//$secondary: #eef2fb;
-$border-color:              $main-colour;
+$main-color: #558fde;
+$primary:                   $main-color;
+$secondary: #f5f8ff;
+$primary-dark:              darken($main-color, 12%);
 
-$primary:                   $main-colour;
-$body-bg:                   #eef2fb;
+$border-color:              #ccc;
+
+$body-bg:                   #f9f9f9;
 $table-bg:                  white;
-$body-secondary-bg:         $main-colour;
-//$body-tertiary-bg:          $main-colour;
+$card-border-color:         $border-color;
+$body-secondary-bg:         $main-color;
+$body-secondary-bg: #f9f9f9;
+$border-radius:             8px;
 
-$link-decoration:          none;
+$link-decoration:           none;
 $font-size-base:            0.9rem;
+$h3-font-size:              1.2rem;
+$link-color:                #3062bb;
 
-//$link-color:                $main-colour;
-//$color
+$card-bg:                   white;
+$card-title-spacer-y:       0;
 
 @import 'DL/bootstrap-scss/functions';
 @import 'DL/bootstrap-scss/variables';

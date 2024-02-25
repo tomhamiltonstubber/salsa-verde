@@ -1,7 +1,7 @@
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.common.views import display_dt
 from SalsaVerde.stock.factories.raw_materials import ContainerFactory, IngredientFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
@@ -9,7 +9,7 @@ from SalsaVerde.stock.models import IngredientType, Supplier
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient
 
 
-class SupplierTestCase(TestCase):
+class SupplierTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -78,13 +78,12 @@ class SupplierTestCase(TestCase):
             ingredient_type__name='blackberries',
             supplier=supplier,
             ingredient_type__unit=IngredientType.UNIT_LITRE,
-            goods_intake__intake_date=date,
         )
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
         self.assertContains(r, 'Supplied Ingredients')
         self.assertContains(r, 'blackberries')
         self.assertContains(r, 'foo123')
-        self.assertContains(r, '10.000 litre')
+        self.assertContains(r, '10 litres')
         self.assertContains(r, display_dt(date))
 
     def test_display_containers(self):
@@ -94,5 +93,6 @@ class SupplierTestCase(TestCase):
         self.assertContains(r, 'Supplied Containers')
         self.assertContains(r, 'abc')
         self.assertContains(r, 'foo123')
-        self.assertContains(r, '10.000')
-        self.assertContains(r, display_dt(container.goods_intake.date_created))
+        self.assertContains(r, '10 Bottles')
+        print(r.content.decode())
+        self.assertContains(r, display_dt(container.intake_date))

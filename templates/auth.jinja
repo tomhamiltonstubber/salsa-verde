@@ -1,13 +1,13 @@
 {% extends 'base.jinja' %}
 
 {% block nav %}
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg w-100">
   <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis" href="/">Salsa Verde</a>
+    <a class="navbar-brand d-flex align-items-center link-body-emphasis fw-bold text-primary-dark" href="/">Salsa Verde</a>
     <ul class="nav nav-pills">
       {% for name, icon, link, is_active in nav_links %}
         <li class="nav-item">
-          <a class="nav-link {% if is_active %}active{% endif %}" href="{{ link }}">
+          <a class="nav-link {% if is_active %}active bg-primary-dark{% endif %}" href="{{ link }}">
             <span class="fa-solid fa-{{ icon }}"></span>&nbsp;{{ name }}
           </a>
         </li>
@@ -43,19 +43,26 @@
            {% endif %}
         </div>
       {% endfor %}
+      <div id="page-title" class="col-12 mb-3">
+        <h3>{% if view.icon %}<span class="text-primary-dark fa {{ view.icon }}"></span>&nbsp;{% endif %}{{ title }}</h3>
+      </div>
       {% if button_menu %}
         <div id="button-menu">
-          {% for button in button_menu %}
-            <a class="btn btn-outline-primary" href="{{ button.url }}"
-                {% if button.newtab %} target="_blank"{% endif %}
-                {% if button.data %}
-                  {% for k, v in button['data'].items() %}
-                    data-{{ k }}="{{ v }}"
-                  {% endfor %}
-                {% endif %}>
-              {% if button.icon %}<span class="fa {{ button.icon }}"></span>&nbsp;{% endif %}
-              {{ button.name }}
-            </a>
+          {% for group_id, button_group in button_menu | groupby('group') %}
+            <div class="btn-group">
+              {% for button in button_group %}
+                <a class="btn btn-secondary" href="{{ button.url }}"
+                    {% if button.newtab %} target="_blank"{% endif %}
+                    {% if button.data %}
+                      {% for k, v in button['data'].items() %}
+                        data-{{ k }}="{{ v }}"
+                      {% endfor %}
+                    {% endif %}>
+                  {% if button.icon %}<span class="fa {{ button.icon }}"></span>&nbsp;{% endif %}
+                  {{ button.name }}
+                </a>
+              {% endfor %}
+            </div>
           {% endfor %}
         </div>
       {% endif %}

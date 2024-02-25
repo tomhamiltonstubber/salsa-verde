@@ -3,18 +3,27 @@
 {% from 'macros.jinja' import extra_content_table %}
 
 {% block content %}
-  <div class="row">
-    <div id="display-items">
-      {% for field_name, v in display_items %}
+  <div class="col-12 pt-3">
+    <div class="card item-details">
+      <div class="card-header">
+        <h5 class="card-title"><span class="fa fa-list"></span>&nbsp;Details</h5>
+      </div>
+      <div class="card-body">
         <div>
-          <label class="text-muted">{{ field_name }}:</label> <span class="display-item">{{ v }}</span>
+          {% for field_name, v in display_items %}
+            <div>
+              <label class="text-muted">{{ field_name }}:</label> <span class="display-item">{{ v }}</span>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
     </div>
   </div>
   {% if extra_content %}
     {% for obj in extra_content %}
+      <div class="pt-3">
         {{ extra_content_table(obj) }}
+      </div>
     {% endfor %}
   {% endif %}
 {% endblock %}

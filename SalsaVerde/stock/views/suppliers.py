@@ -15,6 +15,9 @@ class SupplierList(ModelListView):
         'email',
     ]
 
+    def get_button_menu(self):
+        yield {'name': 'Add Supplier', 'url': reverse('suppliers-add'), 'icon': 'fa-plus'}
+
 
 supplier_list = SupplierList.as_view()
 
@@ -33,24 +36,12 @@ class SupplierDetails(DetailView):
             {
                 'title': 'Supplied Ingredients',
                 'qs': self.object.ingredients.all(),
-                'fields': [
-                    ('Ingredient', 'name'),
-                    'batch_code',
-                    'quantity',
-                    ('Intake date', 'goods_intake__intake_date'),
-                    ('Intake document', 'intake_document'),
-                ],
+                'fields': [('Ingredient', 'name'), 'batch_code', 'quantity', 'intake_date'],
             },
             {
                 'title': 'Supplied Containers',
                 'qs': self.object.containers.all(),
-                'fields': [
-                    ('Container', 'name'),
-                    'batch_code',
-                    'quantity',
-                    ('Intake date', 'goods_intake__intake_date'),
-                    ('Intake document', 'intake_document'),
-                ],
+                'fields': [('Container', 'name'), 'batch_code', 'quantity', 'intake_date'],
             },
             {
                 'title': 'Associated Documents',

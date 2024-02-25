@@ -1,16 +1,17 @@
 from datetime import datetime as dt
 
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 from pytz import utc
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.users import UserFactory
 from SalsaVerde.stock.models import User
 from SalsaVerde.stock.tests.test_common import AuthenticatedClient, refresh
 
 
-class UserTestCase(TestCase):
+class UserTestCase(SVTestCase):
     user = None
 
     def setUp(self):

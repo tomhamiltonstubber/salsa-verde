@@ -1,19 +1,14 @@
 $(document).ready(() => {
-  $('.date-time-picker').each((i, el) => {
-    const $el = $(el)
-    const $input = $el.find('input')
-    const $init = $('#initial-' + $input.attr('id'))
-    new tempusDominus.TempusDominus(el, {
-      defaultDate: new Date(Date.parse($init.val())),
-    })
-  })
 
   init_confirm_follow()
   if ($('#ef-form').length) {
     init_ef_form()
   }
   init_select2()
+  init_dt_pickers()
   init_formsets()
+  init_input_groups()
+  init_product_add_form()
 
   const package_formsets = $('.formset-packages-sending')
   if (package_formsets.length > 0) {
@@ -34,9 +29,24 @@ $(document).ready(() => {
   }
 })
 
+function init_dt_pickers() {
+  $('.date-time-picker').each((i, el) => {
+    const $el = $(el)
+    const $input = $el.find('input')
+    const $init = $('#initial-' + $input.attr('id'))
+    new tempusDominus.TempusDominus(el, {
+      defaultDate: new Date(Date.parse($init.val())),
+      localization: {
+        format: 'dd/MM/yyyy HH:mm'
+      }
+    })
+    $el.click().click()
+  })
+}
+
 function init_select2 () {
   try {
-    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------'})
+    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------', theme: 'bootstrap-5'})
   } catch (e) {
     // this seems to happen occasionally when something has gone wrong, ignore it
   }
@@ -104,7 +114,7 @@ function reset_choices ($select, choices) {
   $.each(choices, (k, v) => {
     $select.append($('<option></option>').attr('value', k).text(v))
   })
-  $select.select2()
+  $select.select2({theme: 'bootstrap-5'})
 }
 
 function init_ef_form() {
@@ -152,4 +162,93 @@ function init_formsets () {
     }
     hide_extra_buttons()
   })
+}
+
+function init_input_groups () {
+  const $inputs = $('input[input-group-label-lu]')
+  $inputs.each((i, el) => {
+    const $el = $(el)
+    // We need to add the 'input-group' class to the parent div and append the span with class input-group text to it
+    const $parent = $el.parent()
+    $parent.addClass('input-group')
+    const $span = $('<span>').addClass('input-group-text').text('Units')
+    $span.appendTo($parent)
+
+    const id_label_lu = JSON.parse($el.attr($el.attr('input-group-label-lu')))
+    const linked_input = $('#' + $el.attr('linked-input-id'))
+    linked_input.change(() => {
+      $span.text(id_label_lu[linked_input.val()] + 's')
+    })
+  })
+}
+
+function init_product_add_form() {
+  const $product_type = $('#id_product_type')
+  if ($product_type.length === 0) {
+    return
+  }
+  const $spinner = $('#spinner')
+  const $product_ingredients = $('#product-ingredients')
+  $product_type.change(function () {
+    $spinner.show()
+    $product_ingredients.empty()
+
+    const data_url = $(this).attr('product-ingredient-choices-url-template').replace('999', this.value)
+    $.getJSON(data_url, function (data) {
+      $.each(data, function (i, ingred_data) {
+        const unit_str = ingred_data['unit']
+        const ingred_choices = ingred_data['choices']
+        const name = ingred_data['name']
+
+        const $new_row = $('<div class="row"></div>')
+
+        const $ingredient_col_wrapper = $('<div></div>').attr('class', 'col')
+        const $ingredient_wrapper = $('<div></div>').attr('class', 'form-group')
+
+        const $ingred_label = $('<label></label>').attr('for', `id_ingredient_${i}`).text(name).addClass("required control-label")
+        $ingred_label.appendTo($ingredient_wrapper)
+
+        const $new_ingredient_select = $('<select></select>')
+          .attr('name', `ingredient_${i}`)
+          .attr('class', 'form-control')
+          .attr('id', `id_ingredient_${i}`)
+          .attr('required', 'required')
+
+        $new_ingredient_select.appendTo($ingredient_wrapper)
+        $ingredient_wrapper.appendTo($ingredient_col_wrapper)
+        $ingredient_col_wrapper.appendTo($new_row)
+
+        $.each(ingred_choices, function (i, opt) {
+          $new_ingredient_select.append($('<option></option>').attr('value', opt[0]).text(opt[1]))
+        })
+
+        const $quantity_col_wrapper = $('<div></div>').attr('class', 'col')
+        const $quantity_wrapper = $('<div></div>').attr('class', 'form-group')
+
+        const $quantity_label = $('<label></label>').attr('for', `id_ingredient_quantity_${i}`).text('Quantity').addClass("required control-label")
+        $quantity_label.appendTo($quantity_wrapper)
+
+        const $quantity_input_wrapper = $('<div></div>').attr('class', 'input-group')
+        const $quantity_input = $('<input></input>')
+          .attr('type', 'number')
+          .attr('name', `ingredient_quantity_${i}`)
+          .attr('class', 'form-control')
+          .attr('id', `id_ingredient_quantity_${i}`)
+          .attr('placeholder', 'Quantity')
+          .attr('step', '0.01')
+          .attr('required', 'required')
+        $quantity_input.appendTo($quantity_input_wrapper)
+        const $quantity_unit = $('<span></span>').attr('class', 'input-group-text').text(unit_str)
+        $quantity_unit.appendTo($quantity_input_wrapper)
+        $quantity_input_wrapper.appendTo($quantity_wrapper)
+        $quantity_wrapper.appendTo($quantity_col_wrapper)
+        $quantity_col_wrapper.appendTo($new_row)
+
+        $new_row.appendTo($product_ingredients)
+      })
+      init_select2()
+      $spinner.hide()
+    })
+  })
+  $product_type.change()
 }

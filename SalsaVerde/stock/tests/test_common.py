@@ -1,13 +1,14 @@
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 
+from SalsaVerde.common.tests import SVTestCase
 from SalsaVerde.stock.factories.company import CompanyFactory
 from SalsaVerde.stock.factories.raw_materials import ContainerTypeFactory, IngredientTypeFactory, ProductTypeFactory
 from SalsaVerde.stock.factories.supplier import SupplierFactory
 from SalsaVerde.stock.models import User
 
 
-class QSTestCase(TestCase):
+class QSTestCase(SVTestCase):
     def setUp(self):
         self.client = AuthenticatedClient()
         self.user = self.client.user
@@ -57,7 +58,7 @@ def refresh(obj):
     return type(obj).objects.get(id=obj.id)
 
 
-class SetupTestCase(TestCase):
+class SetupTestCase(SVTestCase):
     def test_setup_page(self):
         client = AuthenticatedClient()
         company = client.user.company

@@ -6,7 +6,6 @@ from SalsaVerde.stock.models import (
     Company,
     Container,
     ContainerType,
-    GoodsIntake,
     Ingredient,
     IngredientType,
     Product,
@@ -20,7 +19,7 @@ from SalsaVerde.stock.models import (
 
 def create_full_company(company=None):
     company = company or Company.objects.create(name='Test Company')
-    user = User.objects.create_user(
+    User.objects.create_user(
         email='owner@salsaverde.com', first_name='Bruce', last_name='Banner', password='testing', company=company
     )
 
@@ -55,41 +54,29 @@ def create_full_company(company=None):
     )
     cap_type = ContainerType.objects.create(name='Black Cap', type=ContainerType.TYPE_CAP, company=company)
 
-    containers_intake = GoodsIntake.objects.create(
-        intake_date=timezone.now(), date_created=timezone.now(), intake_user=user, company=company
-    )
     bottle_200 = Container.objects.create(
         container_type=bottle_type_200,
         batch_code='123bot',
-        goods_intake=containers_intake,
         quantity=1500,
         company=company,
     )
     bottle_100 = Container.objects.create(
         container_type=bottle_type_100,
         batch_code='456bot',
-        goods_intake=containers_intake,
         quantity=1200,
         company=company,
     )
-    cap = Container.objects.create(
-        container_type=cap_type, batch_code='789cap', goods_intake=containers_intake, quantity=2700, company=company
-    )
+    cap = Container.objects.create(container_type=cap_type, batch_code='789cap', quantity=2700, company=company)
 
     bb_type = IngredientType.objects.create(name='Blackberries', unit=IngredientType.UNIT_KILO, company=company)
     thyme_type = IngredientType.objects.create(name='Thyme', unit=IngredientType.UNIT_KILO, company=company)
     vinegar_type = IngredientType.objects.create(name='Black Balsamic', unit=IngredientType.UNIT_LITRE, company=company)
 
-    three_days = timezone.now() - timedelta(days=3)
-    ingreds_intake = GoodsIntake.objects.create(
-        intake_date=three_days, date_created=three_days, intake_user=user, company=company
-    )
     bb = Ingredient.objects.create(
         ingredient_type=bb_type,
         batch_code='bb123',
         supplier=supplier_1,
         quantity=20,
-        goods_intake=ingreds_intake,
         company=company,
     )
     thyme = Ingredient.objects.create(
@@ -97,7 +84,6 @@ def create_full_company(company=None):
         batch_code='thy456',
         supplier=supplier_1,
         quantity=10,
-        goods_intake=ingreds_intake,
         company=company,
     )
     vinegar = Ingredient.objects.create(
@@ -105,7 +91,6 @@ def create_full_company(company=None):
         batch_code='v789',
         supplier=supplier_2,
         quantity=95,
-        goods_intake=ingreds_intake,
         company=company,
     )
 
