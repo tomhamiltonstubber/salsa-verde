@@ -59,7 +59,7 @@ class IngredientFilterForm(SVFilterForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['finished'] = forms.ChoiceField(
-            choices=[(None, 'Not finished'), ('all', 'All'), ('finished', 'Finished')]
+            required=True, choices=[(' ', 'Not finished'), ('all', 'All'), ('finished', 'Finished')], initial=None
         )
 
     def filter_kwargs(self) -> dict:
@@ -77,3 +77,8 @@ class IngredientFilterForm(SVFilterForm):
     class Meta:
         model = Ingredient
         fields = ['ingredient_type', 'supplier', 'intake_user', 'intake_date']
+        layout = [
+            ['ingredient_type', 'supplier'],
+            ['intake_user', 'finished'],
+            ['intake_date_from', 'intake_date_to'],
+        ]

@@ -14,11 +14,16 @@ class SVFormMixin:
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        for field in self.fields:
-            if isinstance(self.fields[field].widget, forms.DateTimeInput):
-                self.fields[field].widget = DateTimePicker(self.fields[field])
-            if isinstance(self.fields[field], forms.ModelChoiceField) and self.request:
-                self.fields[field].queryset = self.fields[field].queryset.request_qs(self.request)
+        self._prepare_fields()
+
+    def _prepare_fields(self):
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.DateTimeInput):
+                field.widget = DateTimePicker(field)
+            elif isinstance(field, forms.ModelChoiceField) and self.request:
+                field.queryset = field.queryset.request_qs(self.request)
+
+    def set_layout(self):
         if hasattr(self, 'Meta') and (layout := getattr(self.Meta, 'layout', None)):
             organised_lines = []
             for line in layout:
@@ -65,19 +70,31 @@ def _date2datetime(date: date, day_end=False):
 class SVFilterForm(SVFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].required = False
+        fields_to_pop = []
+        fields_to_add = {}
+        for field_name, field in self.fields.items():
+            field.required = False
+            if isinstance(field, forms.DateTimeField):
+                fields_to_pop.append(field_name)
+                fields_to_add[f'{field_name}_from'] = forms.DateTimeField(required=False, label=field.label)
+                fields_to_add[f'{field_name}_to'] = forms.DateTimeField(required=False, label=field.label)
+        for field_name in fields_to_pop:
+            self.fields.pop(field_name)
+        self.fields.update(fields_to_add)
+        self._prepare_fields()
 
     def filter_kwargs(self) -> dict:
         query_kwargs = {}
         for key, value in self.cleaned_data.items():
+            value = value.strip() if isinstance(value, str) else value
             if value:
                 if isinstance(value, date):
-                    if key == 'date_from':
-                        value = _date2datetime(value)
-                    elif key == 'date_to':
-                        value = _date2datetime(value, day_end=True)
-                query_kwargs[key] = value
+                    if key.endswith('date_from'):
+                        query_kwargs[key[:-5] + '__gte'] = _date2datetime(value)
+                    elif key.endswith('date_to'):
+                        query_kwargs[key[:-3] + '__lte'] = _date2datetime(value, day_end=True)
+                else:
+                    query_kwargs[key] = value
         return query_kwargs
 
     def _display_filter_value(self, k: str, v: Any) -> tuple[str, str]:

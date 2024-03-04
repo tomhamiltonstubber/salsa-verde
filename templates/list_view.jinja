@@ -1,8 +1,11 @@
 {% extends 'auth.jinja' %}
 
-{% from 'macros.jinja' import paginator %}
+{% from 'macros.jinja' import paginator, render_form %}
 
 {% block content %}
+  {% if filter_form %}
+    {{ render_form(filter_form) }}
+  {% endif %}
   <table class="table table-hover">
     <thead>
       <tr>

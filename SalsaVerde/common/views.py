@@ -254,9 +254,14 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        if self.filter_form:
+            filter_form = self.filter_form(request=self.request, data=self._mutable_get_args)
+            filter_form.set_layout()
+            ctx['filter_form'] = filter_form
         ctx.update(
             field_names=self.get_display_labels(self.get_display_items()),
             field_data=list(self.get_field_data(ctx['object_list'])),
+            filter_form=self.filter_form(),
         )
         return ctx
 

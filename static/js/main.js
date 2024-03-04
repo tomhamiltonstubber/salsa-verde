@@ -33,8 +33,14 @@ function init_dt_pickers() {
     const $el = $(el)
     const $input = $el.find('input')
     const $init = $('#initial-' + $input.attr('id'))
+    let init_dt
+    if ($init.val) {
+      init_dt = new Date(Date.parse($init.val()))
+    } else {
+      init_dt = new Date()
+    }
     new tempusDominus.TempusDominus(el, {
-      defaultDate: new Date(Date.parse($init.val())),
+      // defaultDate: init_dt,
       localization: {
         format: 'dd/MM/yyyy HH:mm'
       }
@@ -44,11 +50,11 @@ function init_dt_pickers() {
 }
 
 function init_select2 () {
-  try {
-    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------', theme: 'bootstrap-5'})
-  } catch (e) {
-    // this seems to happen occasionally when something has gone wrong, ignore it
-  }
+  $('select').not('.select2-offscreen').not('[id*=__prefix__]').each((i, el) => {
+    const $el = $(el)
+    const is_required = $("label[for='" + $el.attr('id') + "']").hasClass('required')
+    $el.select2({allowClear: !is_required, placeholder: is_required ? '---------' : null, theme: 'bootstrap-5'})
+  })
 }
 
 function init_confirm_follow () {
