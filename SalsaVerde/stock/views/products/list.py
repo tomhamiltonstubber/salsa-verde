@@ -14,6 +14,7 @@ class ProductList(ModelListView):
         'yield_quantity',
     ]
     order_by = '-date_of_bottling'
+    icon = 'fa-flask'
     paginate_by = 50
 
     def dispatch(self, request, *args, **kwargs):

@@ -2,7 +2,7 @@ import json
 
 from django import forms
 
-from SalsaVerde.stock.forms.base_forms import SVModelForm
+from SalsaVerde.stock.forms.base_forms import SVFilterForm, SVModelForm
 from SalsaVerde.stock.models import Ingredient, IngredientType
 
 
@@ -52,4 +52,35 @@ class IngredientForm(SVModelForm):
             ['ingredient_type', 'quantity'],
             ['supplier', 'batch_code'],
             [('intake_notes', 9), 'intake_quality_check'],
+        ]
+
+
+class IngredientFilterForm(SVFilterForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['finished'] = forms.ChoiceField(
+            label='Finished',
+            choices=[('not-finished', 'Not finished'), ('all', 'All'), ('finished', 'Finished')],
+            required=False,
+        )
+
+    def filter_kwargs(self) -> dict:
+        filter_kwargs = super().filter_kwargs()
+        if fin_filter := filter_kwargs.pop('finished', None):
+            if fin_filter == 'all':
+                # We don't need to add a filter for all
+                pass
+            elif fin_filter == 'finished':
+                filter_kwargs['finished'] = True
+            else:
+                filter_kwargs['finished'] = False
+        return filter_kwargs
+
+    class Meta:
+        model = Ingredient
+        fields = ['ingredient_type', 'supplier', 'intake_user', 'intake_date']
+        layout = [
+            ['ingredient_type', 'supplier'],
+            ['intake_user', 'finished'],
+            ['intake_date_from', 'intake_date_to'],
         ]

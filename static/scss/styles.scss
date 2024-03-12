@@ -94,7 +94,7 @@ textarea.resize-vertical-only {
   }
 }
 
-/* Details page */
+/* Details views */
 
 .item-details {
   label {
@@ -112,6 +112,12 @@ textarea.resize-vertical-only {
   }
 }
 
+/* List views */
+
+.accordion-button {
+  padding: 10px;
+}
+
 /* Select2 */
 
 .select2-container--bootstrap-5.select2-container--focus .select2-selection, .select2-container--bootstrap-5.select2-container--open .select2-selection {
@@ -122,6 +128,7 @@ textarea.resize-vertical-only {
 .select2-container--bootstrap-5 .select2-selection {
   border-color: $border-color;
   //background-color: $body-bg;
+  border-radius: $border-radius;
 }
 
 /* Login page */

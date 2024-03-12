@@ -14,6 +14,7 @@ class SupplierList(ModelListView):
         'phone',
         'email',
     ]
+    icon = 'fa-tractor'
 
     def get_button_menu(self):
         yield {'name': 'Add Supplier', 'url': reverse('suppliers-add'), 'icon': 'fa-plus'}

@@ -8,6 +8,7 @@ class ContainerList(ModelListView):
     model = Container
     display_items = ['container_type', 'batch_code', 'intake_date', 'supplier']
     order_by = 'container_type__name'
+    icon = 'fa-jar'
 
     def dispatch(self, request, *args, **kwargs):
         self.view_finished = bool(self.request.GET.get('finished'))

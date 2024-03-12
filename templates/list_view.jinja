@@ -1,8 +1,28 @@
 {% extends 'auth.jinja' %}
 
-{% from 'macros.jinja' import paginator %}
+{% from 'macros.jinja' import paginator, render_form %}
 
 {% block content %}
+  {% if filter_form %}
+    <div class="accordion mt-3 mb-2" id="accordion-filter-wrapper">
+      <div class="accordion-item">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#filter-accordion">
+            <span class="fa fa-filter text-primary"></span>&nbsp;Filter items
+          </button>
+        </h3>
+        <div id="filter-accordion" class="accordion-collapse collapse {% if start_filter_form_open %}show{% endif %}" data-bs-parent="#accordion-filter-wrapper">
+          <div class="accordion-body">
+            <form id="filter-form">
+              {{ render_form(filter_form) }}
+              <button class="btn btn-secondary mt-2" id="filter-form-submit">Submit</button>
+              <a class="btn btn-secondary mt-2" href="." id="filter-form-submit">Clear</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
   <table class="table table-hover">
     <thead>
       <tr>
@@ -12,17 +32,21 @@
       </tr>
     </thead>
     <tbody>
-      {% for link, details in field_data %}
-        <tr>
-          {%- for field in details -%}
-            {% if loop.index == 1 %}
-              <td><a class="fw-semibold" href="{{ link }}">{{ field }}</a></td>
-            {% else %}
-              <td>{{ field }}</td>
-            {%- endif -%}
-          {% endfor %}
-        </tr>
-      {% endfor %}
+      {% if field_data %}
+        {% for link, details in field_data %}
+          <tr>
+            {%- for field in details -%}
+              {% if loop.index == 1 %}
+                <td><a class="fw-semibold" href="{{ link }}">{{ field }}</a></td>
+              {% else %}
+                <td>{{ field }}</td>
+              {%- endif -%}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="{{ field_names | length }}">No {{ view.get_title() }} found</td></tr>
+      {% endif %}
     </tbody>
   </table>
   {{ paginator(page_obj, get_without_page) }}

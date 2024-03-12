@@ -1,13 +1,16 @@
 import datetime
 from functools import partial
+from typing import Iterator
 
 from django.conf import settings
 from django.contrib.auth import user_logged_in
 from django.contrib.auth.views import LoginView
+from django.db.models import QuerySet
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.views import View
 from django.views.generic import CreateView, FormView, ListView as DjListView, TemplateView, UpdateView
@@ -198,12 +201,50 @@ def display_dt(dt):
 class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
     template_name = 'list_view.jinja'
     model = None
+    filter_form = None
+    filter_info = None
     paginate_by = 40
+
+    @cached_property
+    def _mutable_get_args(self):
+        """
+        Returns a mutable copy of the GET args so that we can use them to render the filtered form, and pass them into
+        the view so that pagination works with filters.
+        """
+        args = self.request.GET.copy()
+        args._mutable = True
+        args.pop('page', None)
+        query_params = {}
+        for key, value in args.lists():
+            if not value or value == ['']:
+                continue
+            if len(value) > 1:
+                query_params[key] = value
+            else:
+                query_params[key] = value[0]
+        return query_params
+
+    @cached_property
+    def _propped_filter_form(self):
+        # Only want to render the search form if we need to.
+        if self.filter_form and self._mutable_get_args:
+            return self.filter_form(request=self.request, data=self.request.GET)
+
+    def get_queryset(self) -> QuerySet:
+        qs = super().get_queryset()
+        if self._propped_filter_form:
+            self._propped_filter_form.full_clean()
+            if self._propped_filter_form.is_valid():
+                return qs.filter(**self._propped_filter_form.filter_kwargs()).distinct()
+            else:
+                return self.model.objects.none()
+        else:
+            return qs
 
     def get_button_menu(self):
         yield {'name': f'Add new {self.model._meta.verbose_name}', 'url': reverse(f'{self.model.prefix()}-add')}
 
-    def get_field_data(self, object_list: list):
+    def get_field_data(self, object_list: list) -> Iterator[tuple[str, list]]:
         for obj in object_list:
             yield obj.get_absolute_url(), self.get_display_values(obj, self.get_display_items())
 
@@ -212,9 +253,16 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        if self.filter_form:
+            filter_form = self.filter_form(request=self.request, data=self._mutable_get_args)
+            filter_form.set_layout()
+            ctx.update(
+                filter_form=filter_form,
+                start_filter_form_open=self._propped_filter_form and self._propped_filter_form.filter_kwargs(),
+            )
         ctx.update(
             field_names=self.get_display_labels(self.get_display_items()),
-            field_data=self.get_field_data(ctx['object_list']),
+            field_data=list(self.get_field_data(ctx['object_list'])),
         )
         return ctx
 
@@ -227,7 +275,7 @@ class ObjMixin:
 
 class _SVFormView(DisplayHelpers):
     template_name = 'form_view.jinja'
-    cancel_url = NotImplemented
+    cancel_url = None
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

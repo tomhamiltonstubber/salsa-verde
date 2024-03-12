@@ -6,7 +6,6 @@ $(document).ready(() => {
   }
   init_select2()
   init_dt_pickers()
-  init_formsets()
   init_input_groups()
   init_product_add_form()
 
@@ -34,22 +33,34 @@ function init_dt_pickers() {
     const $el = $(el)
     const $input = $el.find('input')
     const $init = $('#initial-' + $input.attr('id'))
-    new tempusDominus.TempusDominus(el, {
-      defaultDate: new Date(Date.parse($init.val())),
+    let opts = {
       localization: {
         format: 'dd/MM/yyyy HH:mm'
+      },
+      display: {
+        buttons: {clear: true},
+        components: {clock: $input.data('format') === 'datetime'},
       }
-    })
-    $el.click().click()
+    }
+    if ($init.val()) {
+      opts.defaultDate = new Date(Date.parse($init.val()))
+    } else if (!$input.data('start-empty')) {
+      opts.useCurrent = true
+    }
+    new tempusDominus.TempusDominus(el, opts)
+    if (!opts.defaultDate && !$input.data('start-empty')) {
+      $el.click().click()
+    }
   })
 }
 
 function init_select2 () {
-  try {
-    $('select').not('.select2-offscreen').not('[id*=__prefix__]').select2({allowClear: true, placeholder: '---------', theme: 'bootstrap-5'})
-  } catch (e) {
-    // this seems to happen occasionally when something has gone wrong, ignore it
-  }
+  $('select').not('.select2-offscreen').not('[id*=__prefix__]').each((i, el) => {
+    const $el = $(el)
+    const is_required = $("label[for='" + $el.attr('id') + "']").hasClass('required')
+    let opts = {allowClear: !is_required, placeholder: is_required ? null : '---------', theme: 'bootstrap-5'}
+    $el.select2(opts)
+  })
 }
 
 function init_confirm_follow () {
@@ -133,37 +144,6 @@ function init_ef_form() {
   check_county_choices($region.val())
 }
 
-function init_formsets () {
-  $('.formsets-form .formset-form').each((i, el) => {
-    $(el).formset({
-      formTemplate: '#id_empty_' + el.dataset.formset_id,
-      addCssClass: 'btn btn-outline-primary',
-      deleteCssClass: 'btn btn-danger',
-      addText: 'Add another',
-      deleteText:'Remove',
-      prefix: el.dataset.prefix,
-      added: () => {
-        init_select2()
-        hide_extra_buttons()
-      },
-    })
-    let hide_buttons_declared = false
-
-    const hide_extra_buttons = () => {
-      if (!hide_buttons_declared) {
-        $('.dynamic-form').each((i, el) => {
-          const $els = $(el).find('.btn-danger')
-          if ($els.length === 2) {
-            $($els[0]).hide()
-          }
-        })
-        hide_buttons_declared = true
-      }
-    }
-    hide_extra_buttons()
-  })
-}
-
 function init_input_groups () {
   const $inputs = $('input[input-group-label-lu]')
   $inputs.each((i, el) => {
@@ -229,7 +209,7 @@ function init_product_add_form() {
         $quantity_label.appendTo($quantity_wrapper)
 
         const $quantity_input_wrapper = $('<div></div>').attr('class', 'input-group')
-        const $quantity_input = $('<input></input>')
+        const $quantity_input = $('<input>')
           .attr('type', 'number')
           .attr('name', `ingredient_quantity_${i}`)
           .attr('class', 'form-control')
