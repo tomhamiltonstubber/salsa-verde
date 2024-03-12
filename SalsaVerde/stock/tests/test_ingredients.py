@@ -102,7 +102,7 @@ class IngredientListTestCase(SVTestCase):
         self.assertContains(r, 'Blackberries123')
         self.assertNotContains(r, 'Apples123')
 
-        r = self.client.get(self.url + f'?ingredient_type=11111111')
+        r = self.client.get(self.url + '?ingredient_type=11111111')
         self.assertNotContains(r, 'Blackberries123')
         self.assertNotContains(r, 'Apples123')
 
@@ -128,7 +128,7 @@ class IngredientListTestCase(SVTestCase):
         self.assertNotContains(r, 'Blackberries123')
         self.assertContains(r, 'Apples123')
 
-        r = self.client.get(self.url + f'?supplier=11111111')
+        r = self.client.get(self.url + '?supplier=11111111')
         self.assertNotContains(r, 'Blackberries123')
         self.assertNotContains(r, 'Apples123')
 

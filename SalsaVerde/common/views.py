@@ -235,7 +235,6 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
         if self._propped_filter_form:
             self._propped_filter_form.full_clean()
             if self._propped_filter_form.is_valid():
-                self.filter_info = list(self._propped_filter_form.display_filter())
                 return qs.filter(**self._propped_filter_form.filter_kwargs()).distinct()
             else:
                 return self.model.objects.none()
@@ -257,11 +256,13 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
         if self.filter_form:
             filter_form = self.filter_form(request=self.request, data=self._mutable_get_args)
             filter_form.set_layout()
-            ctx['filter_form'] = filter_form
+            ctx.update(
+                filter_form=filter_form,
+                start_filter_form_open=self._propped_filter_form and self._propped_filter_form.filter_kwargs(),
+            )
         ctx.update(
             field_names=self.get_display_labels(self.get_display_items()),
             field_data=list(self.get_field_data(ctx['object_list'])),
-            filter_form=self.filter_form(),
         )
         return ctx
 
@@ -274,7 +275,7 @@ class ObjMixin:
 
 class _SVFormView(DisplayHelpers):
     template_name = 'form_view.jinja'
-    cancel_url = NotImplemented
+    cancel_url = None
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

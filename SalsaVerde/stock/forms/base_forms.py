@@ -1,11 +1,7 @@
 from datetime import date, datetime
-from typing import Any
 
 from django import forms
-from django.db.models import QuerySet, Q
 from django.utils import timezone
-
-from SalsaVerde.settings import DT_FORMAT
 
 from SalsaVerde.stock.widgets import DateTimePicker
 
@@ -76,12 +72,19 @@ class SVFilterForm(SVFormMixin, forms.ModelForm):
             field.required = False
             if isinstance(field, forms.DateTimeField):
                 fields_to_pop.append(field_name)
-                fields_to_add[f'{field_name}_from'] = forms.DateTimeField(required=False, label=field.label)
-                fields_to_add[f'{field_name}_to'] = forms.DateTimeField(required=False, label=field.label)
+                dt_field = forms.DateTimeField(required=False, label=field.label)
+                fields_to_add[f'{field_name}_from'] = dt_field
+                fields_to_add[f'{field_name}_to'] = dt_field
         for field_name in fields_to_pop:
             self.fields.pop(field_name)
         self.fields.update(fields_to_add)
         self._prepare_fields()
+
+    def _prepare_fields(self):
+        super()._prepare_fields()
+        for _, field in self.fields.items():
+            if isinstance(field.widget, forms.DateTimeInput):
+                field.widget = DateTimePicker(field, start_empty=True)
 
     def filter_kwargs(self) -> dict:
         query_kwargs = {}
@@ -96,30 +99,3 @@ class SVFilterForm(SVFormMixin, forms.ModelForm):
                 else:
                     query_kwargs[key] = value
         return query_kwargs
-
-    def _display_filter_value(self, k: str, v: Any) -> tuple[str, str]:
-        field = self.fields[k]
-        choices = getattr(field, 'choices', None)
-        if choices is not None:
-            choices = {k.value if hasattr(k, 'value') else k: v for k, v in choices}
-        if choices and isinstance(v, (int, str)):
-            choices = dict(choices)
-            try:
-                val = choices[v]
-            except KeyError:
-                val = choices[int(v)]
-        elif isinstance(v, date):
-            val = date.strftime(v, DT_FORMAT)
-        else:
-            val = v
-        return field.label, val
-
-    def display_filter(self):
-        for k, value in self.cleaned_data.items():
-            if not value or not self.fields[k].label:
-                continue
-            if isinstance(value, (QuerySet, list, tuple)):
-                for v in value:
-                    yield self._display_filter_value(k, v)
-            else:
-                yield self._display_filter_value(k, value)

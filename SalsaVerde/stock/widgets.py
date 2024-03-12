@@ -13,10 +13,12 @@ DT_OUTER_PICKER_HTML = """\
 class DateTimePicker(widgets.DateTimeInput):
     format = 'DD/MM/YYYY HH:MM'
 
-    def __init__(self, field):
+    def __init__(self, field, start_empty=False, format='datetime'):
         self._is_datetime = False
         assert isinstance(field, DateTimeField)
-        attrs = {'data-type': 'datetime', 'data-format': self.format}
+        attrs = {'data-type': format, 'data-format': self.format}
+        if start_empty:
+            attrs['data-start-empty'] = 'true'
         formats = [settings.DT_FORMAT]
         self._is_datetime = True
         super().__init__(attrs, self.format)

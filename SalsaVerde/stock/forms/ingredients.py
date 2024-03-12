@@ -2,7 +2,7 @@ import json
 
 from django import forms
 
-from SalsaVerde.stock.forms.base_forms import SVModelForm, SVFilterForm
+from SalsaVerde.stock.forms.base_forms import SVFilterForm, SVModelForm
 from SalsaVerde.stock.models import Ingredient, IngredientType
 
 
@@ -59,7 +59,9 @@ class IngredientFilterForm(SVFilterForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['finished'] = forms.ChoiceField(
-            required=True, choices=[(' ', 'Not finished'), ('all', 'All'), ('finished', 'Finished')], initial=None
+            label='Finished',
+            choices=[('not-finished', 'Not finished'), ('all', 'All'), ('finished', 'Finished')],
+            required=False,
         )
 
     def filter_kwargs(self) -> dict:

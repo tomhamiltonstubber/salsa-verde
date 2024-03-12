@@ -33,19 +33,24 @@ function init_dt_pickers() {
     const $el = $(el)
     const $input = $el.find('input')
     const $init = $('#initial-' + $input.attr('id'))
-    let init_dt
-    if ($init.val) {
-      init_dt = new Date(Date.parse($init.val()))
-    } else {
-      init_dt = new Date()
-    }
-    new tempusDominus.TempusDominus(el, {
-      // defaultDate: init_dt,
+    let opts = {
       localization: {
         format: 'dd/MM/yyyy HH:mm'
+      },
+      display: {
+        buttons: {clear: true},
+        components: {clock: $input.data('format') === 'datetime'},
       }
-    })
-    $el.click().click()
+    }
+    if ($init.val()) {
+      opts.defaultDate = new Date(Date.parse($init.val()))
+    } else if (!$input.data('start-empty')) {
+      opts.useCurrent = true
+    }
+    new tempusDominus.TempusDominus(el, opts)
+    if (!opts.defaultDate && !$input.data('start-empty')) {
+      $el.click().click()
+    }
   })
 }
 
@@ -53,7 +58,8 @@ function init_select2 () {
   $('select').not('.select2-offscreen').not('[id*=__prefix__]').each((i, el) => {
     const $el = $(el)
     const is_required = $("label[for='" + $el.attr('id') + "']").hasClass('required')
-    $el.select2({allowClear: !is_required, placeholder: is_required ? '---------' : null, theme: 'bootstrap-5'})
+    let opts = {allowClear: !is_required, placeholder: is_required ? null : '---------', theme: 'bootstrap-5'}
+    $el.select2(opts)
   })
 }
 
