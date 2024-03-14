@@ -23,7 +23,11 @@ class UpdateContainerTypeForm(SVModelForm):
 
 
 class ContainerForm(SVModelForm):
-    intake_notes = forms.CharField(widget=forms.Textarea({'rows': 2, 'class': 'resize-vertical-only'}), required=False)
+    intake_notes = forms.CharField(
+        widget=forms.Textarea({'rows': 2, 'class': 'resize-vertical-only'}),
+        required=False,
+        help_text='Any notes about the intake of this ingredient',
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

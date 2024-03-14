@@ -51,6 +51,15 @@ body {
   }
 }
 
+.card-body .table {
+  margin-bottom: 0;
+  tr:last-child td {
+    border-bottom-left-radius: $border-radius;
+    border-bottom-right-radius: $border-radius;
+    border-bottom: none;
+  }
+}
+
 /* Forms */
 
 textarea.resize-vertical-only {
@@ -61,6 +70,11 @@ textarea.resize-vertical-only {
   .checkbox {
     padding-top: $font-size-base;
     margin-top: 0.3rem;
+  }
+  .help-block {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #555;
   }
   &.has-error {
     .form-control, .input-group-text {
@@ -74,6 +88,9 @@ textarea.resize-vertical-only {
   }
   .form-control {
     background-color: white;
+  }
+  .control-label {
+    font-weight: bold;
   }
 }
 
@@ -145,15 +162,6 @@ textarea.resize-vertical-only {
     #login-form {
       display: inline-grid;
     }
-  }
-}
-
-#ingredients_form {
-  .control-label {
-    display: none;
-  }
-  tbody>tr>td {
-    width: 15%;
   }
 }
 
