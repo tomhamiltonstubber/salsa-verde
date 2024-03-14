@@ -3,15 +3,15 @@
     exclude = [
         '*/migrations/*',
     ]
-    ignore = ['E402']
 
 [tool.ruff.format]
     quote-style = 'single'
 
 [tool.ruff.lint]
     extend-select = ['I']
+    ignore = ['E402']
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
     combine-as-imports = true
 
 [tool.pytest]

@@ -43,7 +43,7 @@ ProductTypeSizesFormSet = forms.inlineformset_factory(
 
 
 class ProductIngredientForm(SVModelForm):
-    title = 'Ingredients'
+    title = 'Raw Ingredients'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

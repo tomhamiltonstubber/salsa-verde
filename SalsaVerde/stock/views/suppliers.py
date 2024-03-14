@@ -35,7 +35,7 @@ class SupplierDetails(DetailView):
     def extra_display_items(self):
         return [
             {
-                'title': 'Supplied Ingredients',
+                'title': 'Supplied Raw Ingredients',
                 'qs': self.object.ingredients.all(),
                 'fields': [('Ingredient', 'name'), 'batch_code', 'quantity', 'intake_date'],
             },

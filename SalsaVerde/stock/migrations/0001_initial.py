@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -108,8 +107,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                'verbose_name': 'Ingredient Type',
-                'verbose_name_plural': 'Ingredients Types',
+                'verbose_name': 'Raw Ingredient Type',
+                'verbose_name_plural': 'Raw Ingredients Types',
                 'ordering': ('name',),
             },
         ),
@@ -309,7 +308,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='ingredients',
                 to='stock.IngredientType',
-                verbose_name='Ingredient Type',
+                verbose_name='Raw Ingredient Type',
             ),
         ),
         migrations.AddField(
@@ -427,7 +426,7 @@ class Migration(migrations.Migration):
                         choices=[('bottle', 'Bottle'), ('cap', 'Cap'), ('other', 'Container')],
                         default='bottle',
                         max_length=255,
-                        verbose_name='Container Type',
+                        verbose_name='Packaging Type',
                     ),
                 ),
                 (
@@ -438,8 +437,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                'verbose_name': 'Container Type',
-                'verbose_name_plural': 'Container Types',
+                'verbose_name': 'Packaging Type',
+                'verbose_name_plural': 'Packaging Types',
             },
         ),
         migrations.AddField(

@@ -47,13 +47,13 @@ class Setup(ExtraContentView):
                 'add_url': reverse('product-types-add'),
             },
             {
-                'title': 'Ingredient Types',
+                'title': 'Raw Ingredient Types',
                 'qs': IngredientType.objects.request_qs(self.request),
                 'fields': ['name', 'unit'],
                 'add_url': reverse('ingredient-types-add'),
             },
             {
-                'title': 'Container Types',
+                'title': 'Packaging Types',
                 'qs': ContainerType.objects.request_qs(self.request),
                 'fields': ['name', 'size', 'type'],
                 'add_url': reverse('container-types-add'),

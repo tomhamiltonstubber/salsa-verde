@@ -80,7 +80,7 @@ class SupplierTestCase(SVTestCase):
             ingredient_type__unit=IngredientType.UNIT_LITRE,
         )
         r = self.client.get(reverse('suppliers-details', args=[supplier.pk]))
-        self.assertContains(r, 'Supplied Ingredients')
+        self.assertContains(r, 'Supplied Raw Ingredients')
         self.assertContains(r, 'blackberries')
         self.assertContains(r, 'foo123')
         self.assertContains(r, '10 litres')

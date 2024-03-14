@@ -19,7 +19,7 @@ class IngredientList(ModelListView):
         return qs
 
     def get_button_menu(self):
-        yield {'name': 'Record ingredients intake', 'url': reverse('ingredient-add'), 'icon': 'fa-plus'}
+        yield {'name': 'Record raw ingredients intake', 'url': reverse('ingredient-add'), 'icon': 'fa-plus'}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
