@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'SalsaVerde.staticfiles',
     'django.contrib.staticfiles',
     'django_extensions',
     'bootstrapform_jinja',
