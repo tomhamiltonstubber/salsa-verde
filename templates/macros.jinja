@@ -13,40 +13,45 @@
     </div>
     <div class="card-body">
       <table class="table table-striped">
-        <thead>
-          <tr>
-            {% for field in obj.field_names %}
-              <th>{{ field }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for link, details in obj.field_vals %}
+        {% if obj.field_vals %}
+          <thead>
             <tr>
-              {%- for field in details -%}
-                {% if loop.index == 1 %}
-                  <td>
-                    {% if link %}
-                      <a href="{{ link }}">{{ field }}</a>
-                    {% else %}
-                      {{ field }}
-                    {% endif %}
-                  </td>
-                {% else %}
-                  <td>{{ field }}</td>
-                {%- endif -%}
+              {% for field in obj.field_names %}
+                <th>{{ field }}</th>
               {% endfor %}
             </tr>
-          {% endfor %}
-        </tbody>
+          </thead>
+          <tbody>
+            {% for link, details in obj.field_vals %}
+              <tr>
+                {%- for field in details -%}
+                  {% if loop.index == 1 %}
+                    <td>
+                      {% if link %}
+                        <a href="{{ link }}">{{ field }}</a>
+                      {% else %}
+                        {{ field }}
+                      {% endif %}
+                    </td>
+                  {% else %}
+                    <td>{{ field }}</td>
+                  {%- endif -%}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        {% else %}
+          <tr><td>No linked items<td></tr>
+        {% endif %}
       </table>
     </div>
   </div>
 {% endmacro %}
 
 {% macro render_form(form) %}
-  {% if form.layout %}
-    {% for line in form.layout %}
+  {% set layout = form.get_layout() %}
+  {% if layout %}
+    {% for line in layout %}
       <div class="row">
         {% for field, width in line %}
           <div class="col-md-{{ width }}">

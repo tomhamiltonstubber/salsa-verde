@@ -255,7 +255,7 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
         ctx = super().get_context_data(**kwargs)
         if self.filter_form:
             filter_form = self.filter_form(request=self.request, data=self._mutable_get_args)
-            filter_form.set_layout()
+            # filter_form.set_layout()
             ctx.update(
                 filter_form=filter_form,
                 start_filter_form_open=self._propped_filter_form and self._propped_filter_form.filter_kwargs(),
@@ -328,19 +328,20 @@ class ExtraContentView(ModelBasicView):
 
     def _get_extra_content(self):
         for item in self.extra_display_items():
+            _extra_content = {
+                'title': item['title'],
+                'add_url': item.get('add_url'),
+                'icon': item.get('icon'),
+            }
             if item['qs'].exists():
                 objects = list(item['qs'])[:20]
-                yield {
-                    'title': item['title'],
-                    'field_names': self.get_display_labels(item['fields'], obj=item['qs'][0]),
-                    'field_vals': [
+                _extra_content.update(
+                    field_names=self.get_display_labels(item['fields'], obj=item['qs'][0]),
+                    field_vals=[
                         (self.get_absolute_url(obj), self.get_display_values(obj, item['fields'])) for obj in objects
                     ],
-                    'add_url': item.get('add_url'),
-                    'icon': item.get('icon'),
-                }
-            elif item.get('add_url'):
-                yield {'title': item['title'], 'add_url': item['add_url']}
+                )
+            yield _extra_content
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(extra_content=self._get_extra_content(), **kwargs)

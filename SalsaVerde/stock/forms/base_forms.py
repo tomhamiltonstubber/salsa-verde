@@ -11,6 +11,7 @@ class SVFormMixin:
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         self._prepare_fields()
+        # self.set_layout()
 
     def _prepare_fields(self):
         for field_name, field in self.fields.items():
@@ -19,7 +20,7 @@ class SVFormMixin:
             elif isinstance(field, forms.ModelChoiceField) and self.request:
                 field.queryset = field.queryset.request_qs(self.request)
 
-    def set_layout(self):
+    def get_layout(self) -> list[list[tuple[forms.BoundField, int]]]:
         if hasattr(self, 'Meta') and (layout := getattr(self.Meta, 'layout', None)):
             organised_lines = []
             for line in layout:
@@ -36,7 +37,7 @@ class SVFormMixin:
                         width = field_name[1]
                     organised_line.append((field, int(width)))
                 organised_lines.append(organised_line)
-            self.layout = organised_lines
+            return organised_lines
 
 
 class SVForm(SVFormMixin, forms.Form):

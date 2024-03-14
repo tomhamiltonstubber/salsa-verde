@@ -16,10 +16,10 @@ def change_ingredient_status(request, pk):
 
 
 class IngredientAdd(AddModelView):
-    success_url = reverse_lazy('ingredients')
     form_class = IngredientForm
     model = Ingredient
-    title = 'Intake Ingredient'
+    cancel_url = reverse_lazy('ingredients')
+    title = 'Add Raw Ingredient'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -33,7 +33,7 @@ ingredient_add = IngredientAdd.as_view()
 class IngredientEdit(UpdateModelView):
     model = Ingredient
     form_class = IngredientForm
-    title = 'Edit Ingredient'
+    title = 'Edit Raw Ingredient'
 
 
 ingredient_edit = IngredientEdit.as_view()

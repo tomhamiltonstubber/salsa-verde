@@ -88,20 +88,45 @@ class Ingredient(BaseModel):
     objects = IngredientQuerySet.as_manager()
 
     ingredient_type = models.ForeignKey(
-        IngredientType, verbose_name='Raw ingredient type', related_name='ingredients', on_delete=models.CASCADE
+        IngredientType,
+        verbose_name='Raw ingredient type',
+        related_name='ingredients',
+        on_delete=models.CASCADE,
+        help_text='The type of raw ingredient',
     )
-    batch_code = models.CharField('Batch Code', max_length=25)
+    batch_code = models.CharField(
+        'Batch Code', max_length=25, help_text='The batch code of the raw ingredient on intake'
+    )
     supplier = models.ForeignKey(
-        Supplier, verbose_name='Supplier', related_name='ingredients', null=True, on_delete=models.SET_NULL
+        Supplier,
+        verbose_name='Supplier',
+        related_name='ingredients',
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text='The supplier of the raw ingredient',
     )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    finished = models.BooleanField('Finished', default=False)
+    quantity = models.DecimalField(
+        'Quantity', max_digits=25, decimal_places=3, help_text='The quantity of the raw ingredient on intake'
+    )
+    finished = models.BooleanField(
+        'Finished', default=False, help_text='Whether the raw ingredient has been completely used'
+    )
 
-    intake_notes = models.TextField('Intake Notes', null=True, blank=True)
-    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
-    intake_date = models.DateTimeField('Intake date', default=timezone.now)
+    intake_notes = models.TextField(
+        'Intake Notes', null=True, blank=True, help_text='Any notes pertaining to the raw ingredient intake'
+    )
+    intake_user = models.ForeignKey(
+        User,
+        verbose_name='Intake Recipient',
+        on_delete=models.CASCADE,
+        null=True,
+        help_text='The user who received the raw ingredient',
+    )
+    intake_date = models.DateTimeField(
+        'Intake date', default=timezone.now, help_text='The date of the raw ingredient intake'
+    )
 
     def get_absolute_url(self):
         return reverse('ingredients-details', kwargs={'pk': self.pk})
@@ -159,20 +184,43 @@ class Container(BaseModel):
     objects = ContainerQuerySet.as_manager()
 
     container_type = models.ForeignKey(
-        ContainerType, verbose_name='Packaging type', related_name='containers', on_delete=models.CASCADE
+        ContainerType,
+        verbose_name='Packaging type',
+        related_name='containers',
+        on_delete=models.CASCADE,
+        help_text='The type of packaging',
     )
-    batch_code = models.CharField('Batch Code', max_length=25)
+    batch_code = models.CharField('Batch Code', max_length=25, help_text='The batch code of the packaging on intake')
     supplier = models.ForeignKey(
-        Supplier, verbose_name='Supplier', related_name='containers', null=True, on_delete=models.SET_NULL
+        Supplier,
+        verbose_name='Supplier',
+        related_name='containers',
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text='The supplier of the packaging',
     )
     intake_quality_check = models.BooleanField('Accept goods', default=False)
     intake_quality_check.help_text = 'Goods are free from damage and pests'
-    quantity = models.DecimalField('Quantity', max_digits=25, decimal_places=3)
-    finished = models.BooleanField('Finished', default=False)
+    quantity = models.DecimalField(
+        'Quantity', max_digits=25, decimal_places=3, help_text='The quantity of the packaging on intake'
+    )
+    finished = models.BooleanField(
+        'Finished', default=False, help_text='Whether the packaging has been completely used'
+    )
 
-    intake_notes = models.TextField('Intake Notes', null=True, blank=True)
-    intake_user = models.ForeignKey(User, verbose_name='Intake Recipient', on_delete=models.CASCADE, null=True)
-    intake_date = models.DateTimeField('Intake date', default=timezone.now)
+    intake_notes = models.TextField(
+        'Intake Notes', null=True, blank=True, help_text='Any notes pertaining to the packaging intake'
+    )
+    intake_user = models.ForeignKey(
+        User,
+        verbose_name='Intake Recipient',
+        on_delete=models.CASCADE,
+        null=True,
+        help_text='The user who received the packaging',
+    )
+    intake_date = models.DateTimeField(
+        'Intake date', default=timezone.now, help_text='The date of the packaging intake'
+    )
 
     @classmethod
     def prefix(cls):

@@ -152,7 +152,13 @@ function init_input_groups () {
     const $parent = $el.parent()
     $parent.addClass('input-group')
     const $span = $('<span>').addClass('input-group-text').text('Units')
-    $span.appendTo($parent)
+    const $helpblock = $parent.find('.help-block')
+    if ($helpblock.length > 0) {
+      $span.appendTo($parent)
+      $helpblock.appendTo($parent.parent())
+    } else {
+      $span.appendTo($parent)
+    }
 
     const id_label_lu = JSON.parse($el.attr($el.attr('input-group-label-lu')))
     const linked_input = $('#' + $el.attr('linked-input-id'))

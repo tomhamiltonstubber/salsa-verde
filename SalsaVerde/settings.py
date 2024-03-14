@@ -33,7 +33,13 @@ BASE_DIR = os.path.dirname(DJ_DIR)
 SECRET_KEY = os.getenv('SECRET_KEY', 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck(')
 
 
-DEBUG = os.getenv('DEBUG', False)
+try:
+    from localsettings import DEBUG  # noqa
+
+    DEBUG = DEBUG or os.getenv('DEBUG', False)
+except ImportError:
+    DEBUG = False
+
 LIVE = os.getenv('LIVE')
 TESTING = os.getenv('TESTING', False)
 
