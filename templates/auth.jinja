@@ -3,7 +3,9 @@
 {% block nav %}
 <nav class="navbar navbar-expand-lg w-100">
   <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center link-body-emphasis fw-bold text-primary-dark" href="/">Salsa Verde</a>
+    <a class="navbar-brand d-flex align-items-center link-body-emphasis fw-bold text-primary-dark" href="/">
+      <span class="fa fa-leaf"></span>&nbsp;Salsa Verde
+    </a>
     <ul class="nav nav-pills">
       {% for name, icon, link, is_active in nav_links %}
         <li class="nav-item">
