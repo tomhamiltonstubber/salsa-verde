@@ -180,9 +180,9 @@ def get_nav_menu(request):
     return [
         ('Orders', 'store', reverse('orders-list'), 'orders' in active_path),
         ('Products', 'bottle-droplet', reverse('products'), 'products' in active_path),
-        ('Containers', 'jar', reverse('containers'), 'containers' in active_path),
+        ('Packaging', 'jar', reverse('containers'), 'containers' in active_path),
         ('Suppliers', 'tractor', reverse('suppliers'), 'suppliers' in active_path),
-        ('Ingredients', 'apple-whole', reverse('ingredients'), 'ingredients' in active_path),
+        ('Raw Ingredients', 'apple-whole', reverse('ingredients'), 'ingredients' in active_path),
         # ('Documents', 'document', reverse('documents'), 'documents' in active_path),
         ('Users', 'user', reverse('users'), 'users' in active_path),
         ('Setup', 'gear', reverse('setup'), 'setup' in active_path),

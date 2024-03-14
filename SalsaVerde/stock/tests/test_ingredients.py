@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.urls import reverse
@@ -57,7 +57,7 @@ class IngredientListTestCase(SVTestCase):
 
     def test_ingredient_list_empty(self):
         r = self.client.get(self.url)
-        self.assertContains(r, 'No Ingredients found')
+        self.assertContains(r, 'No Raw Ingredients found')
 
     def test_ingredient_list(self):
         IngredientFactory(batch_code='foo123', quantity=10, ingredient_type=self.ingredient_type)
@@ -131,6 +131,107 @@ class IngredientListTestCase(SVTestCase):
         r = self.client.get(self.url + '?supplier=11111111')
         self.assertNotContains(r, 'Blackberries123')
         self.assertNotContains(r, 'Apples123')
+
+    def test_ingredient_list_filter_intake_user(self):
+        user_2 = UserFactory(company=self.company)
+        IngredientFactory(
+            batch_code='Blackberry123',
+            quantity=10,
+            ingredient_type=self.ingredient_type,
+            intake_user=self.user,
+        )
+        IngredientFactory(
+            batch_code='Apple123',
+            quantity=10,
+            ingredient_type=self.ingredient_type,
+            intake_user=user_2,
+        )
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        r = self.client.get(self.url + f'?intake_user={self.user.pk}')
+        self.assertContains(r, 'Blackberry123')
+        self.assertNotContains(r, 'Apple123')
+
+        r = self.client.get(self.url + f'?intake_user={user_2.pk}')
+        self.assertNotContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        r = self.client.get(self.url + '?intake_user=11111111')
+        self.assertNotContains(r, 'Blackberry123')
+        self.assertNotContains(r, 'Apple123')
+
+    def test_ingredient_list_filter_intake_date(self):
+        intake_date_1 = datetime(2018, 2, 10)
+        intake_date_2 = datetime(2018, 2, 20)
+        IngredientFactory(
+            batch_code='Blackberry123',
+            quantity=10,
+            ingredient_type=self.ingredient_type,
+            intake_date=intake_date_1,
+        )
+        IngredientFactory(
+            batch_code='Apple123',
+            quantity=10,
+            ingredient_type=self.ingredient_type,
+            intake_date=intake_date_2,
+        )
+        r = self.client.get(self.url)
+        self.assertContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        # First check up to the end of the last day
+        r = self.client.get(self.url + f'?intake_date_to={intake_date_2}')
+        self.assertContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        # Now check up to the start of the first day
+        r = self.client.get(self.url + f'?intake_date_from={intake_date_1}')
+        self.assertContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        # Now up to the 11th
+        r = self.client.get(self.url + f'?intake_date_to={intake_date_1 + timedelta(days=1)}')
+        self.assertContains(r, 'Blackberry123')
+        self.assertNotContains(r, 'Apple123')
+
+        # Now from the 11th
+        r = self.client.get(self.url + f'?intake_date_from={intake_date_1 + timedelta(days=1)}')
+        self.assertNotContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        # Now from the 11th to the 19th
+        r = self.client.get(
+            self.url
+            + f'?intake_date_from={intake_date_1 + timedelta(days=1)}&intake_date_to={intake_date_2 - timedelta(days=1)}'
+        )
+        self.assertNotContains(r, 'Blackberry123')
+        self.assertNotContains(r, 'Apple123')
+
+        # Now from the 11th to the 21st
+        r = self.client.get(
+            self.url
+            + f'?intake_date_from={intake_date_1 + timedelta(days=1)}&intake_date_to={intake_date_2 + timedelta(days=1)}'
+        )
+        self.assertNotContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
+
+        # Now from the 9th to the 19th
+        r = self.client.get(
+            self.url
+            + f'?intake_date_from={intake_date_1 - timedelta(days=1)}&intake_date_to={intake_date_2 - timedelta(days=1)}'
+        )
+        self.assertContains(r, 'Blackberry123')
+        self.assertNotContains(r, 'Apple123')
+
+        # Now from the 9th to the 21st
+        r = self.client.get(
+            self.url
+            + f'?intake_date_from={intake_date_1 - timedelta(days=1)}&intake_date_to={intake_date_2 + timedelta(days=1)}'
+        )
+        self.assertContains(r, 'Blackberry123')
+        self.assertContains(r, 'Apple123')
 
 
 class IngredientTestCase(SVTestCase):

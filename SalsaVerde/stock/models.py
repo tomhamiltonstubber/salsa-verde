@@ -69,8 +69,8 @@ class IngredientType(CompanyNameBaseModel):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Ingredient Type'
-        verbose_name_plural = 'Ingredients Types'
+        verbose_name = 'Raw Ingredient Type'
+        verbose_name_plural = 'Raw Ingredients Types'
 
 
 class IngredientQuerySet(QuerySet):
@@ -88,7 +88,7 @@ class Ingredient(BaseModel):
     objects = IngredientQuerySet.as_manager()
 
     ingredient_type = models.ForeignKey(
-        IngredientType, verbose_name='Ingredient Type', related_name='ingredients', on_delete=models.CASCADE
+        IngredientType, verbose_name='Raw ingredient type', related_name='ingredients', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
     supplier = models.ForeignKey(
@@ -122,8 +122,8 @@ class Ingredient(BaseModel):
 
     class Meta:
         ordering = ('ingredient_type__name',)
-        verbose_name = 'Ingredient'
-        verbose_name_plural = 'Ingredients'
+        verbose_name = 'Raw Ingredient'
+        verbose_name_plural = 'Raw Ingredients'
 
 
 class ContainerType(CompanyNameBaseModel):
@@ -136,7 +136,7 @@ class ContainerType(CompanyNameBaseModel):
         (TYPE_OTHER, 'Container'),
     )
     size = models.DecimalField('Size', max_digits=25, null=True, blank=True, decimal_places=3)
-    type = models.CharField('Container Type', choices=TYPE_CONTAINERS, max_length=255, default=TYPE_BOTTLE)
+    type = models.CharField('Packaging Type', choices=TYPE_CONTAINERS, max_length=255, default=TYPE_BOTTLE)
 
     @classmethod
     def prefix(cls):
@@ -146,8 +146,8 @@ class ContainerType(CompanyNameBaseModel):
         return reverse('container-types-details', kwargs={'pk': self.pk})
 
     class Meta:
-        verbose_name = 'Container Type'
-        verbose_name_plural = 'Container Types'
+        verbose_name = 'Packaging Type'
+        verbose_name_plural = 'Packaging Types'
 
 
 class ContainerQuerySet(QuerySet):
@@ -159,7 +159,7 @@ class Container(BaseModel):
     objects = ContainerQuerySet.as_manager()
 
     container_type = models.ForeignKey(
-        ContainerType, verbose_name='Container', related_name='containers', on_delete=models.CASCADE
+        ContainerType, verbose_name='Packaging type', related_name='containers', on_delete=models.CASCADE
     )
     batch_code = models.CharField('Batch Code', max_length=25)
     supplier = models.ForeignKey(
@@ -192,8 +192,8 @@ class Container(BaseModel):
         return self.container_type.name
 
     class Meta:
-        verbose_name = 'Container'
-        verbose_name_plural = 'Containers'
+        verbose_name = 'Packaging'
+        verbose_name_plural = 'Packaging'
 
 
 class YieldContainerQuerySet(QuerySet):
