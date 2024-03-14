@@ -33,7 +33,7 @@ BASE_DIR = os.path.dirname(DJ_DIR)
 SECRET_KEY = os.getenv('SECRET_KEY', 'r1chysd-n#p8rb)#e*0)mt66+5*1qcmian=3$j)@^6dpj8=ck(')
 
 
-DEBUG = os.getenv('DEBUG', True)
+DEBUG = os.getenv('DEBUG', False)
 LIVE = os.getenv('LIVE')
 TESTING = os.getenv('TESTING', False)
 
@@ -67,10 +67,11 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'SalsaVerde.stock.middleware.AuthRequiredMiddleware',
-    'SalsaVerde.common.profiling.middleware.profiling_middleware' if DEBUG or TESTING else None,
 ]
 if DEBUG:
-    extra_middleware = ('SalsaVerde.common.profiling.middleware.profiling_middleware',)
+    MIDDLEWARE += [
+        'SalsaVerde.common.profiling.middleware.profiling_middleware',
+    ]
 
 ROOT_URLCONF = 'SalsaVerde.urls'
 
