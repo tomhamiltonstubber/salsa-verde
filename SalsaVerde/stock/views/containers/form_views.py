@@ -18,8 +18,8 @@ def change_container_status(request, pk):
 class ContainersAdd(AddModelView):
     model = Container
     form_class = ContainerForm
-    success_url = cancel_url = reverse_lazy('containers')
-    title = 'Add Container'
+    cancel_url = reverse_lazy('containers')
+    title = 'Add Packaging'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -33,7 +33,7 @@ container_add = ContainersAdd.as_view()
 class ContainerEdit(UpdateModelView):
     model = Container
     form_class = ContainerForm
-    title = 'Edit Container'
+    title = 'Edit Packaging'
 
 
 containers_edit = ContainerEdit.as_view()

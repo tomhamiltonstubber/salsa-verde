@@ -45,7 +45,6 @@ class ContainerForm(SVModelForm):
             'container_type',
             'quantity',
             'batch_code',
-            'intake_quality_check',
             'intake_notes',
             'intake_user',
             'intake_date',
@@ -54,7 +53,7 @@ class ContainerForm(SVModelForm):
             ['intake_date', 'intake_user'],
             ['container_type', 'quantity'],
             ['supplier', 'batch_code'],
-            [('intake_notes', 9), 'intake_quality_check'],
+            ['intake_notes'],
         ]
 
 

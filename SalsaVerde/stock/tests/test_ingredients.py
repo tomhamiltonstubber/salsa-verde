@@ -255,18 +255,16 @@ class IngredientTestCase(SVTestCase):
             'quantity': 10,
             'batch_code': '123abc',
             'supplier': self.supplier.pk,
-            'intake_quality_check': True,
         }
         r = self.client.post(self.add_url, data=data)
-        self.assertRedirects(r, reverse('ingredients'))
-
         ingred = Ingredient.objects.get()
+        self.assertRedirects(r, reverse('ingredients-details', args=[ingred.pk]))
+
         assert ingred.ingredient_type == self.ingredient_type
         assert ingred.batch_code == '123abc'
         assert ingred.quantity == 10
         assert ingred.supplier == self.supplier
         assert ingred.intake_notes == 'Foobar'
-        assert ingred.intake_quality_check
 
         r = self.client.get(reverse('ingredients-details', args=[ingred.pk]))
         self.assertContains(r, 'Foobar')
@@ -304,7 +302,6 @@ class IngredientTestCase(SVTestCase):
             'quantity': 10,
             'batch_code': '123abc',
             'supplier': self.supplier.pk,
-            'intake_quality_check': True,
         }
         r = self.client.post(reverse('ingredients-edit', args=[ingredient.pk]), data=data)
         self.assertRedirects(r, reverse('ingredients-details', args=[ingredient.pk]))
@@ -315,7 +312,6 @@ class IngredientTestCase(SVTestCase):
         assert ingredient.quantity == 10
         assert ingredient.supplier == self.supplier
         assert ingredient.intake_notes == 'Foobar'
-        assert ingredient.intake_quality_check
 
     def test_delete_ingredient(self):
         ing = IngredientFactory(ingredient_type=self.ingredient_type, supplier=self.supplier)

@@ -42,7 +42,6 @@ class IngredientForm(SVModelForm):
             'ingredient_type',
             'quantity',
             'batch_code',
-            'intake_quality_check',
             'intake_notes',
             'intake_user',
             'intake_date',
@@ -51,7 +50,7 @@ class IngredientForm(SVModelForm):
             ['intake_date', 'intake_user'],
             ['ingredient_type', 'quantity'],
             ['supplier', 'batch_code'],
-            [('intake_notes', 9), 'intake_quality_check'],
+            ['intake_notes'],
         ]
 
 

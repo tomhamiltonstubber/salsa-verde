@@ -255,7 +255,7 @@ class ModelListView(QuerySetMixin, DisplayHelpers, DjListView):
         ctx = super().get_context_data(**kwargs)
         if self.filter_form:
             filter_form = self.filter_form(request=self.request, data=self._mutable_get_args)
-            filter_form.set_layout()
+            # filter_form.set_layout()
             ctx.update(
                 filter_form=filter_form,
                 start_filter_form_open=self._propped_filter_form and self._propped_filter_form.filter_kwargs(),

@@ -86,18 +86,16 @@ class ContainerTestCase(SVTestCase):
             'quantity': 10,
             'batch_code': '123abc',
             'supplier': self.supplier.pk,
-            'intake_quality_check': True,
         }
         r = self.client.post(self.add_url, data=data)
-        self.assertRedirects(r, reverse('containers'))
-
         container = Container.objects.get()
+        self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
+
         assert container.container_type == self.container_type
         assert container.batch_code == '123abc'
         assert container.quantity == 10
         assert container.supplier == self.supplier
         assert container.intake_notes == 'Foobar'
-        assert container.intake_quality_check
 
         r = self.client.get(reverse('containers-details', args=[container.pk]))
         self.assertContains(r, 'Foobar')
@@ -114,7 +112,6 @@ class ContainerTestCase(SVTestCase):
             'quantity': 10,
             'batch_code': '123abc',
             'supplier': self.supplier.pk,
-            'intake_quality_check': True,
         }
         r = self.client.post(reverse('containers-edit', args=[container.pk]), data=data)
         self.assertRedirects(r, reverse('containers-details', args=[container.pk]))
@@ -125,7 +122,6 @@ class ContainerTestCase(SVTestCase):
         assert container.quantity == 10
         assert container.supplier == self.supplier
         assert container.intake_notes == 'Foobar'
-        assert container.intake_quality_check
 
     def test_delete_container(self):
         con = ContainerFactory(container_type=self.container_type)
