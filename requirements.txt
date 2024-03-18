@@ -1,4 +1,4 @@
-Django==4.2.9
+Django==4.2.11
 grablib[build]==0.8
 boto3==1.34.12
 dj-database-url==2.1.0
